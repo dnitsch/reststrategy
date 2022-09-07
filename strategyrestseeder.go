@@ -12,33 +12,20 @@ import (
 
 // StrategyConfig defines top level
 type StrategyConfig struct {
-	AuthConfig Auth                   `yaml:"auth"`
-	Seeders    map[string]rest.Action `yaml:"seed"`
+	AuthConfig rest.AuthConfig `yaml:"auth"`
+	Seeders    Seeders         `yaml:"seed"`
 }
 
-// Auth holds the auth strategy for
-type Auth struct {
-	AuthStrategy AuthType `yaml:"type"`
-	username     string   `yaml:"username"`
-	password     string   `yaml:"password"`
-}
+type Seeders map[string]rest.Action
 
 type StrategyFunc func(ctx context.Context, action *rest.Action, rest *rest.SeederImpl) error
-
-type AuthType string
 
 type StrategyType string
 
 const (
-	Basic        AuthType = "basicAuth"
-	OAuth        AuthType = "oAuthClientCredentials"
-	BasicToToken AuthType = "basicToToken"
-)
-
-const (
 	GET_POST         StrategyType = "GET/POST"
 	FIND_POST        StrategyType = "FIND/POST"
-	POST_PUT         StrategyType = "POST/PUT"
+	PUT_POST         StrategyType = "PUT/POST"
 	GET_PUT_POST     StrategyType = "GET/PUT/POST"
 	FIND_PUT_POST    StrategyType = "FIND/PUT/POST"
 	FIND_DELETE      StrategyType = "FIND/DELETE"
@@ -47,7 +34,7 @@ const (
 )
 
 type StrategyRestSeeder struct {
-	Auth     Auth
+	Auth     *rest.AuthConfig
 	Strategy map[StrategyType]StrategyFunc
 	rest     *rest.SeederImpl
 	actions  []rest.Action
@@ -68,7 +55,7 @@ func New() *StrategyRestSeeder {
 		rest: r, // &rest.SeederImpl{client: &http.Client{}},
 		Strategy: map[StrategyType]StrategyFunc{
 			PUT:              PutStrategyFunc,
-			POST_PUT:         PutPostStrategyFunc,
+			PUT_POST:         PutPostStrategyFunc,
 			GET_PUT_POST:     GetPutPostStrategyFunc,
 			FIND_PUT_POST:    FindPutPostStrategyFunc,
 			FIND_POST:        FindPostStrategyFunc,
@@ -82,6 +69,21 @@ func New() *StrategyRestSeeder {
 // WithRestClient overwrites the default RestClient
 func (s *StrategyRestSeeder) WithRestClient(rc rest.Client) *StrategyRestSeeder {
 	s.rest = s.rest.WithClient(rc)
+	return s
+}
+
+// WithAuth adds the AuthLogic to the entire seeder
+// NOTE: might make more sense to have a per RestAction authTemplate (might make it very inefficient)
+func (s *StrategyRestSeeder) WithAuth(ra *rest.AuthConfig) *StrategyRestSeeder {
+	httpHeader := &http.Header{}
+	s.Auth = ra
+	s.rest = s.rest.WithAuth(ra)
+	if len(ra.HttpHeaders) > 0 {
+		for k, v := range ra.HttpHeaders {
+			httpHeader.Add(k, v)
+		}
+	}
+	s.rest = s.rest.WithHeader(httpHeader)
 	return s
 }
 
@@ -104,7 +106,7 @@ func (s *StrategyRestSeeder) WithActions(actions map[string]rest.Action) *Strate
 
 // Execute the built actions list
 // TODO: create a custom error object
-func (s *StrategyRestSeeder) Execute() []error {
+func (s *StrategyRestSeeder) Execute(ctx context.Context) []error {
 	var errs []error
 	// assign each action to method
 	s.log.Debugf("actions: %v", s.actions)
@@ -113,7 +115,7 @@ func (s *StrategyRestSeeder) Execute() []error {
 	// else send to fixed size channel goroutine
 	for _, action := range s.actions {
 		if fn, ok := s.Strategy[StrategyType(action.Strategy)]; ok {
-			e := fn(context.TODO(), &action, s.rest)
+			e := fn(ctx, &action, s.rest)
 			if e != nil {
 				errs = append(errs, e)
 			}
@@ -124,17 +126,21 @@ func (s *StrategyRestSeeder) Execute() []error {
 	return errs
 }
 
-// PutStrategyFunc
+// PutStrategyFunc calls a PUT endpoint fails if an error occurs
+// useful when there is a known Id of a resource and PUT supports creation
 func PutStrategyFunc(ctx context.Context, action *rest.Action, rest *rest.SeederImpl) error {
 	return rest.Put(ctx, action)
 }
 
-// PutPostStrategyFunc known id to update
+// PutPostStrategyFunc is useful when the resource is created a user specified Id
+// the PUT endpoint DOES NOT support a creation of the resource. PUT should throw a 4XX
+// for the POST fallback to take effect
 func PutPostStrategyFunc(ctx context.Context, action *rest.Action, rest *rest.SeederImpl) error {
 	return rest.PutPost(ctx, action)
 }
 
-// FindPutPostStrategyFunc unknown ID and only know a name or other indicator
+// FindPutPostStrategyFunc is useful when the resource Id is unknown i.e. handled by the system.
+// providing a pathExpression will evaluate the response.
 // the pathExpression must not evaluate to an empty string in order to for the PUT to be called
 // else POST will be called as item was not present
 func FindPutPostStrategyFunc(ctx context.Context, action *rest.Action, rest *rest.SeederImpl) error {
@@ -148,9 +154,10 @@ func GetPutPostStrategyFunc(ctx context.Context, action *rest.Action, rest *rest
 	return rest.GetPutPost(ctx, action)
 }
 
-// FindDeletePostStrategyFunc
+// FindDeletePostStrategyFunc is useful for when you cannot update a resource
+// but it can be safely destroyed an recreated
 func FindDeletePostStrategyFunc(ctx context.Context, action *rest.Action, rest *rest.SeederImpl) error {
-	return nil
+	return rest.FindDeletePost(ctx, action)
 }
 
 // FindPostStrategyFunc strategy calls a GET endpoint and if item ***FOUND it does NOT do a POST***

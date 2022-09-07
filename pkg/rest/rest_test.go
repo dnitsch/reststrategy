@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net/http"
@@ -13,15 +14,22 @@ import (
 )
 
 func Test_getSeeder(t *testing.T) {
+
 	tests := []struct {
 		name   string
 		action *Action
 		rimpl  *SeederImpl
+		auth   *AuthConfig
+		header *http.Header
+		client Client
 		expect string
 	}{
 		{
-			name:  "getRestFunc",
-			rimpl: &SeederImpl{client: &http.Client{}, log: log.New(os.Stdout, log.DebugLvl)},
+			name:   "getRestFunc",
+			auth:   &AuthConfig{AuthStrategy: Basic, Username: "foo", Password: "bar"},
+			header: &http.Header{},
+			client: &http.Client{},
+			rimpl:  &SeederImpl{},
 			action: &Action{
 				PayloadTemplate:    "{}",
 				Strategy:           "GET/POST",
@@ -33,7 +41,9 @@ func Test_getSeeder(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
+			file, _ := os.OpenFile(os.DevNull, os.O_RDWR, 0777)
+			l := log.New(file, log.DebugLvl)
+			tt.rimpl.WithAuth(tt.auth).WithHeader(tt.header).WithLogger(l).WithClient(tt.client)
 			err := tt.rimpl.GetPost(context.TODO(), tt.action)
 			if err != nil {
 				t.Errorf("failed %s", err)
@@ -115,7 +125,7 @@ func Test_findByPathExpression(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &SeederImpl{log: log.New(os.Stderr, log.DebugLvl), client: &http.Client{}}
+			r := &SeederImpl{log: log.New(&bytes.Buffer{}, log.DebugLvl), client: &http.Client{}}
 			got, err := r.findPathByExpression(tt.payload, tt.pathExpression)
 			if err != nil {
 				if tt.expErr {
@@ -143,14 +153,14 @@ func Test_templatePayload(t *testing.T) {
 	}{
 		{
 			name:      "global only",
-			rest:      &SeederImpl{log: log.New(os.Stderr, log.DebugLvl), client: &http.Client{}},
+			rest:      &SeederImpl{log: log.New(&bytes.Buffer{}, log.ErrorLvl), client: &http.Client{}},
 			payload:   `{"foo":"${bar}","BAZ":"$FUZZ"}`,
 			variables: map[string]any{},
 			expect:    `{"foo":"","BAZ":"BOO"}`,
 		},
 		{
 			name:      "global + injected",
-			rest:      &SeederImpl{log: log.New(os.Stderr, log.DebugLvl), client: &http.Client{}},
+			rest:      &SeederImpl{log: log.New(&bytes.Buffer{}, log.ErrorLvl), client: &http.Client{}},
 			payload:   `{"foo":"${bar}","BAZ":"$FUZZ"}`,
 			variables: map[string]any{"bar": "hoo"},
 			expect:    `{"foo":"hoo","BAZ":"BOO"}`,

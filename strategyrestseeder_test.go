@@ -194,20 +194,24 @@ func Test_Execute(t *testing.T) {
 	tests := []struct {
 		name             string
 		srs              func(t *testing.T) *StrategyRestSeeder
-		authConfig       *rest.AuthConfig
+		authConfig       *rest.AuthMap
 		expectErrorCount int
 		seeders          Seeders
 	}{
 		{
 			name: "OAuth find put post rest calls",
-			authConfig: &rest.AuthConfig{
-				AuthStrategy: rest.OAuth,
-				Username:     "randClientIdOrUsernameForBasicAuth",
-				Password:     "randClientSecretOrPassExpr",
-				OAuth: &rest.ConfigOAuth{
-					OAuthSendParamsInHeader: false,
+			authConfig: &rest.AuthMap{
+				"oauth2-test": {
+					AuthStrategy: rest.OAuth,
+					Username:     "randClientIdOrUsernameForBasicAuth",
+					Password:     "randClientSecretOrPassExpr",
+					OAuth: &rest.ConfigOAuth{
+						OAuthSendParamsInHeader: false,
+						ServerUrl:               fmt.Sprintf("%s/token", ts.URL),
+						Scopes:                  []string{"foo", "bar"},
+						EndpointParams:          map[string][]string{"params": {"baz", "boom"}},
+					},
 				},
-				HttpHeaders: map[string]string{"X-Foo": "bar"},
 			},
 			seeders: Seeders{
 				"get-put-post-found": {
@@ -220,6 +224,7 @@ func Test_Execute(t *testing.T) {
 					PayloadTemplate:    `{"value": "$foo"}`,
 					Variables:          map[string]any{"foo": "bar"},
 					RuntimeVars:        &map[string]string{"someId": "$.array[?(@.name=='fubar')].id"},
+					AuthMapRef:         "oauth2-test",
 				},
 				"find-put-post-found": {
 					Strategy:           string(FIND_PUT_POST),
@@ -231,6 +236,7 @@ func Test_Execute(t *testing.T) {
 					FindByJsonPathExpr: "$.array[?(@.name=='fubar')].id",
 					PayloadTemplate:    `{"value": "$foo"}`,
 					Variables:          map[string]any{"foo": "bar"},
+					AuthMapRef:         "oauth2-test",
 					RuntimeVars:        &map[string]string{"someId": "$.array[?(@.name=='fubar')].id"},
 				},
 				"find-put-post-empty-not-found": {
@@ -243,6 +249,7 @@ func Test_Execute(t *testing.T) {
 					FindByJsonPathExpr: "$.array[?(@.name=='fubar')].id",
 					PayloadTemplate:    `{"value": "$foo"}`,
 					Variables:          map[string]any{"foo": "bar"},
+					AuthMapRef:         "oauth2-test",
 					RuntimeVars:        &map[string]string{"someId": "$.array[?(@.name=='fubar')].id"},
 				},
 				"find-put-post-bad-request": {
@@ -255,6 +262,7 @@ func Test_Execute(t *testing.T) {
 					FindByJsonPathExpr: "$.array[?(@.name=='fubar')].id",
 					PayloadTemplate:    `{"value": "$foo"}`,
 					Variables:          map[string]any{"foo": "bar"},
+					AuthMapRef:         "oauth2-test",
 					RuntimeVars:        &map[string]string{"someId": "$.array[?(@.name=='fubar')].id"},
 				},
 			},
@@ -265,14 +273,12 @@ func Test_Execute(t *testing.T) {
 		},
 		{
 			name: "BasicAuth calls PUT",
-			authConfig: &rest.AuthConfig{
-				AuthStrategy: rest.Basic,
-				Username:     "randClientIdOrUsernameForBasicAuth",
-				Password:     "randClientSecretOrPassExpr",
-				OAuth: &rest.ConfigOAuth{
-					OAuthSendParamsInHeader: false,
+			authConfig: &rest.AuthMap{
+				"basic-test": {
+					AuthStrategy: rest.Basic,
+					Username:     "randClientIdOrUsernameForBasicAuth",
+					Password:     "randClientSecretOrPassExpr",
 				},
-				HttpHeaders: map[string]string{"X-Foo": "bar"},
 			},
 			seeders: Seeders{
 				"put": {
@@ -284,6 +290,7 @@ func Test_Execute(t *testing.T) {
 					PutEndpointSuffix:  rest.String("/put/id-1234"),
 					PayloadTemplate:    `{"value": "$foo"}`,
 					Variables:          map[string]any{"foo": "bar"},
+					AuthMapRef:         "basic-test",
 				},
 				"put-post-found": {
 					Strategy:           string(PUT_POST),
@@ -294,6 +301,7 @@ func Test_Execute(t *testing.T) {
 					PutEndpointSuffix:  rest.String("/put/id-1234"),
 					PayloadTemplate:    `{"id": "id-1234","value": "$foo"}`,
 					Variables:          map[string]any{"foo": "bar"},
+					AuthMapRef:         "basic-test",
 				},
 				"put-post-empty-not-found": {
 					Strategy:           string(PUT_POST),
@@ -303,6 +311,7 @@ func Test_Execute(t *testing.T) {
 					PutEndpointSuffix:  rest.String("/put/id-1234?simulate_resp=not_found"),
 					PayloadTemplate:    `{"id": "id-1234", "value": "$foo"}`,
 					Variables:          map[string]any{"foo": "bar"},
+					AuthMapRef:         "basic-test",
 				},
 				"put-bad-request": {
 					Strategy:           string(PUT_POST),
@@ -312,6 +321,7 @@ func Test_Execute(t *testing.T) {
 					PutEndpointSuffix:  rest.String("/put/id-1234?simulate_resp=bad_request"),
 					PayloadTemplate:    `{"id": "id-1234", "value": "$foo"}`,
 					Variables:          map[string]any{"foo": "bar"},
+					AuthMapRef:         "basic-test",
 				},
 				"put-server-error": {
 					Strategy:           string(PUT_POST),
@@ -321,6 +331,7 @@ func Test_Execute(t *testing.T) {
 					PutEndpointSuffix:  rest.String("/put/id-1234?simulate_resp=error"),
 					PayloadTemplate:    `{"value": "$foo"}`,
 					Variables:          map[string]any{"foo": "bar"},
+					AuthMapRef:         "basic-test",
 				},
 			},
 			expectErrorCount: 1,
@@ -329,15 +340,22 @@ func Test_Execute(t *testing.T) {
 			},
 		},
 		{
-			name: "BasicAuth calls find-delete-post",
-			authConfig: &rest.AuthConfig{
-				AuthStrategy: rest.Basic,
-				Username:     "randClientIdOrUsernameForBasicAuth",
-				Password:     "randClientSecretOrPassExpr",
-				OAuth: &rest.ConfigOAuth{
-					OAuthSendParamsInHeader: false,
+			name: "Mix BasicAuth and OAuth calls find-delete-post",
+			authConfig: &rest.AuthMap{
+				"oauth2-test": {
+					AuthStrategy: rest.OAuth,
+					Username:     "randClientIdOrUsernameForBasicAuth",
+					Password:     "randClientSecretOrPassExpr",
+					OAuth: &rest.ConfigOAuth{
+						OAuthSendParamsInHeader: false,
+						ServerUrl:               fmt.Sprintf("%s/token", ts.URL),
+					},
 				},
-				HttpHeaders: map[string]string{"X-Foo": "bar"},
+				"basic-test": {
+					AuthStrategy: rest.Basic,
+					Username:     "randClientIdOrUsernameForBasicAuth",
+					Password:     "randClientSecretOrPassExpr",
+				},
 			},
 			seeders: Seeders{
 				"not-found-do-post": {
@@ -350,6 +368,8 @@ func Test_Execute(t *testing.T) {
 					FindByJsonPathExpr:   "$.array[?(@.name=='fubar')].id",
 					PayloadTemplate:      `{"value": "$foo"}`,
 					Variables:            map[string]any{"foo": "bar"},
+					AuthMapRef:           "oauth2-test",
+					HttpHeaders:          &map[string]string{"X-Foo": "bar"},
 				},
 				"found-do-delete-then-post": {
 					Strategy:             string(FIND_DELETE_POST),
@@ -361,6 +381,7 @@ func Test_Execute(t *testing.T) {
 					FindByJsonPathExpr:   "$.array[?(@.name=='fubar')].id",
 					PayloadTemplate:      `{"value": "$foo"}`,
 					Variables:            map[string]any{"foo": "bar"},
+					AuthMapRef:           "basic-test",
 				},
 				"found-do-delete-then-post-error": {
 					Strategy:             string(FIND_DELETE_POST),
@@ -372,6 +393,7 @@ func Test_Execute(t *testing.T) {
 					FindByJsonPathExpr:   "$.array[?(@.name=='fubar')].id",
 					PayloadTemplate:      `{"value": "$foo"}`,
 					Variables:            map[string]any{"foo": "bar"},
+					AuthMapRef:           "oauth2-test",
 				},
 			},
 			expectErrorCount: 1,
@@ -385,7 +407,6 @@ func Test_Execute(t *testing.T) {
 
 			logW := &bytes.Buffer{}
 			_srs := tt.srs(t)
-			tt.authConfig.OAuth.ServerUrl = fmt.Sprintf("%s/token", ts.URL)
 
 			_srs.WithActions(tt.seeders).WithAuth(tt.authConfig).WithLogger(logW, log.DebugLvl)
 			// ctx, cancel := context.WithCancel(context.TODO())
@@ -403,10 +424,6 @@ func Test_Execute(t *testing.T) {
 					t.Error(e)
 				}
 			}
-			// capturedLogs, _ := io.ReadAll(logW)
-			// if len(capturedLogs) < 1 {
-			// 	t.Error("error failed to capture any logs")
-			// }
 		})
 	}
 }

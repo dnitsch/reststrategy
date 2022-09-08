@@ -23,7 +23,7 @@ type Client interface {
 type SeederImpl struct {
 	log    log.Loggeriface
 	client Client
-	auth   *authMap
+	auth   *actionAuthMap
 }
 
 // TODO: change this for an interface
@@ -63,7 +63,7 @@ type Action struct {
 	PayloadTemplate      string             `yaml:"payloadTemplate"`
 	Variables            map[string]any     `yaml:"variables"`
 	RuntimeVars          *map[string]string `yaml:"runtimeVars,omitempty"`
-	AuthMapRef           string             `yamls:"authMapRef"`
+	AuthMapRef           string             `yaml:"authMapRef"`
 	HttpHeaders          *map[string]string `yaml:"httpHeaders,omitempty"`
 }
 

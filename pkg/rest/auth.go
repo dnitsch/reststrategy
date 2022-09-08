@@ -32,13 +32,7 @@ type AuthConfig struct {
 
 type AuthMap map[string]AuthConfig
 
-// type Auth map[string]struct {
-// 	config           AuthMap
-// 	oAuthConfig      *clientcredentials.Config
-// 	basicAuthToToken string
-// }
-
-// Auth holds the auth strategy for each seeder
+// auth holds the auth strategy for each Action
 type auth struct {
 	authStrategy AuthType
 	oAuthConfig  *clientcredentials.Config
@@ -58,10 +52,10 @@ type basicToToken struct {
 	headerValFmt string
 }
 
-type authMap map[string]auth
+type actionAuthMap map[string]auth
 
-func NewAuth(am *AuthMap) *authMap {
-	ac := authMap{}
+func NewAuth(am *AuthMap) *actionAuthMap {
+	ac := actionAuthMap{}
 	for k, v := range *am {
 		a := auth{}
 		a.authStrategy = v.AuthStrategy

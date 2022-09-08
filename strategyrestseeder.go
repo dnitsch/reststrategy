@@ -75,13 +75,6 @@ func (s *StrategyRestSeeder) WithRestClient(rc rest.Client) *StrategyRestSeeder 
 // NOTE: might make more sense to have a per RestAction authTemplate (might make it very inefficient)
 func (s *StrategyRestSeeder) WithAuth(ra *rest.AuthMap) *StrategyRestSeeder {
 	s.rest = s.rest.WithAuth(ra)
-	// httpHeader := &http.Header{}
-	// if len(ra.HttpHeaders) > 0 {
-	// 	for k, v := range ra.HttpHeaders {
-	// 		httpHeader.Add(k, v)
-	// 	}
-	// }
-	// s.rest = s.rest.WithHeader(httpHeader)
 	return s
 }
 

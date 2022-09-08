@@ -4,6 +4,7 @@ import "fmt"
 
 type Diagnostic struct {
 	Status          int
+	Name            string
 	Message         string
 	HostPathMethod  string
 	ProceedFallback bool
@@ -12,9 +13,10 @@ type Diagnostic struct {
 
 func (d *Diagnostic) Error() string {
 	return fmt.Sprintf(`status: %d
+name: %s
 message: %s
 hostPathMethod: %s
-isRetryAble: %v`, d.Status, d.Message, d.HostPathMethod, d.ProceedFallback)
+isRetryAble: %v`, d.Status, d.Name, d.Message, d.HostPathMethod, d.ProceedFallback)
 }
 
 func (d *Diagnostic) WithMessage(m string) *Diagnostic {

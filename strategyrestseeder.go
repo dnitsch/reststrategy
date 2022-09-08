@@ -12,8 +12,8 @@ import (
 
 // StrategyConfig defines top level
 type StrategyConfig struct {
-	AuthConfig rest.AuthConfig `yaml:"auth"`
-	Seeders    Seeders         `yaml:"seed"`
+	AuthConfig rest.AuthMap `yaml:"auth"`
+	Seeders    Seeders      `yaml:"seed"`
 }
 
 type Seeders map[string]rest.Action
@@ -34,7 +34,6 @@ const (
 )
 
 type StrategyRestSeeder struct {
-	Auth     *rest.AuthConfig
 	Strategy map[StrategyType]StrategyFunc
 	rest     *rest.SeederImpl
 	actions  []rest.Action
@@ -74,16 +73,15 @@ func (s *StrategyRestSeeder) WithRestClient(rc rest.Client) *StrategyRestSeeder 
 
 // WithAuth adds the AuthLogic to the entire seeder
 // NOTE: might make more sense to have a per RestAction authTemplate (might make it very inefficient)
-func (s *StrategyRestSeeder) WithAuth(ra *rest.AuthConfig) *StrategyRestSeeder {
-	httpHeader := &http.Header{}
-	s.Auth = ra
+func (s *StrategyRestSeeder) WithAuth(ra *rest.AuthMap) *StrategyRestSeeder {
 	s.rest = s.rest.WithAuth(ra)
-	if len(ra.HttpHeaders) > 0 {
-		for k, v := range ra.HttpHeaders {
-			httpHeader.Add(k, v)
-		}
-	}
-	s.rest = s.rest.WithHeader(httpHeader)
+	// httpHeader := &http.Header{}
+	// if len(ra.HttpHeaders) > 0 {
+	// 	for k, v := range ra.HttpHeaders {
+	// 		httpHeader.Add(k, v)
+	// 	}
+	// }
+	// s.rest = s.rest.WithHeader(httpHeader)
 	return s
 }
 
@@ -99,7 +97,7 @@ func (s *StrategyRestSeeder) WithLogger(w io.Writer, lvl log.LogLevel) *Strategy
 func (s *StrategyRestSeeder) WithActions(actions map[string]rest.Action) *StrategyRestSeeder {
 	for k, v := range actions {
 		a := v
-		s.actions = append(s.actions, *a.WithName(k))
+		s.actions = append(s.actions, *a.WithName(k).WithHeader())
 	}
 	return s
 }

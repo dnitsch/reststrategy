@@ -23,7 +23,6 @@ type Client interface {
 type SeederImpl struct {
 	log    log.Loggeriface
 	client Client
-	header *http.Header
 	auth   *authMap
 }
 
@@ -35,20 +34,6 @@ func (r *SeederImpl) WithClient(c Client) *SeederImpl {
 
 func (r *SeederImpl) WithLogger(l log.Loggeriface) *SeederImpl {
 	r.log = l
-	return r
-}
-
-// WithHeader allows the overwrite of default Accept and Content-Type headers
-// both default to `application/json`
-func (r *SeederImpl) WithHeader(header *http.Header) *SeederImpl {
-	h := &http.Header{}
-	h.Add("Accept", "application/json")
-	h.Add("Content-Type", "application/json")
-
-	for k, _ := range *header {
-		h.Add(k, header.Get(k))
-	}
-	r.header = h
 	return r
 }
 
@@ -66,6 +51,7 @@ type Action struct {
 	name                 string             `yaml:"-"`
 	templatedPayload     string             `yaml:"-"`
 	foundId              string             `yaml:"-"`
+	header               *http.Header       `yaml:"-"`
 	Strategy             string             `yaml:"strategy"`
 	Order                *int               `yaml:"order,omitempty"`
 	Endpoint             string             `yaml:"endpoint"`
@@ -78,7 +64,28 @@ type Action struct {
 	Variables            map[string]any     `yaml:"variables"`
 	RuntimeVars          *map[string]string `yaml:"runtimeVars,omitempty"`
 	AuthMapRef           string             `yamls:"authMapRef"`
-	HttpHeaders          map[string]string  `yaml:"httpHeaders,omitempty"`
+	HttpHeaders          *map[string]string `yaml:"httpHeaders,omitempty"`
+}
+
+// WithHeader allows the overwrite of default Accept and Content-Type headers
+// both default to `application/json` and adding additional header params on
+// per Action basis. NOTE: each rest call inside the action
+// will inherit the same header
+func (a *Action) WithHeader() *Action {
+	suppliedHeader := a.HttpHeaders
+	h := &http.Header{}
+	// set default values
+	h.Add("Accept", "application/json")
+	h.Add("Content-Type", "application/json")
+	// overwrite or add additional header attributes on a per action basis
+	if suppliedHeader != nil {
+		for k, v := range *suppliedHeader {
+			h.Add(k, v)
+		}
+	}
+
+	a.header = h
+	return a
 }
 
 func (a *Action) WithName(name string) *Action {
@@ -100,14 +107,15 @@ func (r *SeederImpl) do(req *http.Request, action *Action) ([]byte, error) {
 	r.log.Debug("starting request")
 	r.log.Debugf("request: %+v", req)
 	respBody := []byte{}
-	req.Header = *r.header
-	diag := &Diagnostic{HostPathMethod: fmt.Sprintf("%s: %s%s?%s", req.Method, req.URL.Host, req.URL.Path, req.URL.RawQuery), ProceedFallback: false, IsFatal: true}
+	req.Header = *action.header
+	diag := &Diagnostic{HostPathMethod: fmt.Sprintf("%s: %s%s?%s", req.Method, req.URL.Host, req.URL.Path, req.URL.RawQuery), Name: action.name, ProceedFallback: false, IsFatal: true}
 
 	resp, err := r.client.Do(r.doAuth(req, action))
 	if err != nil {
 		r.log.Debugf("failed to make network call: %v", err)
 		diag.WithStatus(999) // networkError
 		diag.WithMessage(fmt.Sprintf("failed to make network call: %v", err.Error()))
+		r.log.Debugf("diagnostic: %+v", diag)
 		return nil, diag
 	}
 	defer resp.Body.Close()
@@ -146,7 +154,7 @@ func (r *SeederImpl) doAuth(req *http.Request, action *Action) *http.Request {
 	case OAuth:
 		token, err := currentAuthMap.oAuthConfig.Token(enrichedReq.Context())
 		if err != nil {
-			r.log.Errorf("failed to obtain token: %q", err)
+			r.log.Errorf("failed to obtain token: %v", err)
 		}
 		enrichedReq.Header.Set("Authorization", fmt.Sprintf("%s %s", token.TokenType, token.AccessToken))
 	case BasicToToken:
@@ -169,7 +177,7 @@ func (r *SeederImpl) get(ctx context.Context, action *Action) ([]byte, error) {
 		r.log.Debugf("failed to build request: %v", err)
 	}
 
-	return r.do(req)
+	return r.do(req, action)
 }
 
 func (r *SeederImpl) post(ctx context.Context, action *Action) error {
@@ -183,7 +191,7 @@ func (r *SeederImpl) post(ctx context.Context, action *Action) error {
 		r.log.Error(err)
 	}
 
-	if _, err := r.do(req); err != nil {
+	if _, err := r.do(req, action); err != nil {
 		return err
 	}
 	return nil
@@ -205,7 +213,7 @@ func (r *SeederImpl) put(ctx context.Context, action *Action) error {
 		r.log.Error(err)
 	}
 
-	if _, err := r.do(req); err != nil {
+	if _, err := r.do(req, action); err != nil {
 		return err
 	}
 	return nil
@@ -226,7 +234,7 @@ func (r *SeederImpl) delete(ctx context.Context, action *Action) error {
 		r.log.Error(err)
 	}
 
-	if _, err := r.do(req); err != nil {
+	if _, err := r.do(req, action); err != nil {
 		return err
 	}
 	return nil

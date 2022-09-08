@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"testing"
 
 	log "github.com/dnitsch/simplelog"
@@ -19,15 +20,13 @@ func Test_getSeeder(t *testing.T) {
 		name   string
 		action *Action
 		rimpl  *SeederImpl
-		auth   *AuthConfig
-		header *http.Header
+		auth   *AuthMap
 		client Client
 		expect string
 	}{
 		{
 			name:   "getRestFunc",
-			auth:   &AuthConfig{AuthStrategy: Basic, Username: "foo", Password: "bar"},
-			header: &http.Header{},
+			auth:   &AuthMap{"foo": {AuthStrategy: Basic, Username: "foo", Password: "bar"}},
 			client: &http.Client{},
 			rimpl:  &SeederImpl{},
 			action: &Action{
@@ -35,6 +34,23 @@ func Test_getSeeder(t *testing.T) {
 				Strategy:           "GET/POST",
 				Endpoint:           "https://postman-echo.com/get?id=32",
 				FindByJsonPathExpr: "$.args.id",
+				AuthMapRef:         "foo",
+				HttpHeaders:        nil,
+			},
+			expect: "32",
+		},
+		{
+			name:   "getRestFunc",
+			auth:   &AuthMap{"foo": {AuthStrategy: Basic, Username: "foo", Password: "bar"}},
+			client: &http.Client{},
+			rimpl:  &SeederImpl{},
+			action: &Action{
+				PayloadTemplate:    "{}",
+				Strategy:           "GET/POST",
+				Endpoint:           "https://postman-echo.com/get?id=32",
+				FindByJsonPathExpr: "$.args.id",
+				AuthMapRef:         "foo",
+				HttpHeaders:        &map[string]string{"foo": "bar"},
 			},
 			expect: "32",
 		},
@@ -43,14 +59,12 @@ func Test_getSeeder(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			file, _ := os.OpenFile(os.DevNull, os.O_RDWR, 0777)
 			l := log.New(file, log.DebugLvl)
-			tt.rimpl.WithAuth(tt.auth).WithHeader(tt.header).WithLogger(l).WithClient(tt.client)
-			err := tt.rimpl.GetPost(context.TODO(), tt.action)
+			a := tt.action.WithHeader().WithName(tt.name)
+			tt.rimpl.WithAuth(tt.auth).WithLogger(l).WithClient(tt.client)
+			err := tt.rimpl.GetPost(context.TODO(), a)
 			if err != nil {
 				t.Errorf("failed %s", err)
 			}
-			// if v != tt.expect {
-			// 	t.Errorf(testutils.TestPhrase, tt.expect, v)
-			// }
 		})
 	}
 }
@@ -173,6 +187,93 @@ func Test_templatePayload(t *testing.T) {
 			got := tt.rest.templatePayload(tt.payload, tt.variables)
 			if got != tt.expect {
 				t.Errorf(testutils.TestPhrase, tt.expect, got)
+			}
+		})
+	}
+}
+
+func Test_ActionWithHeader(t *testing.T) {
+	tests := []struct {
+		name   string
+		action *Action
+		header *map[string]string
+		expect []string
+	}{
+		{
+			name: "default header",
+			action: &Action{
+				Strategy:             "",
+				Order:                new(int),
+				Endpoint:             "",
+				GetEndpointSuffix:    new(string),
+				PostEndpointSuffix:   new(string),
+				PutEndpointSuffix:    new(string),
+				DeleteEndpointSuffix: new(string),
+				FindByJsonPathExpr:   "",
+				PayloadTemplate:      "",
+				Variables:            map[string]any{},
+				RuntimeVars:          &map[string]string{},
+				AuthMapRef:           "",
+				HttpHeaders:          &map[string]string{},
+			},
+			expect: []string{"Accept", "Content-Type"},
+		},
+		{
+			name: "additional",
+			action: &Action{
+				Strategy:             "",
+				Order:                new(int),
+				Endpoint:             "",
+				GetEndpointSuffix:    new(string),
+				PostEndpointSuffix:   new(string),
+				PutEndpointSuffix:    new(string),
+				DeleteEndpointSuffix: new(string),
+				FindByJsonPathExpr:   "",
+				PayloadTemplate:      "",
+				Variables:            map[string]any{},
+				RuntimeVars:          &map[string]string{},
+				AuthMapRef:           "",
+				HttpHeaders:          &map[string]string{"X-Foo": "bar"},
+			},
+			expect: []string{"Accept", "Content-Type", "X-Foo"},
+		},
+		{
+			name: "additional with custom overwrite",
+			action: &Action{
+				Strategy:             "",
+				Order:                new(int),
+				Endpoint:             "",
+				GetEndpointSuffix:    new(string),
+				PostEndpointSuffix:   new(string),
+				PutEndpointSuffix:    new(string),
+				DeleteEndpointSuffix: new(string),
+				FindByJsonPathExpr:   "",
+				PayloadTemplate:      "",
+				Variables:            map[string]any{},
+				RuntimeVars:          &map[string]string{},
+				AuthMapRef:           "",
+				HttpHeaders:          &map[string]string{"X-Foo": "bar", "Accept": "application/xml"},
+			},
+			expect: []string{"Accept", "Content-Type", "X-Foo"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			a := tt.action
+			got := a.WithHeader()
+			if got.header == nil {
+				t.Error("failed to create local header on Action")
+			}
+			hc := 0
+			for k, _ := range *got.header {
+				if !strings.Contains(fmt.Sprintf("%v", got.header), k) {
+					t.Error("incorrect keys in header")
+				}
+				hc++
+			}
+			if hc != len(tt.expect) {
+				t.Errorf("expected: %v, got: %v", len(tt.expect), hc)
 			}
 		})
 	}

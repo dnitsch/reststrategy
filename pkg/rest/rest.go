@@ -24,7 +24,7 @@ type SeederImpl struct {
 	log    log.Loggeriface
 	client Client
 	header *http.Header
-	auth   *Auth
+	auth   *authMap
 }
 
 // TODO: change this for an interface
@@ -52,8 +52,8 @@ func (r *SeederImpl) WithHeader(header *http.Header) *SeederImpl {
 	return r
 }
 
-func (r *SeederImpl) WithAuth(auth *AuthConfig) *SeederImpl {
-	r.auth = NewAuth(*auth)
+func (r *SeederImpl) WithAuth(auth *AuthMap) *SeederImpl {
+	r.auth = NewAuth(auth)
 	return r
 }
 
@@ -77,6 +77,8 @@ type Action struct {
 	PayloadTemplate      string             `yaml:"payloadTemplate"`
 	Variables            map[string]any     `yaml:"variables"`
 	RuntimeVars          *map[string]string `yaml:"runtimeVars,omitempty"`
+	AuthMapRef           string             `yamls:"authMapRef"`
+	HttpHeaders          map[string]string  `yaml:"httpHeaders,omitempty"`
 }
 
 func (a *Action) WithName(name string) *Action {
@@ -94,14 +96,14 @@ const (
 // do performs all the network calls -
 // each request object is with Context
 // re-use same context with auth implementation
-func (r *SeederImpl) do(req *http.Request) ([]byte, error) {
+func (r *SeederImpl) do(req *http.Request, action *Action) ([]byte, error) {
 	r.log.Debug("starting request")
 	r.log.Debugf("request: %+v", req)
 	respBody := []byte{}
 	req.Header = *r.header
 	diag := &Diagnostic{HostPathMethod: fmt.Sprintf("%s: %s%s?%s", req.Method, req.URL.Host, req.URL.Path, req.URL.RawQuery), ProceedFallback: false, IsFatal: true}
 
-	resp, err := r.client.Do(r.doAuth(req))
+	resp, err := r.client.Do(r.doAuth(req, action))
 	if err != nil {
 		r.log.Debugf("failed to make network call: %v", err)
 		diag.WithStatus(999) // networkError
@@ -135,13 +137,14 @@ func (r *SeederImpl) do(req *http.Request) ([]byte, error) {
 	return respBody, nil
 }
 
-func (r *SeederImpl) doAuth(req *http.Request) *http.Request {
+func (r *SeederImpl) doAuth(req *http.Request, action *Action) *http.Request {
 	enrichedReq := req
-	switch r.auth.config.AuthStrategy {
+	am := *r.auth
+	switch currentAuthMap := am[action.AuthMapRef]; currentAuthMap.authStrategy {
 	case Basic:
-		enrichedReq.SetBasicAuth(r.auth.config.Username, r.auth.config.Password)
+		enrichedReq.SetBasicAuth(currentAuthMap.basicAuth.username, currentAuthMap.basicAuth.password)
 	case OAuth:
-		token, err := r.auth.oAuthConfig.Token(enrichedReq.Context())
+		token, err := currentAuthMap.oAuthConfig.Token(enrichedReq.Context())
 		if err != nil {
 			r.log.Errorf("failed to obtain token: %q", err)
 		}

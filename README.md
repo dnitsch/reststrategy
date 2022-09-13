@@ -14,3 +14,6 @@ Often we are faced with external products/services either self-hosted or SaaS wh
 ## Strategy 
 
 Strategy is a setting against which to perform one or more rest calls to ensure an idempotent update.
+
+
+FIND/PUT/POST

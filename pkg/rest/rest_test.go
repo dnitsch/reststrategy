@@ -75,19 +75,17 @@ func Test_findByPathExpression(t *testing.T) {
 		payload        []byte
 		pathExpression string
 		expect         string
-		expErr         bool
+		expErr         *string
 	}{
 		{
 			name:           "single depth escaped",
 			payload:        []byte(`"{\"args\":{\"id\":\"32\"},\"headers\":{\"x-forwarded-proto\":\"https\",\"x-forwarded-port\":\"443\",\"host\":\"postman-echo.com\",\"x-amzn-trace-id\":\"Root=1-63106cc4-6e8b66b055d278e5613db058\",\"content-length\":\"2\",\"accept\":\"application/json\",\"content-type\":\"application/json\",\"accept-encoding\":\"gzip\",\"user-agent\":\"Go-http-client/2.0\"},\"url\":\"https://postman-echo.com/get?id=32\"}"`),
 			expect:         "32",
-			expErr:         false,
 			pathExpression: "$.args.id",
 		},
 		{
 			name:           "single depth unescaped",
 			payload:        []byte(`{"args":{"id":"32"}}`),
-			expErr:         false,
 			expect:         "32",
 			pathExpression: "$.args.id",
 		},
@@ -99,14 +97,12 @@ func Test_findByPathExpression(t *testing.T) {
 				{"category": "fiction", "author": "Herman Melville", "title": "Moby Dick", "isbn": "0-553-21311-3", "price": 8.99},
 				{"category": "fiction", "author": "J. R. R. Tolkien", "title": "The Lord of the Rings", "isbn": "0-395-19395-8", "price": 22.99}],
 				"bicycle": {"color": "red", "price": 19.95}, "tools": null}}`),
-			expErr:         false,
 			expect:         "The Lord of the Rings",
 			pathExpression: "$.store.book[?(@.author=='J. R. R. Tolkien')].title",
 		},
 		{
 			name:           "lookup int in array",
 			payload:        []byte(`{"items":[{"id":3,"name":"fubar","a":"b","c":"d"},{"id":32,"name":"fubar2","a":"f","c":"h"},{"id":42,"name":"fubar42","a":"i","c":"j"}]}`),
-			expErr:         false,
 			expect:         "3",
 			pathExpression: "$.items[?(@.name=='fubar')].id",
 		},
@@ -118,22 +114,19 @@ func Test_findByPathExpression(t *testing.T) {
 				{"category": "fiction", "author": "Herman Melville", "title": "Moby Dick", "isbn": "0-553-21311-3", "price": 8.99},
 				{"category": "fiction", "author": "J. R. R. Tolkien", "title": "The Lord of the Rings", "isbn": "0-395-19395-8", "price": 22.99}],
 				"bicycle": {"color": "red", "price": 19.95}, "tools": null}}`),
-			expErr:         false,
 			expect:         "22.99",
 			pathExpression: "$.store.book[?(@.author=='J. R. R. Tolkien')].price",
 		},
 		{
 			name:           "lookup object in array - expect error",
 			payload:        []byte(`{"items":[{"id":3,"name":"fubar","object": {"f": "g"},"a":"b","c":"d"},{"id":32,"name":"fubar2","a":"f","c":"h"},{"id":42,"name":"fubar42","a":"i","c":"j"}]}`),
-			expErr:         true,
-			expect:         fmt.Sprintf("cannot use type: %v in further processing - can only be a numeric or string value", ajson.Object),
+			expErr:         String(fmt.Sprintf("cannot use type: %v in further processing - can only be a numeric or string value", ajson.Object)),
 			pathExpression: "$.items[?(@.name=='fubar')].object",
 		},
 		{
 			name:           "lookup null in array - expect error",
 			payload:        []byte(`{"items":[{"id":3,"name":"fubar","null": null,"a":"b","c":"d"},{"id":32,"name":"fubar2","a":"f","c":"h"},{"id":42,"name":"fubar42","a":"i","c":"j"}]}`),
-			expErr:         true,
-			expect:         fmt.Sprintf("cannot use type: %v in further processing - can only be a numeric or string value", ajson.Null),
+			expErr:         String(fmt.Sprintf("cannot use type: %v in further processing - can only be a numeric or string value", ajson.Null)),
 			pathExpression: "$.items[?(@.name=='fubar')].null",
 		},
 	}
@@ -142,17 +135,22 @@ func Test_findByPathExpression(t *testing.T) {
 			r := &SeederImpl{log: log.New(&bytes.Buffer{}, log.DebugLvl), client: &http.Client{}}
 			got, err := r.findPathByExpression(tt.payload, tt.pathExpression)
 			if err != nil {
-				if tt.expErr {
-					if err.Error() != tt.expect {
-						t.Error(err)
+				if tt.expErr != nil {
+					if err.Error() != *tt.expErr {
+						t.Errorf(testutils.TestPhrase, tt.expErr, err)
 					}
 				} else {
 					t.Error(err)
 				}
 			}
-			if !tt.expErr && got != tt.expect {
-				t.Errorf(testutils.TestPhrase, tt.expect, got)
+			if tt.expErr != nil && err.Error() != *tt.expErr {
+				t.Errorf(testutils.TestPhrase, tt.expErr, err)
+			} else {
+				if got != tt.expect {
+					t.Errorf(testutils.TestPhrase, tt.expect, got)
+				}
 			}
+
 		})
 	}
 }

@@ -1,11 +1,15 @@
 name: integration
 
 on:
-  push:
-    branches: [ master ]
+  pull_request:
+    types:
+      - closed
+    branches: 
+      - main
 
 jobs:
-  build:
+  integration:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     container:
       image: golang:1.18-bullseye
@@ -16,5 +20,6 @@ jobs:
       - uses: actions/checkout@v3
       - name: echo REVISION
         run: | 
-          echo "GITHUB_SHA -> $GITHUB_SHA"
           echo "$GITHUB_SHA should match the commit ID of feature branch"
+          echo "github.sha -> ${{ github.sha }}"
+          echo "GITHUB_SHA -> $GITHUB_SHA"

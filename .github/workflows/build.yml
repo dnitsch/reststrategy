@@ -25,14 +25,20 @@ jobs:
           make REVISION=$GITHUB_SHA install
       - name: echo REVISION
         run: | 
-          echo "REVISION -> $REVISION"
+          echo "$GITHUB_SHA should match the commit ID of feature branch"
+          echo "github.sha -> ${{ github.sha }}"
           echo "GITHUB_SHA -> $GITHUB_SHA"
       - name: make test 
         run: |
           make REVISION=$GITHUB_SHA test
-      - name: release library
-        run: make REVISION=$GITHUB_SHA tag
-      - name: release binary
-        run: |
-          make REVISION=$GITHUB_SHA PAT=${{ secrets.GITHUB_TOKEN }} cross-build
-          make REVISION=$GITHUB_SHA PAT=${{ secrets.GITHUB_TOKEN }} release
+      - name: Publish Junit style Test Report
+        uses: mikepenz/action-junit-report@v3
+        if: always() # always run even if the previous step fails
+        with:
+          report_paths: '**/report-junit.xml'
+      # - name: release library
+      #   run: make REVISION=$GITHUB_SHA tag
+      # - name: release binary
+      #   run: |
+      #     make REVISION=$GITHUB_SHA PAT=${{ secrets.GITHUB_TOKEN }} cross-build
+      #     make REVISION=$GITHUB_SHA PAT=${{ secrets.GITHUB_TOKEN }} release

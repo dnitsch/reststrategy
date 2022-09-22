@@ -1,13 +1,12 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"os"
 
-	log "github.com/dnitsch/simplelog"
 	srs "github.com/dnitsch/strategyrestseeder"
+	"github.com/dnitsch/strategyrestseeder/internal/cmdutils"
 	"github.com/dnitsch/strategyrestseeder/internal/config"
 	"github.com/spf13/cobra"
 	yaml "gopkg.in/yaml.v3"
@@ -39,25 +38,16 @@ func init() {
 func runExecute(cmd *cobra.Command, args []string) error {
 
 	strategy := srs.StrategyConfig{}
-	_srs := srs.New().WithRestClient(&http.Client{})
+	s := srs.New().WithRestClient(&http.Client{})
 
 	b, e := os.ReadFile(path)
 	if e != nil {
 		return e
 	}
+
 	if err := yaml.Unmarshal(b, &strategy); err != nil {
 		return err
 	}
-	_srs.WithActions(strategy.Seeders).WithAuth(&strategy.AuthConfig)
 
-	if verbose {
-		_srs.WithLogger(os.Stderr, log.DebugLvl)
-	} else {
-		_srs.WithLogger(os.Stderr, log.ErrorLvl)
-	}
-
-	if e := _srs.Execute(context.TODO()); len(e) > 0 {
-		return fmt.Errorf("%+v", e)
-	}
-	return nil
+	return cmdutils.RunSeed(s, strategy, path, verbose)
 }

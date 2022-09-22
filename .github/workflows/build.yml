@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: golang:1.18-bullseye
+      env:
+        FOO: Bar
+        REVISION: $GITHUB_SHA
+      # ports:
+      #   - 80
+      # volumes:
+      #   - my_docker_volume:/volume_mount
+      # options: --cpus 1
+    steps:
+      - uses: actions/checkout@v3
+      - name: install deps
+        run: |
+          apt update && apt install jq -y
+          make REVISION=$GITHUB_SHA install
+      - name: echo REVISION
+        run: | 
+          echo "REVISION -> $REVISION"
+          echo "GITHUB_SHA -> $GITHUB_SHA"
+      - name: make test 
+        run: |
+          make REVISION=$GITHUB_SHA test
+      - name: release library
+        run: make REVISION=$GITHUB_SHA tag
+      - name: release binary
+        run: |
+          make REVISION=$GITHUB_SHA PAT=${{ secrets.GITHUB_TOKEN }} cross-build
+          make REVISION=$GITHUB_SHA PAT=${{ secrets.GITHUB_TOKEN }} release

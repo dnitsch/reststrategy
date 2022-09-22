@@ -1,0 +1,20 @@
+name: integration
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: golang:1.18-bullseye
+      env:
+        FOO: Bar
+        REVISION: $GITHUB_SHA
+    steps:
+      - uses: actions/checkout@v3
+      - name: echo REVISION
+        run: | 
+          echo "GITHUB_SHA -> $GITHUB_SHA"
+          echo "$GITHUB_SHA should match the commit ID of feature branch"

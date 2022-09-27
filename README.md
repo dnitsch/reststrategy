@@ -72,3 +72,4 @@ runtimeVars:
     someId: "$.array[?(@.name=='fubar')].id"
 ```
 
+some other test here 

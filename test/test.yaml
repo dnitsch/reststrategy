@@ -1,0 +1,111 @@
+auth:
+  ouath1:
+    type: OAuthClientCredentials
+    username: randClientIdOrUsernameForBasicAuth
+    password: randClientSecret
+    oauth:
+      serverUrl: http://localhost:8080/token
+      scopes:
+        - https://www.some-api-provider.com/scopes-example1
+      endpointParams:
+        foo:
+          - bar
+          - baz
+    httpHeaders:
+      X-Foo: bar
+  basic1:
+    type: BasicAuth
+    username: randClientIdOrUsernameForBasicAuth
+    password: randClientSecret
+    httpHeaders:
+      X-Foo: bar
+  # https://pocketbase.io/docs/api-authentication/
+  customTest1:
+    type: CustomToToken
+    custom:
+      authUrl: http://127.0.0.1:8090/api/admins/auth-via-email
+      credential:
+        email: test@example.com
+        password: P4s$w0rd123!
+      responseKey: $.token
+      headerKey: Authorization
+      tokenPrefix: Admin
+# /api/admins/auth-via-email
+seed:
+  get-all-admins:
+    # /api/admins
+    endpoint: http://127.0.0.1:8090/api/admins
+    strategy: FIND/PUT/PATCH
+    getEndpointSuffix: '?page=1&perPage=100&sort=-created&filter='
+    # postEndpointSuffix: /post
+    findByJsonPathExpr: "$.items[?(@.email=='test2@example.com')].id"
+    authMapRef: customTest1
+    payloadTemplate: |
+      {"email": "test2@example.com",
+        "password": "${password}","passwordConfirm": "${password}",
+        "avatar": 8
+      }
+    patchPayloadTemplate: |
+      {
+        "password": "${password2}",
+        "passwordConfirm": "${password2}"
+      }
+    variables:
+      password: password123!
+      password2: password789!
+    # RunTime Vars are captured from a PUT or POST and can be used further down the strategy tree
+    runtimeVars:
+      someId: "$.array[?(@.name=='fubar')].id"
+  find-put-post-not-found-id:
+    endpoint: https://postman-echo.com
+    strategy: FIND/PUT/POST
+    getEndpointSuffix: /get?json=emtpy&notfound=bar
+    postEndpointSuffix: /post
+    findByJsonPathExpr: "$.array[?(@.name=='fubar')].id"
+    authMapRef: ouath1
+    payloadTemplate: |
+      { "value": "$foo" }
+    variables:
+      foo: bar
+    # RunTime Vars are captured from a PUT or POST and can be used further down the strategy tree
+    runtimeVars:
+      someId: "$.array[?(@.name=='fubar')].id"
+  find-put-post-found-id:
+    endpoint: https://postman-echo.com
+    strategy: FIND/PUT/POST
+    getEndpointSuffix: /get?json=provided&valid=true
+    postEndpointSuffix: /post
+    putEndpointSuffix: /put
+    findByJsonPathExpr: "$.array[?(@.name=='fubar')].id"
+    authMapRef: ouath1
+    payloadTemplate: |
+      {
+      	"value": "$foo"
+      }
+    variables:
+      foo: bar
+    runtimeVars:
+      someId: "$.array[?(@.name=='fubar')].id"
+  get-put-post-found-id:
+    endpoint: https://postman-echo.com
+    strategy: GET/PUT/POST
+    getEndpointSuffix: /get?json=provided
+    postEndpointSuffix: /post
+    putEndpointSuffix: /put
+    payloadTemplate: |
+      { "value": "$foo"}
+    authMapRef: basic1
+    variables:
+      foo: bar
+  get-put-post-not-found-id:
+    endpoint: https://postman-echo.com
+    strategy: GET/PUT/POST
+    getEndpointSuffix: /get?json=provided
+    postEndpointSuffix: /post
+    putEndpointSuffix: /put
+    authMapRef: basic1
+    payloadTemplate: |
+      { "value": "$foo" }
+    variables:
+      foo: bar
+

@@ -1,7 +1,7 @@
 
 OWNER := dnitsch
 NAME := strategyrestseeder
-GIT_TAG := "0.1.0"
+GIT_TAG := "0.2.0"
 VERSION := "v$(GIT_TAG)"
 # VERSION := "$(shell git describe --tags --abbrev=0)"
 REVISION := $(shell git rev-parse --short HEAD)

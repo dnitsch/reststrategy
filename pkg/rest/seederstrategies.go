@@ -69,10 +69,30 @@ func (r *SeederImpl) FindPutPost(ctx context.Context, action *Action) error {
 	return r.put(ctx, action)
 }
 
-// FindPutPost strategy gets an item either by specifying a known ID in the endpoint suffix
-// or by pathExpression. Get can look for a response in an array or in a single response object.
-// once a single item that matches is found and the relevant ID is extracted it will do a PUT
-// else it will do a POST as the item can be created
+// FindPutPatch is same as FindPutPost strategy but uses PATCH
+func (r *SeederImpl) FindPutPatch(ctx context.Context, action *Action) error {
+
+	action.templatedPayload = r.templatePayload(action.PayloadTemplate, action.Variables)
+	resp, err := r.get(ctx, action)
+	if err != nil {
+		return err
+	}
+	found, err := r.findPathByExpression(resp, action.FindByJsonPathExpr)
+	if err != nil {
+		return err
+	}
+	if found == "" {
+		r.log.Info("item not found by expression running POST")
+		return r.post(ctx, action)
+	}
+
+	r.log.Infof("item: %s,found by expression: %s\nupdating in place", found, action.FindByJsonPathExpr)
+	action.foundId = found
+	action.templatedPayload = r.templatePayload(action.PatchPayloadTemplate, action.Variables)
+	return r.patch(ctx, action)
+}
+
+// FindDeletePost
 func (r *SeederImpl) FindDeletePost(ctx context.Context, action *Action) error {
 
 	action.templatedPayload = r.templatePayload(action.PayloadTemplate, action.Variables)

@@ -57,10 +57,12 @@ type Action struct {
 	Endpoint             string             `yaml:"endpoint"`
 	GetEndpointSuffix    *string            `yaml:"getEndpointSuffix,omitempty"`
 	PostEndpointSuffix   *string            `yaml:"postEndpointSuffix,omitempty"`
+	PatchEndpointSuffix  *string            `yaml:"patchEndpointSuffix,omitempty"`
 	PutEndpointSuffix    *string            `yaml:"putEndpointSuffix,omitempty"`
 	DeleteEndpointSuffix *string            `yaml:"deleteEndpointSuffix,omitempty"`
 	FindByJsonPathExpr   string             `yaml:"findByJsonPathExpr,omitempty"`
 	PayloadTemplate      string             `yaml:"payloadTemplate"`
+	PatchPayloadTemplate string             `yaml:"patchPayloadTemplate,omitempty"`
 	Variables            map[string]any     `yaml:"variables"`
 	RuntimeVars          *map[string]string `yaml:"runtimeVars,omitempty"`
 	AuthMapRef           string             `yaml:"authMapRef"`
@@ -157,9 +159,13 @@ func (r *SeederImpl) doAuth(req *http.Request, action *Action) *http.Request {
 			r.log.Errorf("failed to obtain token: %v", err)
 		}
 		enrichedReq.Header.Set("Authorization", fmt.Sprintf("%s %s", token.TokenType, token.AccessToken))
-	case BasicToToken:
-		// TODO: ensure custom flow similar to OAuth happens for basicToToken credentials
-		return enrichedReq
+	case CustomToToken:
+		// TODO: ensure custom flow similar to OAuth happens for customToToken credentials
+		token, err := currentAuthMap.customToToken.Token(enrichedReq.Context(), r.log) //  customTokenExchange(*currentAuthMap.customToToken)
+		if err != nil {
+			r.log.Errorf("failed to obtain custom token: %v", err)
+		}
+		enrichedReq.Header.Set(token.HeaderKey, fmt.Sprintf("%s %s", token.TokenPrefix, token.TokenValue))
 	}
 	return enrichedReq
 }
@@ -186,6 +192,26 @@ func (r *SeederImpl) post(ctx context.Context, action *Action) error {
 		endpoint = fmt.Sprintf("%s%s", endpoint, *action.PostEndpointSuffix)
 	}
 	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, strings.NewReader(action.templatedPayload))
+
+	if err != nil {
+		r.log.Error(err)
+	}
+
+	if _, err := r.do(req, action); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *SeederImpl) patch(ctx context.Context, action *Action) error {
+	endpoint := action.Endpoint
+	if action.PutEndpointSuffix != nil {
+		endpoint = fmt.Sprintf("%s%s", endpoint, *action.PatchEndpointSuffix)
+	}
+	if action.foundId != "" {
+		endpoint = fmt.Sprintf("%s/%s", endpoint, action.foundId)
+	}
+	req, err := http.NewRequestWithContext(ctx, "PATCH", endpoint, strings.NewReader(action.templatedPayload))
 
 	if err != nil {
 		r.log.Error(err)
@@ -240,23 +266,27 @@ func (r *SeederImpl) delete(ctx context.Context, action *Action) error {
 	return nil
 }
 
-// findPathByExpression lookup func using jsonpathexpression
 func (r *SeederImpl) findPathByExpression(resp []byte, pathExpression string) (string, error) {
+	return findPathByExpression(resp, pathExpression, r.log)
+}
+
+// findPathByExpression lookup func using jsonpathexpression
+func findPathByExpression(resp []byte, pathExpression string, log log.Loggeriface) (string, error) {
 	unescStr := "" //string(resp)
 	if pathExpression == "" {
-		r.log.Info("no path expression provided returning empty")
+		log.Info("no path expression provided returning empty")
 		return "", nil
 	}
 
 	unescStr, e := strconv.Unquote(fmt.Sprintf("%v", string(resp)))
 	if e != nil {
-		r.log.Debug("using original string")
+		log.Debug("using original string")
 		unescStr = string(resp)
 	}
 
 	result, err := ajson.JSONPath([]byte(unescStr), pathExpression)
 	if err != nil {
-		r.log.Debug("failed to perform JSON path lookup - epxression failure")
+		log.Debug("failed to perform JSON path lookup - epxression failure")
 		return "", err
 	}
 
@@ -266,7 +296,7 @@ func (r *SeederImpl) findPathByExpression(resp []byte, pathExpression string) (s
 		case ajson.String:
 			str, e := strconv.Unquote(fmt.Sprintf("%v", v))
 			if e != nil {
-				r.log.Debugf("unable to unquote value: %v returning as is", v)
+				log.Debugf("unable to unquote value: %v returning as is", v)
 				return fmt.Sprintf("%v", v), e
 			}
 			return str, nil
@@ -276,11 +306,9 @@ func (r *SeederImpl) findPathByExpression(resp []byte, pathExpression string) (s
 			return "", fmt.Errorf("cannot use type: %v in further processing - can only be a numeric or string value", v.Type())
 		}
 	}
-	r.log.Infof("expression not yielded any results")
+	log.Infof("expression not yielded any results")
 	return "", nil
 }
-
-// TODO: set up auth
 
 // templatePayload parses input payload and replaces all $var ${var} with
 // existing global env variable as well as injected from inside RestAction
@@ -293,9 +321,6 @@ func (r *SeederImpl) templatePayload(payload string, vars map[string]any) string
 	return tmpl
 }
 
-// templatePayload parses input payload and replaces all $var ${var} with
-// existing global env variable as well as injected from inside RestAction
-// into the local context
 func templatePayload(payload string, vars map[string]any) (string, error) {
 	for k, v := range vars {
 		os.Setenv(k, fmt.Sprintf("%v", v))

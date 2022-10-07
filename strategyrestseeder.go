@@ -47,7 +47,7 @@ type StrategyRestSeeder struct {
 func New() *StrategyRestSeeder {
 	var gloglvl log.LogLevel = log.ErrorLvl
 	l := log.New(os.Stderr, gloglvl)
-	r := &rest.SeederImpl{}
+	r := rest.NewSeederImpl()
 
 	r.WithClient(&http.Client{}).WithLogger(l)
 

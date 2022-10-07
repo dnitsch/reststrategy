@@ -20,10 +20,19 @@ type Client interface {
 	// http.RoundTripper
 }
 
+type runtimeVars map[string]any
+
 type SeederImpl struct {
-	log    log.Loggeriface
-	client Client
-	auth   *actionAuthMap
+	log         log.Loggeriface
+	client      Client
+	auth        *actionAuthMap
+	runtimeVars runtimeVars
+}
+
+func NewSeederImpl() *SeederImpl {
+	return &SeederImpl{
+		runtimeVars: runtimeVars{},
+	}
 }
 
 // TODO: change this for an interface
@@ -143,7 +152,8 @@ func (r *SeederImpl) do(req *http.Request, action *Action) ([]byte, error) {
 		}
 		return nil, diag
 	}
-
+	//
+	r.setRuntimeVar(respBody, action)
 	return respBody, nil
 }
 
@@ -238,10 +248,10 @@ func (r *SeederImpl) put(ctx context.Context, action *Action) error {
 	if err != nil {
 		r.log.Error(err)
 	}
-
 	if _, err := r.do(req, action); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -314,6 +324,11 @@ func findPathByExpression(resp []byte, pathExpression string, log log.Loggerifac
 // existing global env variable as well as injected from inside RestAction
 // into the local context
 func (r *SeederImpl) templatePayload(payload string, vars map[string]any) string {
+
+	// extend existing to allow for runtimeVars replacement
+	for k, v := range r.runtimeVars {
+		vars[k] = v
+	}
 	tmpl, err := templatePayload(payload, vars)
 	if err != nil {
 		r.log.Errorf("unable to parse template: %v", err)
@@ -326,4 +341,23 @@ func templatePayload(payload string, vars map[string]any) (string, error) {
 		os.Setenv(k, fmt.Sprintf("%v", v))
 	}
 	return envsubst.String(payload)
+}
+
+// setRunTimeVars
+func (r *SeederImpl) setRuntimeVar(createUpdateResponse []byte, action *Action) {
+	if len(*action.RuntimeVars) == 0 {
+		return
+	}
+	// runtimeVars
+	for k, v := range *action.RuntimeVars {
+		found, err := r.findPathByExpression(createUpdateResponse, v)
+		if err != nil {
+			r.log.Errorf("error finding pathexpr in runtime var")
+			r.log.Debugf("failed on: %v, with expr: %v", k, v)
+			r.log.Debugf("continuing...")
+		}
+		if found != "" {
+			r.runtimeVars[k] = found
+		}
+	}
 }

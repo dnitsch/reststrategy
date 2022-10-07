@@ -110,22 +110,122 @@ FindDeletePostStrategyFunc is useful for when you cannot update a resource but i
 
 ## Rest Action
 
+Rest Action is the individual action that gets made for each strategy.
+
+### `endpoint`
+
+Endpoint is the baseUrl for the action
+
+### `strategy`
+
+strategy identifier - see [strategies](#strategy) e.g. `FIND/PUT/POST`
+
+### `suffixes`
+Each Method called as part the restAction can specify a suffix.
+
+This is useful for non standard or non [Richardson Maturity Model](https://martinfowler.com/articles/richardsonMaturityModel.html) Level 2+ compliant endpoints.
+
+#### `getEndpointSuffix`
+
+suffix to apply to the GET endpoint in FIND or GET
+e.g.: /get?json=provided&valid=true
+
+#### `postEndpointSuffix`
+
+suffix to apply to the POST endpoint
+
+#### `putEndpointSuffix`
+
+suffix to apply to the PUT endpoint
+
+#### `patchEndpointSuffix`
+
+suffix to apply to the PATCH endpoint
+
+### `findByJsonPathExpr`
+
+Specifies the JSONPathExpression to apply to returned response, JSONPath as specified [here](https://goessner.net/articles/JsonPath/) with additional operators and functions defined [here](https://goessner.net/articles/JsonPath/)
+e.g.: `$.array[?(@.name=='fubar')].id`
+  
+### `authMapRef`
+
+The auth object to use for the requests in this RestAction, see [auth](#auth) for more details.
+
+### `payloadTemplate`
+
+JSON formatted string.
+
+> HAS TO BE VALID JSON
+
+e.g.:
+
 ```yaml
-endpoint: https://postman-echo.com
-strategy: FIND/PUT/POST
-getEndpointSuffix: /get?json=provided&valid=true
-postEndpointSuffix: /post
-putEndpointSuffix: /put
-findByJsonPathExpr: "$.array[?(@.name=='fubar')].id"
-authMapRef: ouath1
 payloadTemplate: |
-    {
+  {
     "value": "$foo"
-    }
-variables:
-    foo: bar
+  }
+```
+
+### `variables`
+
+Variables are replaced in payloads in memory, using both environment variables and inject Vars from `variables`.
+
+e.g.:
+
+```yaml
+variables: 
+  foo: bar
+  bar: bazquz
+```
+  
+### `runtimeVars`
+
+> still WiP
+
+RunTime Vars are captured from a PUT or POST and can be used further down the strategy tree on a separate Action. if a match is found it is exposed via a special prefix `#`
+
+e.g.:
+
+```yaml
 runtimeVars:
-    someId: "$.array[?(@.name=='fubar')].id"
+  actionOneId: "$.id"
+```
+
+```yaml
+# the name of the action
+action1:
+  endpoint: https://postman-echo.com
+  strategy: FIND/PUT/POST
+  getEndpointSuffix: /get?json=provided&valid=true
+  postEndpointSuffix: /post
+  putEndpointSuffix: /put
+  findByJsonPathExpr: "$.array[?(@.name=='fubar')].id"
+  authMapRef: ouath1
+  payloadTemplate: |
+      {
+      "value": "$foo"
+      }
+  variables:
+      foo: bar
+  runtimeVars:
+      actionOneId: "$.id"
+action2: 
+  endpoint: https://postman-echo.com
+  strategy: FIND/PUT/POST
+  getEndpointSuffix: /get?json=provided&valid=true
+  postEndpointSuffix: /post
+  putEndpointSuffix: /put
+  findByJsonPathExpr: "$.array[?(@.name=='fubar')].id"
+  authMapRef: ouath1
+  payloadTemplate: |
+      {
+      "value": "$foo"
+      "action1Id": "#{actionOneId}"
+      }
+  variables:
+      foo: bazqux
+  runtimeVars:
+      someId: "$.array[?(@.name=='fubar')].id"
 ```
 
 ### Contribution

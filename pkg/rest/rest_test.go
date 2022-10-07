@@ -28,7 +28,7 @@ func Test_getSeeder(t *testing.T) {
 			name:   "getRestFunc",
 			auth:   &AuthMap{"foo": {AuthStrategy: Basic, Username: "foo", Password: "bar"}},
 			client: &http.Client{},
-			rimpl:  &SeederImpl{},
+			rimpl:  &SeederImpl{runtimeVars: runtimeVars{}},
 			action: &Action{
 				PayloadTemplate:    "{}",
 				Strategy:           "GET/POST",
@@ -43,7 +43,7 @@ func Test_getSeeder(t *testing.T) {
 			name:   "getRestFunc",
 			auth:   &AuthMap{"foo": {AuthStrategy: Basic, Username: "foo", Password: "bar"}},
 			client: &http.Client{},
-			rimpl:  &SeederImpl{},
+			rimpl:  &SeederImpl{runtimeVars: runtimeVars{}},
 			action: &Action{
 				PayloadTemplate:    "{}",
 				Strategy:           "GET/POST",
@@ -132,7 +132,7 @@ func Test_findByPathExpression(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &SeederImpl{log: log.New(&bytes.Buffer{}, log.DebugLvl), client: &http.Client{}}
+			r := &SeederImpl{runtimeVars: runtimeVars{}, log: log.New(&bytes.Buffer{}, log.DebugLvl), client: &http.Client{}}
 			got, err := r.findPathByExpression(tt.payload, tt.pathExpression)
 			if err != nil {
 				if tt.expErr != nil {
@@ -165,14 +165,14 @@ func Test_templatePayload(t *testing.T) {
 	}{
 		{
 			name:      "global only",
-			rest:      &SeederImpl{log: log.New(&bytes.Buffer{}, log.ErrorLvl), client: &http.Client{}},
+			rest:      &SeederImpl{runtimeVars: runtimeVars{}, log: log.New(&bytes.Buffer{}, log.ErrorLvl), client: &http.Client{}},
 			payload:   `{"foo":"${bar}","BAZ":"$FUZZ"}`,
 			variables: map[string]any{},
 			expect:    `{"foo":"","BAZ":"BOO"}`,
 		},
 		{
 			name:      "global + injected",
-			rest:      &SeederImpl{log: log.New(&bytes.Buffer{}, log.ErrorLvl), client: &http.Client{}},
+			rest:      &SeederImpl{runtimeVars: runtimeVars{}, log: log.New(&bytes.Buffer{}, log.ErrorLvl), client: &http.Client{}},
 			payload:   `{"foo":"${bar}","BAZ":"$FUZZ"}`,
 			variables: map[string]any{"bar": "hoo"},
 			expect:    `{"foo":"hoo","BAZ":"BOO"}`,
@@ -272,6 +272,43 @@ func Test_ActionWithHeader(t *testing.T) {
 			}
 			if hc != len(tt.expect) {
 				t.Errorf("expected: %v, got: %v", len(tt.expect), hc)
+			}
+		})
+	}
+}
+
+func Test_setRunTimeVars(t *testing.T) {
+
+	tests := []struct {
+		name                 string
+		rest                 *SeederImpl
+		createUpdateResponse []byte
+		action               *Action
+	}{
+		{
+			name:                 "vars found and replaced",
+			rest:                 &SeederImpl{runtimeVars: runtimeVars{}, log: log.New(&bytes.Buffer{}, log.ErrorLvl)},
+			createUpdateResponse: []byte(`{"id": "aaabbbccc"}`),
+			action: &Action{
+				name:                 "foo1",
+				PayloadTemplate:      `{"foo": "${GLOBAL}","local": "${local}", "runtime":"${someId}" }`,
+				PatchPayloadTemplate: "",
+				Variables:            map[string]any{},
+				RuntimeVars: &map[string]string{
+					"someId": "$.id",
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if len(tt.rest.runtimeVars) > 0 {
+				t.Errorf("runtimeVars should be empty at this point, instead found: %v", len(tt.rest.runtimeVars))
+			}
+			tt.rest.setRuntimeVar(tt.createUpdateResponse, tt.action)
+
+			if len(tt.rest.runtimeVars) < 1 {
+				t.Error("no vars found and replaced")
 			}
 		})
 	}

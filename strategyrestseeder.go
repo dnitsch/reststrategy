@@ -28,6 +28,7 @@ const (
 	PUT_POST         StrategyType = "PUT/POST"
 	GET_PUT_POST     StrategyType = "GET/PUT/POST"
 	FIND_PUT_POST    StrategyType = "FIND/PUT/POST"
+	FIND_PATCH_POST  StrategyType = "FIND/PATCH/POST"
 	FIND_DELETE      StrategyType = "FIND/DELETE"
 	FIND_DELETE_POST StrategyType = "FIND/DELETE/POST"
 	PUT              StrategyType = "PUT"
@@ -46,7 +47,7 @@ type StrategyRestSeeder struct {
 func New() *StrategyRestSeeder {
 	var gloglvl log.LogLevel = log.ErrorLvl
 	l := log.New(os.Stderr, gloglvl)
-	r := &rest.SeederImpl{}
+	r := rest.NewSeederImpl()
 
 	r.WithClient(&http.Client{}).WithLogger(l)
 
@@ -60,6 +61,7 @@ func New() *StrategyRestSeeder {
 			FIND_POST:        FindPostStrategyFunc,
 			GET_POST:         GetPostStrategyFunc,
 			FIND_DELETE_POST: FindDeletePostStrategyFunc,
+			FIND_PATCH_POST:  FindPutPatchStrategyFunc,
 		},
 		log: l,
 	}
@@ -136,6 +138,11 @@ func PutPostStrategyFunc(ctx context.Context, action *rest.Action, rest *rest.Se
 // else POST will be called as item was not present
 func FindPutPostStrategyFunc(ctx context.Context, action *rest.Action, rest *rest.SeederImpl) error {
 	return rest.FindPutPost(ctx, action)
+}
+
+// FindPutPatchStrategyFunc same as FindPutPostStrategyFunc but uses PATCH instead of PUT
+func FindPutPatchStrategyFunc(ctx context.Context, action *rest.Action, rest *rest.SeederImpl) error {
+	return rest.FindPutPatch(ctx, action)
 }
 
 // GetPutPostStrategyFunc known ID and only know a name or other indicator

@@ -32,10 +32,10 @@ auth:
       tokenPrefix: Admin
 # /api/admins/auth-via-email
 seed:
-  get-all-admins:
+  update-test2-admin:
     # /api/admins
     endpoint: http://127.0.0.1:8090/api/admins
-    strategy: FIND/PUT/PATCH
+    strategy: FIND/PATCH/POST
     getEndpointSuffix: '?page=1&perPage=100&sort=-created&filter='
     # postEndpointSuffix: /post
     findByJsonPathExpr: "$.items[?(@.email=='test2@example.com')].id"
@@ -55,7 +55,29 @@ seed:
       password2: password789!
     # RunTime Vars are captured from a PUT or POST and can be used further down the strategy tree
     runtimeVars:
-      someId: "$.array[?(@.name=='fubar')].id"
+      admin1AvatarId: "$.avatar"
+  update-test3-admin:
+    # /api/admins
+    endpoint: http://127.0.0.1:8090/api/admins
+    strategy: FIND/PATCH/POST
+    getEndpointSuffix: '?page=1&perPage=100&sort=-created&filter='
+    # postEndpointSuffix: /post
+    findByJsonPathExpr: "$.items[?(@.email=='test3@example.com')].id"
+    authMapRef: customTest1
+    payloadTemplate: |
+      {"email": "test3@example.com",
+        "password": "${password}","passwordConfirm": "${password}",
+        "avatar": 8
+      }
+    patchPayloadTemplate: |
+      {
+        "password": "${password2}",
+        "passwordConfirm": "${password2}"
+        "avatar": ${admin1AvatarId}
+      }
+    variables:
+      password: password123!
+      password2: password789!
   find-put-post-not-found-id:
     endpoint: https://postman-echo.com
     strategy: FIND/PUT/POST

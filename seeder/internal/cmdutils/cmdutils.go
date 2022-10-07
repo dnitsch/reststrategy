@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
+	srs "github.com/dnitsch/reststrategy/seeder"
 	log "github.com/dnitsch/simplelog"
-	srs "github.com/dnitsch/strategyrestseeder"
 )
 
 func RunSeed(svc *srs.StrategyRestSeeder, strategy srs.StrategyConfig, path string, verbose bool) error {

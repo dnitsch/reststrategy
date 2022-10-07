@@ -9,8 +9,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/dnitsch/reststrategy/seeder/internal/testutils"
 	log "github.com/dnitsch/simplelog"
-	"github.com/dnitsch/strategyrestseeder/internal/testutils"
 	"github.com/spyzhov/ajson"
 )
 
@@ -25,7 +25,7 @@ func Test_getSeeder(t *testing.T) {
 		expect string
 	}{
 		{
-			name:   "getRestFunc",
+			name:   "getRestFunc_without_header",
 			auth:   &AuthMap{"foo": {AuthStrategy: Basic, Username: "foo", Password: "bar"}},
 			client: &http.Client{},
 			rimpl:  &SeederImpl{runtimeVars: runtimeVars{}},
@@ -40,7 +40,7 @@ func Test_getSeeder(t *testing.T) {
 			expect: "32",
 		},
 		{
-			name:   "getRestFunc",
+			name:   "getRestFunc_with_header",
 			auth:   &AuthMap{"foo": {AuthStrategy: Basic, Username: "foo", Password: "bar"}},
 			client: &http.Client{},
 			rimpl:  &SeederImpl{runtimeVars: runtimeVars{}},

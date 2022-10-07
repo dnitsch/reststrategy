@@ -22,3 +22,7 @@ vendor/
 
 # MISC
 .ignore*
+
+
+# temp 
+controller

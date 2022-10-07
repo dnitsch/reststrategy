@@ -3,7 +3,7 @@ package rest
 import (
 	"testing"
 
-	"github.com/dnitsch/strategyrestseeder/internal/testutils"
+	"github.com/dnitsch/reststrategy/seeder/internal/testutils"
 )
 
 func Test_InitAuthMap(t *testing.T) {

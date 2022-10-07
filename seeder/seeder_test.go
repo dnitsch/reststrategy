@@ -1,4 +1,4 @@
-package strategyrestseeder
+package seeder
 
 import (
 	"bytes"
@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dnitsch/reststrategy/seeder/pkg/rest"
 	log "github.com/dnitsch/simplelog"
-	"github.com/dnitsch/strategyrestseeder/pkg/rest"
 )
 
 func token(t *testing.T) func(w http.ResponseWriter, r *http.Request) {

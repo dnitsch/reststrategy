@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"os"
 
-	srs "github.com/dnitsch/strategyrestseeder"
-	"github.com/dnitsch/strategyrestseeder/internal/cmdutils"
-	"github.com/dnitsch/strategyrestseeder/internal/config"
+	srs "github.com/dnitsch/reststrategy/seeder"
+	"github.com/dnitsch/reststrategy/seeder/internal/cmdutils"
+	"github.com/dnitsch/reststrategy/seeder/internal/config"
 	"github.com/spf13/cobra"
 	yaml "gopkg.in/yaml.v3"
 )

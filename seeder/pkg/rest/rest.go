@@ -345,7 +345,7 @@ func templatePayload(payload string, vars map[string]any) (string, error) {
 
 // setRunTimeVars
 func (r *SeederImpl) setRuntimeVar(createUpdateResponse []byte, action *Action) {
-	if len(*action.RuntimeVars) == 0 {
+	if action.RuntimeVars == nil {
 		return
 	}
 	// runtimeVars

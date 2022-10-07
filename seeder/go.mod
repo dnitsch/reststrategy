@@ -1,4 +1,4 @@
-module github.com/dnitsch/strategyrestseeder
+module github.com/dnitsch/reststrategy/seeder
 
 go 1.19
 

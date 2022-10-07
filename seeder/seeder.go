@@ -1,4 +1,4 @@
-package strategyrestseeder
+package seeder
 
 import (
 	"context"
@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/dnitsch/reststrategy/seeder/pkg/rest"
 	log "github.com/dnitsch/simplelog"
-	"github.com/dnitsch/strategyrestseeder/pkg/rest"
 )
 
 // StrategyConfig defines top level

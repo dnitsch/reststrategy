@@ -1,6 +1,6 @@
 package main
 
-import srs "github.com/dnitsch/strategyrestseeder/cmd/strategyrestseeder"
+import srs "github.com/dnitsch/reststrategy/seeder/cmd/strategyrestseeder"
 
 func main() {
 	// init loggerHere or in init function

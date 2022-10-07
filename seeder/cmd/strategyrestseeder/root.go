@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/dnitsch/strategyrestseeder/internal/config"
+	"github.com/dnitsch/reststrategy/seeder/internal/config"
 	"github.com/spf13/cobra"
 )
 

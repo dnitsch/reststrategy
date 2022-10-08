@@ -30,10 +30,6 @@ CODEGEN_PKG=${CODEGEN_PKG:-$(cd "${SCRIPT_ROOT}"; ls -d -1 ./vendor/k8s.io/code-
 
 # github.com/dnitsch/reststrategy/controllertypes/apis
 
-bash "${CODEGEN_PKG}"/generate-groups.sh "deepcopy,client,informer,lister" "github.com/dnitsch/reststrategy/controllertypes/generated" "github.com/dnitsch/reststrategy/controllertypes/apis" "reststrategy:v1alpha1" \
+bash "${CODEGEN_PKG}"/generate-groups.sh "deepcopy,client,informer,lister" "github.com/dnitsch/reststrategy/apis/generated" "github.com/dnitsch/reststrategy/apis" "reststrategy:v1alpha1" \
 --output-base "$(dirname "${BASH_SOURCE[0]}")/.." \
 --go-header-file "${SCRIPT_ROOT}"/hack/boilerplate.go.txt
-
-# --output-base "$PWD/" \
-# To use your own boilerplate text append:
-#   --go-header-file "${SCRIPT_ROOT}"/hack/custom-boilerplate.go.txt

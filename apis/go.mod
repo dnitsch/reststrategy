@@ -1,8 +1,8 @@
-module github.com/dnitsch/reststrategy/controllertypes
+module github.com/dnitsch/reststrategy/apis
 
 go 1.19
 
-replace github.com/dnitsch/reststrategy => ../
+// replace github.com/dnitsch/reststrategy => ../
 
 require (
 	k8s.io/apimachinery v0.25.2

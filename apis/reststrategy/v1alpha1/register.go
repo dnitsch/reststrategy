@@ -5,7 +5,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
-	controller "github.com/dnitsch/reststrategy/controllertypes/apis/restrategy"
+	controller "github.com/dnitsch/reststrategy/apis/reststrategy"
 )
 
 // SchemeGroupVersion is group version used to register these objects

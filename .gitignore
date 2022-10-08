@@ -26,3 +26,4 @@ vendor/
 
 # temp 
 controller
+**/zz_generated.deepcopy.go

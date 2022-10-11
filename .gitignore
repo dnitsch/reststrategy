@@ -24,6 +24,5 @@ vendor/
 .ignore*
 
 # generated
-apis/generated
 **/zz_generated.deepcopy.go
 **/github.com

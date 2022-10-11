@@ -69,8 +69,8 @@ func (r *SeederImpl) FindPutPost(ctx context.Context, action *Action) error {
 	return r.put(ctx, action)
 }
 
-// FindPutPatch is same as FindPutPost strategy but uses PATCH
-func (r *SeederImpl) FindPutPatch(ctx context.Context, action *Action) error {
+// FindPatchPost is same as FindPutPost strategy but uses PATCH
+func (r *SeederImpl) FindPatchPost(ctx context.Context, action *Action) error {
 
 	action.templatedPayload = r.templatePayload(action.PayloadTemplate, action.Variables)
 	resp, err := r.get(ctx, action)

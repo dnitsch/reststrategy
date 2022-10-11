@@ -41,7 +41,8 @@ func (r *SeederImpl) WithClient(c Client) *SeederImpl {
 	return r
 }
 
-func (r *SeederImpl) WithLogger(l log.Loggeriface) *SeederImpl {
+func (r *SeederImpl) WithLogger(l log.Logger) *SeederImpl {
+	// l.Debug("foo")
 	r.log = l
 	return r
 }

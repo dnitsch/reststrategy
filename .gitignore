@@ -23,10 +23,6 @@ vendor/
 # MISC
 .ignore*
 
-
-# temp 
-controller
-
 # generated
 apis/generated
 **/zz_generated.deepcopy.go

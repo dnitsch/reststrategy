@@ -2,7 +2,6 @@ package seeder
 
 import (
 	"context"
-	"io"
 	"net/http"
 	"os"
 
@@ -30,7 +29,7 @@ type StrategyRestSeeder struct {
 	Strategy map[StrategyType]StrategyFunc
 	rest     *rest.SeederImpl
 	actions  []rest.Action
-	log      log.Logger
+	log      log.Loggeriface
 }
 
 // New initializes a default StrategySeeder with
@@ -53,7 +52,7 @@ func New() *StrategyRestSeeder {
 			FIND_POST:        FindPostStrategyFunc,
 			GET_POST:         GetPostStrategyFunc,
 			FIND_DELETE_POST: FindDeletePostStrategyFunc,
-			FIND_PATCH_POST:  FindPutPatchStrategyFunc,
+			FIND_PATCH_POST:  FindPatchPostStrategyFunc,
 		},
 		log: l,
 	}
@@ -73,9 +72,9 @@ func (s *StrategyRestSeeder) WithAuth(ra *rest.AuthMap) *StrategyRestSeeder {
 }
 
 // WithLogger overwrites the default logger and passes it down to rest.SeederImpl
-func (s *StrategyRestSeeder) WithLogger(w io.Writer, lvl log.LogLevel) *StrategyRestSeeder {
-	s.log = log.New(w, lvl)
-	s.rest = s.rest.WithLogger(s.log)
+func (s *StrategyRestSeeder) WithLogger(log log.Logger) *StrategyRestSeeder {
+	s.log = log
+	s.rest = s.rest.WithLogger(log)
 	return s
 }
 
@@ -132,9 +131,9 @@ func FindPutPostStrategyFunc(ctx context.Context, action *rest.Action, rest *res
 	return rest.FindPutPost(ctx, action)
 }
 
-// FindPutPatchStrategyFunc same as FindPutPostStrategyFunc but uses PATCH instead of PUT
-func FindPutPatchStrategyFunc(ctx context.Context, action *rest.Action, rest *rest.SeederImpl) error {
-	return rest.FindPutPatch(ctx, action)
+// FindPatchPostStrategyFunc same as FindPutPostStrategyFunc but uses PATCH instead of PUT
+func FindPatchPostStrategyFunc(ctx context.Context, action *rest.Action, rest *rest.SeederImpl) error {
+	return rest.FindPatchPost(ctx, action)
 }
 
 // GetPutPostStrategyFunc known ID and only know a name or other indicator

@@ -8,17 +8,17 @@ spec:
     - name: ouath1
       type: OAuthClientCredentials
       username: randClientIdOrUsernameForBasicAuth
-      password: randClientSecret
-      # oauth:
-      #   serverUrl: http://localhost:8080/token
-      #   scopes:
-      #     - https://www.some-api-provider.com/scopes-example1
-      #   endpointParams:
-      #     foo:
-      #       - bar
-      #       - baz
-      # httpHeaders:
-      #   X-Foo: bar
+      password: randClientSecret2
+      oauth:
+        serverUrl: http://localhost:8080/token
+        scopes:
+          - https://www.some-api-provider.com/scopes-example1
+        endpointParams:
+          foo:
+            - bar
+            - baz
+      httpHeaders:
+        X-Foo: bar
     - name: basic1
       type: BasicAuth
       username: randClientIdOrUsernameForBasicAuth
@@ -38,7 +38,7 @@ spec:
         tokenPrefix: Admin
 # /api/admins/auth-via-email
   seed:
-    - name: update-test2-admin
+    - name: update-test2-admin2
       # /api/admins
       endpoint: http://127.0.0.1:8090/api/admins
       strategy: FIND/PATCH/POST

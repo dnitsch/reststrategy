@@ -407,8 +407,8 @@ func Test_Execute(t *testing.T) {
 
 			logW := &bytes.Buffer{}
 			_srs := tt.srs(t)
-
-			_srs.WithActions(tt.seeders).WithAuth(tt.authConfig).WithLogger(logW, log.DebugLvl)
+			l := log.New(logW, log.DebugLvl)
+			_srs.WithActions(tt.seeders).WithAuth(tt.authConfig).WithLogger(l)
 			// ctx, cancel := context.WithCancel(context.TODO())
 			// defer cancel()
 			e := _srs.Execute(context.Background())

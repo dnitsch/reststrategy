@@ -8,7 +8,12 @@ REVISION := $(shell git rev-parse --short HEAD)
 
 LDFLAGS := -ldflags="-s -w -X \"github.com/$(OWNER)/$(NAME)/cmd/strategyrestseeder.Version=$(VERSION)\" -X \"github.com/$(OWNER)/$(NAME)/cmd/strategyrestseeder.Revision=$(REVISION)\" -extldflags -static"
 
-.PHONY: test test_ci tidy install cross-build 
+.PHONY: test test_ci tidy install cross-build build
+
+build: 
+	echo "build seeder" && cd seeder && make install build
+	echo "build apis" && cd apis && make install build
+
 
 test: test_prereq
 	go test `go list ./... | grep -v */generated/` -v -mod=readonly -coverprofile=.coverage/out | go-junit-report > .coverage/report-junit.xml && \
@@ -49,3 +54,7 @@ tag:
 	git push origin "v$(GIT_TAG)"
 
 tagbuildrelease: tag cross-build release
+
+
+# WORKSPACE NOTES
+# sh: go work sync

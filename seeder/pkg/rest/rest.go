@@ -12,6 +12,7 @@ import (
 	"github.com/a8m/envsubst"
 	log "github.com/dnitsch/simplelog"
 	"github.com/spyzhov/ajson"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 type Client interface {
@@ -35,7 +36,6 @@ func NewSeederImpl() *SeederImpl {
 	}
 }
 
-// TODO: change this for an interface
 func (r *SeederImpl) WithClient(c Client) *SeederImpl {
 	r.client = c
 	return r
@@ -51,6 +51,40 @@ func (r *SeederImpl) WithAuth(auth *AuthMap) *SeederImpl {
 	return r
 }
 
+// +k8s:deepcopy-gen=true
+// StrategyConfig defines top level Spec
+type StrategyConfig struct {
+	AuthConfig AuthMap `yaml:"auth" json:"auth"`
+	Seeders    Seeders `yaml:"seed" json:"seed"`
+}
+
+// +k8s:deepcopy-gen=true
+type Seeders map[string]Action
+
+// NOTE: currently need to generate the below functions manually
+
+// +k8s:deepcopy-gen=false
+type KvMapVarsAny map[string]any
+
+func (in *KvMapVarsAny) DeepCopyInto(out *KvMapVarsAny) {
+	if in == nil {
+		*out = nil
+	} else {
+		// *out = runtime.RawExtension(*in)
+		*out = runtime.DeepCopyJSON(*in)
+	}
+}
+
+func (in *KvMapVarsAny) DeepCopy() *KvMapVarsAny {
+	if in == nil {
+		return nil
+	}
+	out := new(KvMapVarsAny)
+	in.DeepCopyInto(out)
+	return out
+}
+
+// +k8s:deepcopy-gen=true
 // Action defines the single action to make agains an endpoint
 // and selecting a strategy
 // Endpoint is the base url to make the requests against
@@ -61,21 +95,21 @@ type Action struct {
 	templatedPayload     string             `yaml:"-"`
 	foundId              string             `yaml:"-"`
 	header               *http.Header       `yaml:"-"`
-	Strategy             string             `yaml:"strategy"`
-	Order                *int               `yaml:"order,omitempty"`
-	Endpoint             string             `yaml:"endpoint"`
-	GetEndpointSuffix    *string            `yaml:"getEndpointSuffix,omitempty"`
-	PostEndpointSuffix   *string            `yaml:"postEndpointSuffix,omitempty"`
-	PatchEndpointSuffix  *string            `yaml:"patchEndpointSuffix,omitempty"`
-	PutEndpointSuffix    *string            `yaml:"putEndpointSuffix,omitempty"`
-	DeleteEndpointSuffix *string            `yaml:"deleteEndpointSuffix,omitempty"`
-	FindByJsonPathExpr   string             `yaml:"findByJsonPathExpr,omitempty"`
-	PayloadTemplate      string             `yaml:"payloadTemplate"`
-	PatchPayloadTemplate string             `yaml:"patchPayloadTemplate,omitempty"`
-	Variables            map[string]any     `yaml:"variables"`
-	RuntimeVars          *map[string]string `yaml:"runtimeVars,omitempty"`
-	AuthMapRef           string             `yaml:"authMapRef"`
-	HttpHeaders          *map[string]string `yaml:"httpHeaders,omitempty"`
+	Strategy             string             `yaml:"strategy" json:"strategy"`
+	Order                *int               `yaml:"order,omitempty" json:"order,omitempty"`
+	Endpoint             string             `yaml:"endpoint" json:"endpoint"`
+	GetEndpointSuffix    *string            `yaml:"getEndpointSuffix,omitempty" json:"getEndpointSuffix,omitempty"`
+	PostEndpointSuffix   *string            `yaml:"postEndpointSuffix,omitempty" json:"postEndpointSuffix,omitempty"`
+	PatchEndpointSuffix  *string            `yaml:"patchEndpointSuffix,omitempty" json"patchEndpointSuffix,omitempty"`
+	PutEndpointSuffix    *string            `yaml:"putEndpointSuffix,omitempty" json:"putEndpointSuffix,omitempty"`
+	DeleteEndpointSuffix *string            `yaml:"deleteEndpointSuffix,omitempty" json:"deleteEndpointSuffix,omitempty"`
+	FindByJsonPathExpr   string             `yaml:"findByJsonPathExpr,omitempty" json:"findByJsonPathExpr,omitempty"`
+	PayloadTemplate      string             `yaml:"payloadTemplate" json:"payloadTemplate"`
+	PatchPayloadTemplate string             `yaml:"patchPayloadTemplate,omitempty" json:"patchPayloadTemplate,omitempty"`
+	RuntimeVars          *map[string]string `yaml:"runtimeVars,omitempty" json:"runtimeVars,omitempty"`
+	AuthMapRef           string             `yaml:"authMapRef" json:"authMapRef"`
+	HttpHeaders          *map[string]string `yaml:"httpHeaders,omitempty" json:"httpHeaders,omitempty"`
+	Variables            KvMapVarsAny       `yaml:"variables" json:"variables"`
 }
 
 // WithHeader allows the overwrite of default Accept and Content-Type headers
@@ -84,6 +118,7 @@ type Action struct {
 // will inherit the same header
 func (a *Action) WithHeader() *Action {
 	suppliedHeader := a.HttpHeaders
+
 	h := &http.Header{}
 	// set default values
 	h.Add("Accept", "application/json")
@@ -323,7 +358,7 @@ func findPathByExpression(resp []byte, pathExpression string, log log.Loggerifac
 // templatePayload parses input payload and replaces all $var ${var} with
 // existing global env variable as well as injected from inside RestAction
 // into the local context
-func (r *SeederImpl) templatePayload(payload string, vars map[string]any) string {
+func (r *SeederImpl) templatePayload(payload string, vars KvMapVarsAny) string {
 
 	// extend existing to allow for runtimeVars replacement
 	for k, v := range r.runtimeVars {
@@ -336,7 +371,7 @@ func (r *SeederImpl) templatePayload(payload string, vars map[string]any) string
 	return tmpl
 }
 
-func templatePayload(payload string, vars map[string]any) (string, error) {
+func templatePayload(payload string, vars KvMapVarsAny) (string, error) {
 	for k, v := range vars {
 		os.Setenv(k, fmt.Sprintf("%v", v))
 	}

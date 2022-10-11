@@ -25,6 +25,7 @@ const (
 	CustomToToken AuthType = "CustomToToken"
 )
 
+// +k8s:deepcopy-gen=true
 type ConfigOAuth struct {
 	ServerUrl               string              `yaml:"serverUrl"`
 	Scopes                  []string            `yaml:"scopes"`
@@ -32,42 +33,45 @@ type ConfigOAuth struct {
 	OAuthSendParamsInHeader bool                `yaml:"oAuthSendParamsInHeader"`
 }
 
+// +k8s:deepcopy-gen=true
 // customToken stores the required data to call and process custom auth Endpoints
 // returning a token. the token will need to be extracted from the response
 // it will then need adding to subsequent requests in the header
 // under specified key and in specified format
 type CustomToken struct {
 	// Url to use to POST the customRequest
-	AuthUrl string `yaml:"authUrl"`
+	AuthUrl string `yaml:"authUrl" json:"authUrl"`
 	// holds the K/V credential pair. e.g.
 	// email: some@one.com
 	// password: pass123
 	// will post this body or send in header params that payload
-	CustomAuthMap map[string]any `yaml:"credential"`
+	CustomAuthMap KvMapVarsAny `yaml:"credential" json:"credential"`
 	// whether to send the values in the header as params
 	// defaults to false and map is posted in the body
-	SendInHeader bool `yaml:"inHeader"`
+	SendInHeader bool `yaml:"inHeader" json:"inHeader"`
 	// JSONPAth expression to use to get the token from response
 	// e.g. "$.token"
 	// empty will take the entire response as the token - raw response must be string
-	ResponseKey string `yaml:"responseKey"`
+	ResponseKey string `yaml:"responseKey" json:"responseKey" `
 	// if ommited `Authorization` will be used
 	// Could be X-API-Token etc..
-	HeaderKey string `yaml:"headerKey"`
+	HeaderKey string `yaml:"headerKey" json:"headerKey"`
 	// Token prefix - if omitted Bearer will be used
 	// e.g. Admin ==> `Authorization: "Admin [TOKEN]"`
-	TokenPrefix string `yaml:"tokenPrefix"`
+	TokenPrefix string `yaml:"tokenPrefix" json:"tokenPrefix"`
 }
 
+// +k8s:deepcopy-gen=true
 // Auth holds the auth strategy for all Seeders
 type AuthConfig struct {
-	AuthStrategy AuthType     `yaml:"type"`
-	Username     string       `yaml:"username"`
-	Password     string       `yaml:"password"`
-	OAuth        *ConfigOAuth `yaml:"oauth,omitempty"`
-	CustomToken  *CustomToken `yaml:"custom,omitempty"`
+	AuthStrategy AuthType     `yaml:"type" json:"type"`
+	Username     string       `yaml:"username" json:"username"`
+	Password     string       `yaml:"password" json:"password"`
+	OAuth        *ConfigOAuth `yaml:"oauth,omitempty" json:"oauth,omitempty"`
+	CustomToken  *CustomToken `yaml:"custom,omitempty" json:"custom,omitempty"`
 }
 
+// +k8s:deepcopy-gen=true
 type AuthMap map[string]AuthConfig
 
 // auth holds the auth strategy for each Action
@@ -87,7 +91,7 @@ type basicAuth struct {
 type customToToken struct {
 	authUrl string
 	// holds the K/V pairs
-	customAuthMap map[string]any `json:""`
+	customAuthMap KvMapVarsAny
 	// whether to send the values in the header as params
 	// defaults to false and map is posted in the body
 	sendInHeader bool

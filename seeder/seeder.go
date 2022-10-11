@@ -10,14 +10,6 @@ import (
 	log "github.com/dnitsch/simplelog"
 )
 
-// StrategyConfig defines top level
-type StrategyConfig struct {
-	AuthConfig rest.AuthMap `yaml:"auth"`
-	Seeders    Seeders      `yaml:"seed"`
-}
-
-type Seeders map[string]rest.Action
-
 type StrategyFunc func(ctx context.Context, action *rest.Action, rest *rest.SeederImpl) error
 
 type StrategyType string

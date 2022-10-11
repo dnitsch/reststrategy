@@ -1,0 +1,149 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  # name must match the spec fields below, and be in the form: <plural>.<group>
+  name: reststrategys.dnitsch.net
+spec:
+  # group name to use for REST API: /apis/<group>/<version>
+  group: dnitsch.net
+  # list of versions supported by this CustomResourceDefinition
+  versions:
+    - name: v1alpha1
+      # Each version can be enabled/disabled by Served flag.
+      served: true
+      # One and only one version must be marked as the storage version.
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: 'RestStrategy schema defined input'
+          properties:
+            spec:
+              type: object
+              description: |
+                A complete list of all the strategies to execute and their auth implementation
+              required: [auth, seed]
+              properties:
+                # # type: object
+                # # description: A list of mappings from attribute names to their fulfillment values.
+                auth: 
+                  type: array
+                  description: |
+                    Auth object defins a map of auth strategies that are referenced by each action inside a seed strategy map
+                  items:
+                    type: object
+                    required: [type]
+                    properties:
+                      name: 
+                        type: string
+                        description: name of the Auth strategy
+                      type: 
+                        type: string
+                        description: Auth Strategy to use when referenced by action
+                        enum: [OAuthClientCredentials, BasicAuth, CustomToToken]
+                      username:
+                        type: string
+                      password:
+                        type: string
+                      httpHeaders:
+                        type: object
+                        x-kubernetes-preserve-unknown-fields: true
+                        description: define additional HTTP Headers
+                      custom:
+                        type: object
+                        required: [authUrl, credential]
+                        properties: 
+                          authUrl:
+                            type: string
+                          credential:
+                            type: object
+                            x-kubernetes-preserve-unknown-fields: true
+                            description: Map of auth parames to be used in a credential exchange when using CustomToToken
+                            # additionalProperties:
+                            #   type: object
+                          responseKey: 
+                            type: string
+                            default: $.token
+                          headerKey: 
+                            type: string 
+                            default: Authorization
+                          tokenPrefix: 
+                            type: string
+                            default: Bearer
+                      oauth: 
+                        type: object
+                        description: OAuth ClientCredentials Grant
+                        required: [serverUrl]
+                        properties:
+                          serverUrl: 
+                            type: string 
+                          scopes:
+                            type: array
+                            description: A list of scopes
+                            items:
+                              type: string
+                          endpointParams:
+                            type: object
+                            x-kubernetes-preserve-unknown-fields: true
+                            description: | 
+                              example
+                                foo: [bar, baz]
+                                quz: [mux]
+                            additionalProperties:
+                              type: array
+                              items:
+                                type: string
+                seed:
+                  type: array
+                  description: |
+                    map of of strategies - Action
+                  items: 
+                    type: object
+                    required: [endpoint, strategy, authMapRef, name]
+                    properties:
+                      name: 
+                        type: string
+                      # /api/admins
+                      endpoint:
+                        type: string 
+                        #  http://127.0.0.1:8090/api/admins
+                      strategy: 
+                        type: string
+                        enum: [ FIND/PATCH/POST, GET/POST, FIND/POST, PUT/POST, GET/PUT/POST, FIND/PUT/POST, FIND/PATCH/POST, FIND/DELETE, FIND/DELETE/POST, PUT ]
+                      getEndpointSuffix: 
+                        type: string 
+                      postEndpointSuffix: 
+                        type: string
+                      patchEndpointSuffix: 
+                        type: string
+                      findByJsonPathExpr:
+                        type: string
+                      authMapRef: 
+                        type: string 
+                        # customTest1
+                      payloadTemplate: 
+                        type: string 
+                        # | {"email": "test2@example.com","password": "${password}","passwordConfirm": "${password}","avatar": 8}
+                      patchPayloadTemplate:
+                        type: string 
+                      variables:
+                        type: object
+                        description: vars to use for replacement
+                        x-kubernetes-preserve-unknown-fields: true
+                      runtimeVars:
+                        type: object
+                        description: value is a JSONPath expression
+                        x-kubernetes-preserve-unknown-fields: true
+  # either Namespaced or Cluster
+  scope: Namespaced
+  names:
+    # plural name to be used in the URL: /apis/<group>/<version>/<plural>
+    plural: reststrategys
+    # singular name to be used as an alias on the CLI and for display
+    singular: reststrategy
+    # kind is normally the CamelCased singular type. Your resource manifests use this.
+    kind: RestStrategy
+    # shortNames allow shorter string to match your resource on the CLI
+    shortNames:
+    - rst
+    - rs

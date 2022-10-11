@@ -196,7 +196,7 @@ func Test_Execute(t *testing.T) {
 		srs              func(t *testing.T) *StrategyRestSeeder
 		authConfig       *rest.AuthMap
 		expectErrorCount int
-		seeders          Seeders
+		seeders          rest.Seeders
 	}{
 		{
 			name: "OAuth find put post rest calls",
@@ -213,7 +213,7 @@ func Test_Execute(t *testing.T) {
 					},
 				},
 			},
-			seeders: Seeders{
+			seeders: rest.Seeders{
 				"get-put-post-found": {
 					Strategy:           string(GET_PUT_POST),
 					Order:              rest.Int(0),
@@ -280,7 +280,7 @@ func Test_Execute(t *testing.T) {
 					Password:     "randClientSecretOrPassExpr",
 				},
 			},
-			seeders: Seeders{
+			seeders: rest.Seeders{
 				"put": {
 					Strategy:           string(PUT),
 					Order:              rest.Int(0),
@@ -357,7 +357,7 @@ func Test_Execute(t *testing.T) {
 					Password:     "randClientSecretOrPassExpr",
 				},
 			},
-			seeders: Seeders{
+			seeders: rest.Seeders{
 				"not-found-do-post": {
 					Strategy:             string(FIND_DELETE_POST),
 					Order:                rest.Int(0),
@@ -439,68 +439,3 @@ func (m *MockClient) Do(req *http.Request) (*http.Response, error) {
 	// just in case you want default correct return value
 	return &http.Response{}, nil
 }
-
-// var testYaml = []byte(`
-// auth:
-//   type: OAuthClientCredentials
-//   username: randClientIdOrUsernameForBasicAuth
-//   password: randClientSecret
-//   oauth:
-//     serverUrl: http://localhost:8080/token
-//     scopes:
-//       - https://www.some-api-provider.com/scopes-example1
-//     endpointParams:
-//       foo:
-//         - bar
-//         - baz
-//   httpHeaders:
-//     X-Foo: bar
-// seed:
-//   find-put-post-not-found-id:
-//     endpoint: https://postman-echo.com
-//     strategy: FIND/PUT/POST
-//     getEndpointSuffix: /get/empty?json=emtpy
-//     postEndpointSuffix: /post
-//     findByJsonPathExpr: "$.array[?(@.name=='fubar')].id"
-//     payloadTemplate: |
-//       { "value": "$foo" }
-//     variables:
-//       foo: bar
-//     runtimeVars:
-//       someId: "$.array[?(@.name=='fubar')].id"
-//   find-put-post-found-id:
-//     endpoint: https://postman-echo.com
-//     strategy: FIND/PUT/POST
-//     getEndpointSuffix: /get/valid?json=provided
-//     postEndpointSuffix: /post
-//     putEndpointSuffix: /put
-//     findByJsonPathExpr: "$.array[?(@.name=='fubar')].id"
-//     payloadTemplate: |
-//       {
-//       	"value": "$foo"
-//       }
-//     variables:
-//       foo: bar
-//     runtimeVars:
-//       someId: "$.array[?(@.name=='fubar')].id"
-//   get-put-post-found-id:
-//     endpoint: https://postman-echo.com
-//     strategy: GET/PUT/POST
-//     getEndpointSuffix: /get/single-valid?json=provided
-//     postEndpointSuffix: /post
-//     putEndpointSuffix: /put
-//     payloadTemplate: |
-//       { "value": "$foo"}
-//     variables:
-//       foo: bar
-//   get-put-post-not-found-id:
-//     endpoint: https://postman-echo.com
-//     strategy: GET/PUT/POST
-//     getEndpointSuffix: /get/single-empty?json=provided
-//     postEndpointSuffix: /post
-//     putEndpointSuffix: /put
-//     payloadTemplate: |
-//       { "value": "$foo" }
-//     variables:
-//       foo: bar
-// `)

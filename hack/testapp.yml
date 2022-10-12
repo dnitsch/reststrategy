@@ -1,0 +1,55 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: testapp
+  labels:
+    role: testapp
+
+--- 
+# Test App PocketBase.io
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    role: testapp
+  namespace: testapp
+  name: pocketbase
+spec:
+  ports:
+    - name: testapp
+      port: 8090
+      targetPort: 8090
+  selector:
+    role: testapp
+---
+# DEPLOYMENT
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    role: testapp
+  namespace: testapp
+  name: pocketbase
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: testapp
+  template:
+    metadata:
+      labels:
+        role: testapp
+      name: pocketbase
+    spec:
+      containers:
+        - image: dnitsch/reststrategy-sample:latest
+          name: pocketbase
+          ports:
+            - containerPort: 8090
+          resources:
+            limits:
+              cpu: 200m
+              memory: 500Mi
+            requests:
+              cpu: 100m
+              memory: 400Mi

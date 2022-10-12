@@ -1,3 +1,10 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: reststrategy
+  labels:
+    role: test-int
+---
 apiVersion: dnitsch.net/v1alpha1
 kind: RestStrategy
 metadata:
@@ -29,7 +36,7 @@ spec:
     - name: customTest1
       type: CustomToToken
       custom:
-        authUrl: http://127.0.0.1:8090/api/admins/auth-via-email
+        authUrl: http://127.0.0.1:54221/api/admins/auth-via-email
         credential:
           email: test@example.com
           password: P4s$w0rd123!
@@ -38,22 +45,71 @@ spec:
         tokenPrefix: Admin
 # /api/admins/auth-via-email
   seed:
-    - name: find-put-post-found-id
-      endpoint: https://postman-echo.com
-      strategy: FIND/PUT/POST
-      getEndpointSuffix: /get?json=provided&valid=true
-      postEndpointSuffix: /post
-      putEndpointSuffix: /put
-      findByJsonPathExpr: "$.array[?(@.name=='fubar')].id"
-      authMapRef: basic1
-      payloadTemplate: |
-        {
-          "value": "$foo"
-        }
-      variables:
-        foo: bar
-      runtimeVars:
-        someId: "$.array[?(@.name=='fubar')].id"
+  - name: update-test2-admin
+    # /api/admins
+    endpoint: http://127.0.0.1:54221/api/admins
+    strategy: FIND/PATCH/POST
+    getEndpointSuffix: "?page=1&perPage=100&sort=-created&filter="
+    # postEndpointSuffix: /post
+    findByJsonPathExpr: "$.items[?(@.email=='test2@example.com')].id"
+    authMapRef: customTest1
+    payloadTemplate: |
+      {"email": "test2@example.com",
+        "password": "${password}","passwordConfirm": "${password}",
+        "avatar": 8
+      }
+    patchPayloadTemplate: |
+      {
+        "password": "${password2}",
+        "passwordConfirm": "${password2}"
+      }
+    variables:
+      password: password123!
+      password2: passwordaaa1111
+    # RunTime Vars are captured from a PUT or POST and can be used further down the strategy tree
+    runtimeVars:
+      admin1AvatarId: "$.avatar"
+  - name: update-test3-admin
+    # /api/admins
+    endpoint: http://127.0.0.1:54221/api/admins
+    strategy: FIND/PATCH/POST
+    getEndpointSuffix: "?page=1&perPage=100&sort=-created&filter="
+    # postEndpointSuffix: /post
+    findByJsonPathExpr: "$.items[?(@.email=='test3@example.com')].id"
+    authMapRef: customTest1
+    payloadTemplate: |
+      {"email": "test3@example.com",
+        "password": "${password}",
+        "passwordConfirm": "${password}",
+        "avatar": 8
+      }
+    patchPayloadTemplate: |
+      {
+        "password": "${password2}",
+        "passwordConfirm": "${password2}",
+        "avatar": ${admin1AvatarId}
+      }
+    variables:
+      password: password123!
+      password2: password789!000
+
+
+    # - name: find-put-post-found-id
+    #   endpoint: https://postman-echo.com
+    #   strategy: FIND/PUT/POST
+    #   getEndpointSuffix: /get?json=provided&valid=true
+    #   postEndpointSuffix: /post
+    #   putEndpointSuffix: /put
+    #   findByJsonPathExpr: "$.array[?(@.name=='fubar')].id"
+    #   authMapRef: basic1
+    #   payloadTemplate: |
+    #     {
+    #       "value": "$foo"
+    #     }
+    #   variables:
+    #     foo: bar
+    #   runtimeVars:
+    #     someId: "$.array[?(@.name=='fubar')].id"
     # - name: update-test2-admin2
     #   # /api/admins
     #   endpoint: ttps://postman-echo.com # http://127.0.0.1:8090/api/admins

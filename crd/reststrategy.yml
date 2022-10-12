@@ -116,6 +116,8 @@ spec:
                         type: string
                       patchEndpointSuffix: 
                         type: string
+                      putEndpointSuffix: 
+                        type: string
                       findByJsonPathExpr:
                         type: string
                       authMapRef: 

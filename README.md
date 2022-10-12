@@ -9,3 +9,10 @@ This module uses workspaces and is made up of following submodules/components.
 - [controller](./controller/README.md) controller code for deployment.
 
 - [apis](./apis/README.md) holds the types for the controller.
+
+See the individual componenets for a lower level overview. 
+
+When interacting with the module use the top level Makefile tasks. 
+
+`make build` 
+

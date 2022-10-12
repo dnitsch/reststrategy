@@ -3,7 +3,6 @@ package seeder
 import (
 	"context"
 	"net/http"
-	"os"
 
 	"github.com/dnitsch/reststrategy/seeder/pkg/rest"
 	log "github.com/dnitsch/simplelog"
@@ -35,12 +34,9 @@ type StrategyRestSeeder struct {
 // New initializes a default StrategySeeder with
 // error log level and os.StdErr as log writer
 // uses standard http.Client as rest client for rest SeederImplementation
-func New() *StrategyRestSeeder {
-	var gloglvl log.LogLevel = log.ErrorLvl
-	l := log.New(os.Stderr, gloglvl)
-	r := rest.NewSeederImpl()
-
-	r.WithClient(&http.Client{}).WithLogger(l)
+func New(log *log.Logger) *StrategyRestSeeder {
+	r := rest.NewSeederImpl(log)
+	r.WithClient(&http.Client{})
 
 	return &StrategyRestSeeder{
 		rest: r, // &rest.SeederImpl{client: &http.Client{}},
@@ -54,7 +50,7 @@ func New() *StrategyRestSeeder {
 			FIND_DELETE_POST: FindDeletePostStrategyFunc,
 			FIND_PATCH_POST:  FindPatchPostStrategyFunc,
 		},
-		log: l,
+		log: log,
 	}
 }
 
@@ -68,13 +64,6 @@ func (s *StrategyRestSeeder) WithRestClient(rc rest.Client) *StrategyRestSeeder 
 // NOTE: might make more sense to have a per RestAction authTemplate (might make it very inefficient)
 func (s *StrategyRestSeeder) WithAuth(ra *rest.AuthMap) *StrategyRestSeeder {
 	s.rest = s.rest.WithAuth(ra)
-	return s
-}
-
-// WithLogger overwrites the default logger and passes it down to rest.SeederImpl
-func (s *StrategyRestSeeder) WithLogger(log log.Logger) *StrategyRestSeeder {
-	s.log = log
-	s.rest = s.rest.WithLogger(log)
 	return s
 }
 

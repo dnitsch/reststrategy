@@ -16,7 +16,8 @@ require (
 require (
 	github.com/dnitsch/reststrategy/apis v0.0.0-20221011155009-3126798d4ab4
 	github.com/dnitsch/reststrategy/seeder v0.0.0-20221011155009-3126798d4ab4
-	github.com/dnitsch/simplelog v1.3.1
+	github.com/dnitsch/simplelog v1.5.1
+	github.com/spf13/cobra v1.5.0
 )
 
 require (
@@ -37,6 +38,7 @@ require (
 	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/google/gofuzz v1.1.0 // indirect
 	github.com/imdario/mergo v0.3.6 // indirect
+	github.com/inconshreveable/mousetrap v1.0.1 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect

@@ -15,7 +15,7 @@ type Seeder struct {
 }
 
 func New(log log.Logger, rc rest.Client) *Seeder {
-	srs := seeder.New().WithLogger(log).WithRestClient(rc)
+	srs := seeder.New(&log).WithRestClient(rc)
 	return &Seeder{
 		log:    log,
 		seeder: srs,

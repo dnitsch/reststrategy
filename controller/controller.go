@@ -2,11 +2,10 @@
 influenced by k8s.io samplecontroller
 */
 
-package main
+package controller
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	clientset "github.com/dnitsch/reststrategy/apis/generated/clientset/versioned"
@@ -32,6 +31,11 @@ import (
 
 const controllerAgentName = "reststrategycontroller"
 const kindCrdName = "RestStrategies"
+
+var (
+	Version  string = "0.0.1"
+	Revision string = "1111aaaa"
+)
 
 const (
 	// SuccessSynced is used as part of the Event 'reason' when a RestStrategy is synced
@@ -103,9 +107,7 @@ func NewController(
 		reststrategysSynced:   reststrategyInformer.Informer().HasSynced,
 		workqueue:             workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), kindCrdName),
 		recorder:              recorder,
-		// default logger implementation
-		log:                 log.New(os.Stderr, log.ErrorLvl),
-		resyncServicePeriod: resyncServicePeriodHours,
+		resyncServicePeriod:   resyncServicePeriodHours,
 	}
 
 	fmt.Print("Setting up event handlers")
@@ -165,6 +167,7 @@ func (c *Controller) Run(workers int, stopCh <-chan struct{}) error {
 // processNextWorkItem function in order to read and process a message on the
 // workqueue.
 func (c *Controller) runWorker() {
+	c.log.Debug("processing items")
 	for c.processNextWorkItem() {
 	}
 }

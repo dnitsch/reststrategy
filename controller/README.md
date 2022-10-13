@@ -29,6 +29,7 @@ A VSCode launch.json is shared in the controller dir.
 
 ## Notes
 
+`docker build --build-arg REVISION=abcd1234 --build-arg VERSION=0.6.0 -t dnitsch/reststrategy-controller .`
 
 
 ## Deployment

@@ -63,7 +63,7 @@ func TestInitialiseSharedInformerFactory_withNamespace(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.envFunc()
 
-			got, _ := InitialiseSharedInformerFactory(tt.args.onboardClient, tt.args.namespace, 60)
+			got, _ := initialiseSharedInformerFactory(tt.args.onboardClient, tt.args.namespace, 60)
 			if got.Reststrategy().V1alpha1() == nil {
 				t.Errorf("InitialiseSharedInformerFactory() got = %v, want not <nil>", got)
 			}

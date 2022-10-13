@@ -116,6 +116,8 @@ spec:
                         type: string
                       patchEndpointSuffix: 
                         type: string
+                      putEndpointSuffix: 
+                        type: string
                       findByJsonPathExpr:
                         type: string
                       authMapRef: 
@@ -123,7 +125,9 @@ spec:
                         # customTest1
                       payloadTemplate: 
                         type: string 
-                        # | {"email": "test2@example.com","password": "${password}","passwordConfirm": "${password}","avatar": 8}
+                        description: | 
+                          example string has to be valid json, e.g.: 
+                          `{"email": "test2@example.com","password": "${password}","passwordConfirm": "${password}","avatar": 8}`
                       patchPayloadTemplate:
                         type: string 
                       variables:
@@ -132,7 +136,9 @@ spec:
                         x-kubernetes-preserve-unknown-fields: true
                       runtimeVars:
                         type: object
-                        description: value is a JSONPath expression
+                        description: |
+                          Key Value map where the key will be the name of the variable which other Actions can access and the Value will be in form of a JSONPath expression, 
+                          which will be applied to each request
                         x-kubernetes-preserve-unknown-fields: true
   # either Namespaced or Cluster
   scope: Namespaced

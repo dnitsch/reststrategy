@@ -30,9 +30,10 @@ type SeederImpl struct {
 	runtimeVars runtimeVars
 }
 
-func NewSeederImpl() *SeederImpl {
+func NewSeederImpl(log log.Loggeriface) *SeederImpl {
 	return &SeederImpl{
 		runtimeVars: runtimeVars{},
+		log:         log,
 	}
 }
 
@@ -41,11 +42,10 @@ func (r *SeederImpl) WithClient(c Client) *SeederImpl {
 	return r
 }
 
-func (r *SeederImpl) WithLogger(l log.Logger) *SeederImpl {
-	// l.Debug("foo")
-	r.log = l
-	return r
-}
+// func (r *SeederImpl) WithLogger(l log.Logger) *SeederImpl {
+// 	r.log = l
+// 	return r
+// }
 
 func (r *SeederImpl) WithAuth(auth *AuthMap) *SeederImpl {
 	r.auth = NewAuth(auth)

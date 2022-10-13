@@ -8,6 +8,8 @@ import (
 	srs "github.com/dnitsch/reststrategy/seeder"
 	"github.com/dnitsch/reststrategy/seeder/internal/cmdutils"
 	"github.com/dnitsch/reststrategy/seeder/internal/config"
+	"github.com/dnitsch/reststrategy/seeder/pkg/rest"
+	log "github.com/dnitsch/simplelog"
 	"github.com/spf13/cobra"
 	yaml "gopkg.in/yaml.v3"
 )
@@ -37,8 +39,16 @@ func init() {
 
 func runExecute(cmd *cobra.Command, args []string) error {
 
-	strategy := srs.StrategyConfig{}
-	s := srs.New().WithRestClient(&http.Client{})
+	var l log.Logger
+
+	if verbose {
+		l = log.New(os.Stderr, log.DebugLvl)
+	} else {
+		l = log.New(os.Stderr, log.ErrorLvl)
+	}
+
+	strategy := rest.StrategyConfig{}
+	s := srs.New(&l).WithRestClient(&http.Client{})
 
 	b, e := os.ReadFile(path)
 	if e != nil {

@@ -15,7 +15,7 @@ type Seeder struct {
 }
 
 func New(log log.Logger, rc rest.Client) *Seeder {
-	srs := seeder.New().WithLogger(log).WithRestClient(rc)
+	srs := seeder.New(&log).WithRestClient(rc)
 	return &Seeder{
 		log:    log,
 		seeder: srs,
@@ -57,4 +57,9 @@ func versionsDiffer(newDef, oldDef *v1alpha1.RestStrategy) bool {
 	// be wary of CRDs applied via the SDK/pure API
 	// may not correctly reflect Generation and ResourceVersion fields
 	return oldDef.ObjectMeta.ResourceVersion != newDef.ObjectMeta.ResourceVersion && oldDef.ObjectMeta.Generation != newDef.ObjectMeta.Generation
+}
+
+// config
+func ConfigTokenReplace() {
+	
 }

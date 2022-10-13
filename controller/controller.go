@@ -2,11 +2,10 @@
 influenced by k8s.io samplecontroller
 */
 
-package main
+package controller
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	clientset "github.com/dnitsch/reststrategy/apis/generated/clientset/versioned"
@@ -14,9 +13,9 @@ import (
 	informers "github.com/dnitsch/reststrategy/apis/generated/informers/externalversions/reststrategy/v1alpha1"
 	listers "github.com/dnitsch/reststrategy/apis/generated/listers/reststrategy/v1alpha1"
 	"github.com/dnitsch/reststrategy/apis/reststrategy/v1alpha1"
+	"github.com/dnitsch/reststrategy/controller/pkg/rstservice"
 	"github.com/dnitsch/reststrategy/seeder/pkg/rest"
 
-	"github.com/dnitsch/reststrategy/controller/pkg/rstservice"
 	log "github.com/dnitsch/simplelog"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -32,6 +31,11 @@ import (
 
 const controllerAgentName = "reststrategycontroller"
 const kindCrdName = "RestStrategies"
+
+var (
+	Version  string = "0.0.1"
+	Revision string = "1111aaaa"
+)
 
 const (
 	// SuccessSynced is used as part of the Event 'reason' when a RestStrategy is synced
@@ -72,7 +76,7 @@ type Controller struct {
 	// logger - init with Standard
 	log log.Logger
 	// service struct that will perform the business logic
-	service *rstservice.Seeder
+	restClient rest.Client
 	// resyncPeriod in hours
 	resyncServicePeriod int
 }
@@ -103,9 +107,7 @@ func NewController(
 		reststrategysSynced:   reststrategyInformer.Informer().HasSynced,
 		workqueue:             workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), kindCrdName),
 		recorder:              recorder,
-		// default logger implementation
-		log:                 log.New(os.Stderr, log.ErrorLvl),
-		resyncServicePeriod: resyncServicePeriodHours,
+		resyncServicePeriod:   resyncServicePeriodHours,
 	}
 
 	fmt.Print("Setting up event handlers")
@@ -125,8 +127,8 @@ func (c *Controller) WithLogger(l log.Logger) *Controller {
 }
 
 // WithService assigns a service instance
-func (c *Controller) WithService(rc rest.Client) *Controller {
-	c.service = rstservice.New(c.log, rc)
+func (c *Controller) WithRestClient(rc rest.Client) *Controller {
+	c.restClient = rc
 	return c
 }
 
@@ -165,6 +167,7 @@ func (c *Controller) Run(workers int, stopCh <-chan struct{}) error {
 // processNextWorkItem function in order to read and process a message on the
 // workqueue.
 func (c *Controller) runWorker() {
+	c.log.Debug("processing items")
 	for c.processNextWorkItem() {
 	}
 }
@@ -253,14 +256,19 @@ func (c *Controller) syncHandler(key string) error {
 	// create Copy to pass to service
 	reststrategyCopy := reststrategy.DeepCopy()
 
-	c.log.Debugf("Handing over resource: '%s' in namespace: '%s' to the service handler", name, namespace)
+	c.log.Debugf("Handing over resource: '%s' in namespace: '%s' to the service handler. allocating new srv instance", name, namespace)
 
-	if err := c.service.Execute(reststrategyCopy.Spec); err != nil {
+	rstsrv := rstservice.New(c.log, c.restClient)
+
+	if err := rstsrv.Execute(reststrategyCopy.Spec); err != nil {
 		c.log.Errorf("+#v", err)
 		c.recorder.Event(reststrategy, corev1.EventTypeNormal, ErrSync, fmt.Sprintf("#+v", err))
 	} else {
 		c.recorder.Event(reststrategy, corev1.EventTypeNormal, SuccessSynced, MessageResourceSynced)
 	}
+
+	// force quicker GC ... deallocation from heap
+	rstsrv = nil
 
 	return nil
 }

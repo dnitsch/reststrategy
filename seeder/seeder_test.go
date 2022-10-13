@@ -190,6 +190,9 @@ func Test_Execute(t *testing.T) {
 	mux.HandleFunc("/delete/", deletetHandle(t))
 
 	ts := httptest.NewServer(mux)
+	logW := &bytes.Buffer{}
+
+	logger := log.New(logW, log.DebugLvl)
 
 	tests := []struct {
 		name             string
@@ -268,7 +271,7 @@ func Test_Execute(t *testing.T) {
 			},
 			expectErrorCount: 1,
 			srs: func(t *testing.T) *StrategyRestSeeder {
-				return New().WithRestClient(&http.Client{})
+				return New(&logger).WithRestClient(&http.Client{})
 			},
 		},
 		{
@@ -336,7 +339,7 @@ func Test_Execute(t *testing.T) {
 			},
 			expectErrorCount: 1,
 			srs: func(t *testing.T) *StrategyRestSeeder {
-				return New().WithRestClient(&http.Client{})
+				return New(&logger).WithRestClient(&http.Client{})
 			},
 		},
 		{
@@ -398,17 +401,15 @@ func Test_Execute(t *testing.T) {
 			},
 			expectErrorCount: 1,
 			srs: func(t *testing.T) *StrategyRestSeeder {
-				return New().WithRestClient(&http.Client{})
+				return New(&logger).WithRestClient(&http.Client{})
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			logW := &bytes.Buffer{}
 			_srs := tt.srs(t)
-			l := log.New(logW, log.DebugLvl)
-			_srs.WithActions(tt.seeders).WithAuth(tt.authConfig).WithLogger(l)
+			_srs.WithActions(tt.seeders).WithAuth(tt.authConfig)
 			// ctx, cancel := context.WithCancel(context.TODO())
 			// defer cancel()
 			e := _srs.Execute(context.Background())

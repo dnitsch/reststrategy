@@ -59,8 +59,9 @@ func Test_getSeeder(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			file, _ := os.OpenFile(os.DevNull, os.O_RDWR, 0777)
 			l := log.New(file, log.DebugLvl)
+			tt.rimpl.log = l
 			a := tt.action.WithHeader().WithName(tt.name)
-			tt.rimpl.WithAuth(tt.auth).WithLogger(l).WithClient(tt.client)
+			tt.rimpl.WithAuth(tt.auth).WithClient(tt.client)
 			err := tt.rimpl.GetPost(context.TODO(), a)
 			if err != nil {
 				t.Errorf("failed %s", err)

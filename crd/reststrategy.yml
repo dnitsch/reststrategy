@@ -130,6 +130,8 @@ spec:
                           `{"email": "test2@example.com","password": "${password}","passwordConfirm": "${password}","avatar": 8}`
                       patchPayloadTemplate:
                         type: string 
+                        description: |
+                          pathcPayload has to be specifically described as PATCH should only enact a change, whereas other PUT/POST strategies will re-use the same payload
                       variables:
                         type: object
                         description: vars to use for replacement

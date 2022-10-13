@@ -41,17 +41,9 @@ Containerised version of [this](https://github.com/axa-group/oauth2-mock-server)
 
 `docker run --name=oauth-mock --detach -p 8080:8080 dnitsch/reststrategy-oauth-mock:latest`
 
+if you are running in Minikube and testing from the outside
 
-if you are running in Minikube and testing from the outside 
-
-
-
-
-See test/test.yaml for an integration style test locally
-
-For OAuth2 Server mocking - you can use/run this [OAuth2 mock server](https://github.com/axa-group/oauth2-mock-server#readme) locally.
-
-
+See test/*-test.yaml for an integration style test locally.
 
 ## Notes
 

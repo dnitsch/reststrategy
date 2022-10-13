@@ -5,7 +5,6 @@ influenced by k8s.io samplecontroller
 package controller
 
 import (
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -262,7 +261,14 @@ func (c *Controller) syncHandler(key string) error {
 	c.log.Debugf("Handing over resource: '%s' in namespace: '%s' to the service handler. allocating new srv instance", name, namespace)
 
 	rstsrv := rstservice.New(c.log, c.restClient)
-	rspec, err := SpecConfigTokenReplace(reststrategyCopy.Spec)
+
+	cm := &configmanager.ConfigManager{}
+
+	// use custom token separator inline with future releases
+	config := generator.NewConfig().WithTokenSeparator("://")
+
+	rspec, err := configmanager.KubeControllerSpecHelper(reststrategyCopy.Spec, cm, *config)
+
 	if err != nil {
 		c.log.Debugf("failed to replace any found tokens on the CRD spec: %s", key)
 		return err
@@ -344,31 +350,4 @@ func versionsDiffer(newDef, oldDef *v1alpha1.RestStrategy) bool {
 	// be wary of CRDs applied via the SDK/pure API
 	// may not correctly reflect Generation and ResourceVersion fields
 	return oldDef.ObjectMeta.ResourceVersion != newDef.ObjectMeta.ResourceVersion && oldDef.ObjectMeta.Generation != newDef.ObjectMeta.Generation
-}
-
-// ConfigTokenReplace uses configmanager to replace all occurences of
-// replaceable tokens inside a []byte
-// this is a re-useable method on all controllers
-// will just ignore any non specs without tokens
-func SpecConfigTokenReplace[T any](inputType T) (*T, error) {
-	outType := new(T)
-	rawBytes, err := json.Marshal(inputType)
-	if err != nil {
-		return nil, err
-	}
-
-	cm := configmanager.ConfigManager{}
-
-	// use custom token separator
-	// inline with
-	cnf := generator.NewConfig().WithTokenSeparator("://")
-
-	replaced, err := cm.RetrieveWithInputReplaced(string(rawBytes), *cnf)
-	if err != nil {
-		return nil, err
-	}
-	if err := json.Unmarshal([]byte(replaced), outType); err != nil {
-		return nil, err
-	}
-	return outType, nil
 }

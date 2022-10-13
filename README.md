@@ -33,7 +33,8 @@ Then navigate to this [page](http://127.0.0.1:8090/_/?installer#)
 enter any username/password combo this is only for local testing
 test@example.com/P4s$w0rd123!
 
-`minikube service pocketbase -n testapp --url`
+<!-- `minikube service pocketbase -n testapp --url` -->
+<!-- if you are running in Minikube and testing from the outside -->
 
 ### mock oauth server
 
@@ -41,9 +42,7 @@ Containerised version of [this](https://github.com/axa-group/oauth2-mock-server)
 
 `docker run --name=oauth-mock --detach -p 8080:8080 dnitsch/reststrategy-oauth-mock:latest`
 
-if you are running in Minikube and testing from the outside
-
-See test/*-test.yaml for an integration style test locally.
+See `test/*-test.yaml` for an integration style test locally.
 
 ## Notes
 

@@ -20,3 +20,5 @@ clean:
 build: clean install
 	GOOS=linux CGO_ENABLED=0 go build -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/controller ./cmd; \
 
+build_ci: build
+

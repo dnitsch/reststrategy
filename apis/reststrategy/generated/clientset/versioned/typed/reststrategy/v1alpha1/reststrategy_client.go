@@ -11,7 +11,7 @@ package v1alpha1
 import (
 	"net/http"
 
-	"github.com/dnitsch/reststrategy/apis/generated/clientset/versioned/scheme"
+	"github.com/dnitsch/reststrategy/apis/reststrategy/generated/clientset/versioned/scheme"
 	v1alpha1 "github.com/dnitsch/reststrategy/apis/reststrategy/v1alpha1"
 	rest "k8s.io/client-go/rest"
 )

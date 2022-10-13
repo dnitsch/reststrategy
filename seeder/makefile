@@ -18,6 +18,7 @@ copygened: codegen
 
 codegen_verify:
 	./hack/verify-codegen.sh
+	echo "rm -rf github.com" && rm -rf github.com
 
 .PHONY: clean
 clean:
@@ -34,4 +35,4 @@ bingen:
 
 build: clean install copygened bingen
 
-build_ci: clean install copygened codegen_verify bingen
+build_ci: clean install codegen_verify bingen

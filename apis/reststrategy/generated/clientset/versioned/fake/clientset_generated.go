@@ -9,9 +9,9 @@ WTFPL
 package fake
 
 import (
-	clientset "github.com/dnitsch/reststrategy/apis/generated/clientset/versioned"
-	reststrategyv1alpha1 "github.com/dnitsch/reststrategy/apis/generated/clientset/versioned/typed/reststrategy/v1alpha1"
-	fakereststrategyv1alpha1 "github.com/dnitsch/reststrategy/apis/generated/clientset/versioned/typed/reststrategy/v1alpha1/fake"
+	clientset "github.com/dnitsch/reststrategy/apis/reststrategy/generated/clientset/versioned"
+	reststrategyv1alpha1 "github.com/dnitsch/reststrategy/apis/reststrategy/generated/clientset/versioned/typed/reststrategy/v1alpha1"
+	fakereststrategyv1alpha1 "github.com/dnitsch/reststrategy/apis/reststrategy/generated/clientset/versioned/typed/reststrategy/v1alpha1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"

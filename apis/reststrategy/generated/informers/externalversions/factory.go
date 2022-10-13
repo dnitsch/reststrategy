@@ -13,9 +13,9 @@ import (
 	sync "sync"
 	time "time"
 
-	versioned "github.com/dnitsch/reststrategy/apis/generated/clientset/versioned"
-	internalinterfaces "github.com/dnitsch/reststrategy/apis/generated/informers/externalversions/internalinterfaces"
-	reststrategy "github.com/dnitsch/reststrategy/apis/generated/informers/externalversions/reststrategy"
+	versioned "github.com/dnitsch/reststrategy/apis/reststrategy/generated/clientset/versioned"
+	internalinterfaces "github.com/dnitsch/reststrategy/apis/reststrategy/generated/informers/externalversions/internalinterfaces"
+	reststrategy "github.com/dnitsch/reststrategy/apis/reststrategy/generated/informers/externalversions/reststrategy"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"

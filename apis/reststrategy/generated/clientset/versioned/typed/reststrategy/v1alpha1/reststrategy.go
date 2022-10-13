@@ -12,7 +12,7 @@ import (
 	"context"
 	"time"
 
-	scheme "github.com/dnitsch/reststrategy/apis/generated/clientset/versioned/scheme"
+	scheme "github.com/dnitsch/reststrategy/apis/reststrategy/generated/clientset/versioned/scheme"
 	v1alpha1 "github.com/dnitsch/reststrategy/apis/reststrategy/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"

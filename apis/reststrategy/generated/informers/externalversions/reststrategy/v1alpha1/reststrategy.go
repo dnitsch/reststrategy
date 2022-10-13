@@ -12,9 +12,9 @@ import (
 	"context"
 	time "time"
 
-	versioned "github.com/dnitsch/reststrategy/apis/generated/clientset/versioned"
-	internalinterfaces "github.com/dnitsch/reststrategy/apis/generated/informers/externalversions/internalinterfaces"
-	v1alpha1 "github.com/dnitsch/reststrategy/apis/generated/listers/reststrategy/v1alpha1"
+	versioned "github.com/dnitsch/reststrategy/apis/reststrategy/generated/clientset/versioned"
+	internalinterfaces "github.com/dnitsch/reststrategy/apis/reststrategy/generated/informers/externalversions/internalinterfaces"
+	v1alpha1 "github.com/dnitsch/reststrategy/apis/reststrategy/generated/listers/reststrategy/v1alpha1"
 	reststrategyv1alpha1 "github.com/dnitsch/reststrategy/apis/reststrategy/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"

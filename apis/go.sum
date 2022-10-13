@@ -16,6 +16,7 @@ github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSs
 github.com/dnitsch/reststrategy/seeder v0.0.0-20221011155009-3126798d4ab4 h1:rGu+aDtTqDmF6jBnsBOEoJF+ubjLe2ec6FCDK0940T8=
 github.com/dnitsch/reststrategy/seeder v0.0.0-20221011155009-3126798d4ab4/go.mod h1:Wkt+YVT7fWYHAPoAbMXvt34lQSZPiaPtgKHXK9+wPI8=
 github.com/dnitsch/simplelog v1.5.1 h1:PhIFuZluJIAUiKgJ+xBzTZwqe49PFg20d3ToDucu3Dg=
+github.com/dnitsch/simplelog v1.5.1/go.mod h1:scPvWULBlruthxS6seGJkMbc1DM5f44IRZNmaSZCJVU=
 github.com/docopt/docopt-go v0.0.0-20180111231733-ee0de3bc6815/go.mod h1:WwZ+bS3ebgob9U8Nd0kOddGdZWjyMGR8Wziv+TBNwSE=
 github.com/emicklei/go-restful/v3 v3.8.0 h1:eCZ8ulSerjdAiaNpF7GxXIE7ZCMo1moN1qX+S609eVw=
 github.com/emicklei/go-restful/v3 v3.8.0/go.mod h1:6n3XBCmQQb25CM2LCACGz8ukIrRry+4bhvbpWn3mrbc=

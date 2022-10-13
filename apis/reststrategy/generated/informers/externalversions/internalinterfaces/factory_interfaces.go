@@ -11,7 +11,7 @@ package internalinterfaces
 import (
 	time "time"
 
-	versioned "github.com/dnitsch/reststrategy/apis/generated/clientset/versioned"
+	versioned "github.com/dnitsch/reststrategy/apis/reststrategy/generated/clientset/versioned"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	cache "k8s.io/client-go/tools/cache"

@@ -9,8 +9,8 @@ WTFPL
 package reststrategy
 
 import (
-	internalinterfaces "github.com/dnitsch/reststrategy/apis/generated/informers/externalversions/internalinterfaces"
-	v1alpha1 "github.com/dnitsch/reststrategy/apis/generated/informers/externalversions/reststrategy/v1alpha1"
+	internalinterfaces "github.com/dnitsch/reststrategy/apis/reststrategy/generated/informers/externalversions/internalinterfaces"
+	v1alpha1 "github.com/dnitsch/reststrategy/apis/reststrategy/generated/informers/externalversions/reststrategy/v1alpha1"
 )
 
 // Interface provides access to each of this group's versions.

@@ -9,7 +9,7 @@ WTFPL
 package v1alpha1
 
 import (
-	internalinterfaces "github.com/dnitsch/reststrategy/apis/generated/informers/externalversions/internalinterfaces"
+	internalinterfaces "github.com/dnitsch/reststrategy/apis/reststrategy/generated/informers/externalversions/internalinterfaces"
 )
 
 // Interface provides access to all the informers in this group version.

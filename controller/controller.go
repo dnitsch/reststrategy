@@ -5,9 +5,12 @@ influenced by k8s.io samplecontroller
 package controller
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
+	"github.com/dnitsch/configmanager"
+	"github.com/dnitsch/configmanager/pkg/generator"
 	clientset "github.com/dnitsch/reststrategy/apis/reststrategy/generated/clientset/versioned"
 	reststrategyscheme "github.com/dnitsch/reststrategy/apis/reststrategy/generated/clientset/versioned/scheme"
 	informers "github.com/dnitsch/reststrategy/apis/reststrategy/generated/informers/externalversions/reststrategy/v1alpha1"
@@ -259,10 +262,15 @@ func (c *Controller) syncHandler(key string) error {
 	c.log.Debugf("Handing over resource: '%s' in namespace: '%s' to the service handler. allocating new srv instance", name, namespace)
 
 	rstsrv := rstservice.New(c.log, c.restClient)
+	rspec, err := SpecConfigTokenReplace(reststrategyCopy.Spec)
+	if err != nil {
+		c.log.Debugf("failed to replace any found tokens on the CRD spec: %s", key)
+		return err
+	}
 
-	if err := rstsrv.Execute(reststrategyCopy.Spec); err != nil {
+	if err := rstsrv.Execute(*rspec); err != nil {
 		c.log.Errorf("+#v", err)
-		c.recorder.Event(reststrategy, corev1.EventTypeNormal, ErrSync, fmt.Sprintf("#+v", err))
+		c.recorder.Event(reststrategy, corev1.EventTypeNormal, ErrSync, fmt.Sprintf("#+%v", err))
 	} else {
 		c.recorder.Event(reststrategy, corev1.EventTypeNormal, SuccessSynced, MessageResourceSynced)
 	}
@@ -336,4 +344,31 @@ func versionsDiffer(newDef, oldDef *v1alpha1.RestStrategy) bool {
 	// be wary of CRDs applied via the SDK/pure API
 	// may not correctly reflect Generation and ResourceVersion fields
 	return oldDef.ObjectMeta.ResourceVersion != newDef.ObjectMeta.ResourceVersion && oldDef.ObjectMeta.Generation != newDef.ObjectMeta.Generation
+}
+
+// ConfigTokenReplace uses configmanager to replace all occurences of
+// replaceable tokens inside a []byte
+// this is a re-useable method on all controllers
+// will just ignore any non specs without tokens
+func SpecConfigTokenReplace[T any](inputType T) (*T, error) {
+	outType := new(T)
+	rawBytes, err := json.Marshal(inputType)
+	if err != nil {
+		return nil, err
+	}
+
+	cm := configmanager.ConfigManager{}
+
+	// use custom token separator
+	// inline with
+	cnf := generator.NewConfig().WithTokenSeparator("://")
+
+	replaced, err := cm.RetrieveWithInputReplaced(string(rawBytes), *cnf)
+	if err != nil {
+		return nil, err
+	}
+	if err := json.Unmarshal([]byte(replaced), outType); err != nil {
+		return nil, err
+	}
+	return outType, nil
 }

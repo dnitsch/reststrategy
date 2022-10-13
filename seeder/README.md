@@ -235,25 +235,3 @@ Todo fill me out
 ...
 standard go styling and contribution guide lines
 
-#### Local testing
-
-The test app is using [pocketbase](https://pocketbase.io/)
-
-```bash
-docker build --build-arg "VERSION=0.7.9" -t pocketbase-sample -f sample-app.Dockerfile .
-docker run --name=pb-app --detach -p 8090:8090 dnitsch/reststrategy-testapp 
-```
-
-Then navigate to this [page](http://127.0.0.1:8090/_/?installer#)
-
-if you are running in Minikube and testing from the outside 
-
-`minikube service pocketbase -n testapp --url`
-
-
-enter any username/password combo this is only for local testing
-test@example.com/P4s$w0rd123!
-
-See test/test.yaml for an integration style test locally
-
-For OAuth2 Server mocking - you can use/run this [OAuth2 mock server](https://github.com/axa-group/oauth2-mock-server#readme) locally.

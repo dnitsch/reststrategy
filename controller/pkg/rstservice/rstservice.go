@@ -22,6 +22,7 @@ func New(log log.Logger, rc rest.Client) *Seeder {
 	}
 }
 
+// Execute accepts the top level spec
 func (rst *Seeder) Execute(spec v1alpha1.StrategySpec) []error {
 	rst.seeder.WithActions(rst.sortActions(spec.Seeders)).WithAuth(rst.sortAuth(spec.AuthConfig))
 	return rst.seeder.Execute(context.Background())
@@ -57,9 +58,4 @@ func versionsDiffer(newDef, oldDef *v1alpha1.RestStrategy) bool {
 	// be wary of CRDs applied via the SDK/pure API
 	// may not correctly reflect Generation and ResourceVersion fields
 	return oldDef.ObjectMeta.ResourceVersion != newDef.ObjectMeta.ResourceVersion && oldDef.ObjectMeta.Generation != newDef.ObjectMeta.Generation
-}
-
-// config
-func ConfigTokenReplace() {
-	
 }

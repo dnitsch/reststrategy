@@ -155,7 +155,9 @@ func (r *SeederImpl) do(req *http.Request, action *Action) ([]byte, error) {
 	r.log.Debugf("request: %+v", req)
 	respBody := []byte{}
 	req.Header = *action.header
-	diag := &Diagnostic{HostPathMethod: fmt.Sprintf("%s: %s%s?%s", req.Method, req.URL.Host, req.URL.Path, req.URL.RawQuery), Name: action.name, ProceedFallback: false, IsFatal: true}
+	diag := &Diagnostic{HostPathMethod: fmt.Sprintf("Method => %s HostPath => %s%s Query => %s", req.Method, req.URL.Host, req.URL.Path, req.URL.RawQuery), Name: action.name, ProceedFallback: false, IsFatal: true}
+
+	r.log.Debugf("restPayload diagnostic: %+v", diag)
 
 	resp, err := r.client.Do(r.doAuth(req, action))
 	if err != nil {
@@ -257,6 +259,7 @@ func (r *SeederImpl) patch(ctx context.Context, action *Action) error {
 	if action.foundId != "" {
 		endpoint = fmt.Sprintf("%s/%s", endpoint, action.foundId)
 	}
+
 	req, err := http.NewRequestWithContext(ctx, "PATCH", endpoint, strings.NewReader(action.templatedPayload))
 
 	if err != nil {
@@ -360,6 +363,10 @@ func findPathByExpression(resp []byte, pathExpression string, log log.Loggerifac
 // existing global env variable as well as injected from inside RestAction
 // into the local context
 func (r *SeederImpl) templatePayload(payload string, vars KvMapVarsAny) string {
+	localVars := &KvMapVarsAny{}
+	if vars == nil {
+		vars = *localVars
+	}
 
 	// extend existing to allow for runtimeVars replacement
 	for k, v := range r.runtimeVars {

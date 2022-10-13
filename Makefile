@@ -1,7 +1,7 @@
 
 OWNER := dnitsch
 NAME := reststrategy
-GIT_TAG := "0.6.0"
+GIT_TAG := "0.6.2"
 VERSION := "v$(GIT_TAG)"
 REVISION := $(shell git rev-parse --short HEAD)
 
@@ -18,7 +18,10 @@ build_ci:
 
 tag: 
 	git tag "v$(GIT_TAG)"
-	git push origin "v$(GIT_TAG)"
+	git tag "apis/v$(GIT_TAG)"
+	git tag "seeder/v$(GIT_TAG)"
+	git tag "controller/v$(GIT_TAG)"
+	git push --tags
 
 release: 
 	OWNER=$(OWNER) NAME=$(NAME) PAT=$(PAT) VERSION=$(VERSION) . hack/release.sh

@@ -15,14 +15,15 @@ jobs:
         REVISION: $GITHUB_SHA
     steps:
       - uses: actions/checkout@v3
-      - name: echo REVISION
+      - name: build
         run: | 
           echo "$GITHUB_SHA should match the commit ID of feature branch"
           echo "github.sha -> ${{ github.sha }}"
           echo "GITHUB_SHA -> $GITHUB_SHA"
+          make REVISION=${{ github.sha }} PAT=${{ secrets.GITHUB_TOKEN }} build_ci
       - name: release library
         run: make REVISION=$GITHUB_SHA tag
       - name: release binary
         run: |
-          make REVISION=${{ github.sha }} PAT=${{ secrets.GITHUB_TOKEN }} cross-build
+          make REVISION=${{ github.sha }} PAT=${{ secrets.GITHUB_TOKEN }} build_ci
           make REVISION=${{ github.sha }} PAT=${{ secrets.GITHUB_TOKEN }} release

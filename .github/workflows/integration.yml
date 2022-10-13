@@ -9,7 +9,7 @@ jobs:
     # if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     container:
-      image: golang:1.18-bullseye
+      image: golang:1.19-bullseye
       env:
         FOO: Bar
         REVISION: $GITHUB_SHA

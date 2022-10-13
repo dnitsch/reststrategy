@@ -1,4 +1,4 @@
-.PHONY: clean install codegen codegen_verify copygened bingen build
+.PHONY: clean install codegen codegen_verify copygened build
 
 install: 
 	go mod tidy
@@ -18,14 +18,8 @@ codegen_verify:
 clean:
 	rm -rf vendor/*
 
-bingen:
-	for os in darwin linux windows; do \
-	    [ $$os = "windows" ] && EXT=".exe"; \
-		GOOS=$$os CGO_ENABLED=0 go build -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/seeder-$$os$$EXT ./cmd; \
-	done
-
-build: clean install copygened bingen
+build: clean install copygened
 	echo "Types Updated"
 
-build_ci: clean install codegen_verify bingen 
+build_ci: clean install codegen_verify 
 	echo "Types Updated and verified"

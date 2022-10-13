@@ -4,8 +4,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/dnitsch/reststrategy/apis/generated/clientset/versioned"
-	"github.com/dnitsch/reststrategy/apis/generated/clientset/versioned/fake"
+	"github.com/dnitsch/reststrategy/apis/reststrategy/generated/clientset/versioned"
+	"github.com/dnitsch/reststrategy/apis/reststrategy/generated/clientset/versioned/fake"
 	"github.com/dnitsch/reststrategy/controller/internal/testutils"
 )
 

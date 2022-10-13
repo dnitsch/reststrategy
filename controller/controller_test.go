@@ -18,8 +18,8 @@ package controller
 
 // 	"github.com/dnitsch/reststrategy/controller/internal/testutils"
 
-// 	"github.com/dnitsch/reststrategy/apis/generated/clientset/versioned/fake"
-// 	informers "github.com/dnitsch/reststrategy/apis/generated/informers/externalversions"
+// 	"github.com/dnitsch/reststrategy/apis/reststrategy/generated/clientset/versioned/fake"
+// 	informers "github.com/dnitsch/reststrategy/apis/reststrategy/generated/informers/externalversions"
 // 	v1alphacontroller "github.com/dnitsch/reststrategy/apis/reststrategy/v1alpha1"
 // )
 

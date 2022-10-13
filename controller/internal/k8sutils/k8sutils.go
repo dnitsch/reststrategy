@@ -7,8 +7,8 @@ import (
 	"os"
 	"time"
 
-	clientset "github.com/dnitsch/reststrategy/apis/generated/clientset/versioned"
-	controllerinformers "github.com/dnitsch/reststrategy/apis/generated/informers/externalversions"
+	clientset "github.com/dnitsch/reststrategy/apis/reststrategy/generated/clientset/versioned"
+	controllerinformers "github.com/dnitsch/reststrategy/apis/reststrategy/generated/informers/externalversions"
 	"github.com/dnitsch/reststrategy/controller"
 	"github.com/dnitsch/reststrategy/controller/pkg/signals"
 	log "github.com/dnitsch/simplelog"

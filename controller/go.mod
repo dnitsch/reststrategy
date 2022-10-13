@@ -14,10 +14,14 @@ require (
 )
 
 require (
-	github.com/dnitsch/reststrategy/apis v0.0.0-20221011155009-3126798d4ab4
-	github.com/dnitsch/reststrategy/seeder v0.0.0-20221011155009-3126798d4ab4
+	// github.com/dnitsch/reststrategy/seeder v0.5.0
 	github.com/dnitsch/simplelog v1.5.1
 	github.com/spf13/cobra v1.5.0
+)
+
+require (
+	github.com/dnitsch/reststrategy/apis v0.0.0-20221011155009-3126798d4ab4
+	github.com/dnitsch/reststrategy/seeder v0.0.0-20221011155009-3126798d4ab4
 )
 
 require (

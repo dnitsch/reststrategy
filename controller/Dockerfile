@@ -1,12 +1,27 @@
-FROM public.ecr.aws/z3r3p6p4/cyber-security:alpine-3.15-0.0.1
+## Build
+FROM golang:1.19-buster AS build
 
-WORKDIR /controller
+ARG VERSION=0.0.0
 
-# Add AWS CLI for go-client auth of type AWS (to EKS)
-RUN apk add aws-cli curl
+ARG REVISION=aaaa1111
 
-COPY ./bin/onboardapp onboardapp
+WORKDIR /app
 
-RUN chmod +x /controller/reststrategy
+COPY ./ ./
 
-CMD ["/bin/sh", "start.sh"]
+RUN make VERSION=${VERSION} REVISION=${REVISION} build
+
+## Deploy
+FROM gcr.io/distroless/base-debian11
+
+WORKDIR /
+
+COPY --from=build /app/dist/controller controller
+
+RUN chmod +x /controller
+
+USER nonroot:nonroot
+
+CMD [ "/controller", "version" ]
+
+ENTRYPOINT ["/controller"]

@@ -1,4 +1,4 @@
-NAME := reststrategyseeder
+NAME := reststrategy
 VERSION := "v0.0.0"
 REVISION := $(shell git rev-parse --short HEAD)
 
@@ -16,6 +16,9 @@ copygened: codegen
 	echo "rm -rf github.com" && rm -rf github.com
 	echo "Types Updated"
 
+codegen_verify:
+	./hack/verify-codegen.sh
+
 .PHONY: clean
 clean:
 	rm -rf bin/*
@@ -23,8 +26,12 @@ clean:
 	rm -rf vendor/*
 	mkdir -p dist
 
-build: clean install copygened
+bingen:
 	for os in darwin linux windows; do \
 	    [ $$os = "windows" ] && EXT=".exe"; \
-		GOOS=$$os CGO_ENABLED=0 go build -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/$(NAME)-$$os$$EXT ./cmd; \
+		GOOS=$$os CGO_ENABLED=0 go build -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/seeder-$$os$$EXT ./cmd; \
 	done
+
+build: clean install copygened bingen
+
+build_ci: clean install copygened codegen_verify bingen

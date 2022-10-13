@@ -24,5 +24,7 @@ vendor/
 .ignore*
 
 # generated
-**/zz_generated.deepcopy.go
+# **/zz_generated.deepcopy.go
 **/github.com
+
+.DS_Store

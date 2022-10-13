@@ -1,3 +1,5 @@
+.PHONY: clean install codegen codegen_verify copygened bingen build
+
 install: 
 	go mod tidy
 	go mod vendor
@@ -5,14 +7,25 @@ install:
 codegen:
 	./hack/update-codegen.sh
 
-copygened:
+copygened: codegen
 	echo "Copying Generated dir" && cp -fr github.com/dnitsch/reststrategy/apis/generated ./
 	echo "Copying Generated DeepCopyFunc" && cp -fr github.com/dnitsch/reststrategy/apis/reststrategy/* ./reststrategy/ && \
 	echo "rm -rf github.com" && rm -rf github.com
 
-.PHONY: clean
+codegen_verify:
+	./hack/verify-codegen.sh
+
 clean:
 	rm -rf vendor/*
 
-build: clean install codegen copygened 
+bingen:
+	for os in darwin linux windows; do \
+	    [ $$os = "windows" ] && EXT=".exe"; \
+		GOOS=$$os CGO_ENABLED=0 go build -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/seeder-$$os$$EXT ./cmd; \
+	done
+
+build: clean install copygened bingen
+	echo "Types Updated"
+
+build_ci: clean install copygened codegen_verify bingen 
 	echo "Types Updated"

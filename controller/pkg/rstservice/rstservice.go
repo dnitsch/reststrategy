@@ -58,3 +58,8 @@ func versionsDiffer(newDef, oldDef *v1alpha1.RestStrategy) bool {
 	// may not correctly reflect Generation and ResourceVersion fields
 	return oldDef.ObjectMeta.ResourceVersion != newDef.ObjectMeta.ResourceVersion && oldDef.ObjectMeta.Generation != newDef.ObjectMeta.Generation
 }
+
+// config
+func ConfigTokenReplace() {
+	
+}

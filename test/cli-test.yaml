@@ -30,7 +30,6 @@ auth:
       responseKey: $.token
       headerKey: Authorization
       tokenPrefix: Admin
-# /api/admins/auth-via-email
 seed:
   update-test2-admin:
     # /api/admins

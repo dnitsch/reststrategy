@@ -3,7 +3,7 @@ VERSION := "v0.0.0"
 # VERSION := "$(shell git describe --tags --abbrev=0)"
 REVISION := $(shell git rev-parse --short HEAD)
 
-LDFLAGS := -ldflags="-s -w -X \"github.com/$(OWNER)/$(NAME)/controller/cmd/controller.Version=$(VERSION)\" -X \"github.com/$(OWNER)/$(NAME)/controller/cmd/controller.Revision=$(REVISION)\" -extldflags -static"
+LDFLAGS := -ldflags="-s -w -X \"github.com/dnitsch/reststrategy/controller/cmd/controller.Version=$(VERSION)\" -X \"github.com/dnitsch/reststrategy/controller/cmd/controller.Revision=$(REVISION)\" -extldflags -static"
 
 
 install:

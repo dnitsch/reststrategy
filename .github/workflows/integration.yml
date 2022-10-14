@@ -54,7 +54,8 @@ jobs:
 
       - name: docker push controller
         run: |
-          export VERSION=$(git describe --exact-match ${{ github.sha }})
+          export RAW_VERSION=$(git describe --exact-match ${{ github.sha }})
+          VERSION=${RAW_VERSION##*/}
           cd controller
           docker build --build-arg REVISION=${{ github.sha }} --build-arg VERSION=${VERSION} -t ghcr.io/dnitsch/reststrategy:${VERSION} .
           docker push ghcr.io/dnitsch/reststrategy:${VERSION}

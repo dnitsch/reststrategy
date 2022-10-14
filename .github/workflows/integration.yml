@@ -24,4 +24,5 @@ jobs:
       - name: release
         run: |
           make REVISION=$GITHUB_SHA tag
+          ls -lat seeder/dist/*
           make REVISION=${{ github.sha }} PAT=${{ secrets.GITHUB_TOKEN }} release

@@ -18,9 +18,9 @@ var (
 	path   string
 	runCmd = &cobra.Command{
 		Use:     "run",
-		Aliases: []string{"configure", "r"},
-		Short:   fmt.Sprintf("Get version number %s", config.SELF_NAME),
-		Long:    `Version and Revision number of the installed CLI`,
+		Aliases: config.SHORT_NAME,
+		Short:   `Executes the provided strategy`,
+		Long:    `Executes the provided strategy against the provided actions and auth references`,
 		RunE:    runExecute,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			// if len(input) < 1 && !getStdIn() {

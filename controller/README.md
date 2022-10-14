@@ -24,7 +24,7 @@ A VSCode launch.json is shared in the controller dir.
 
 Build locally and test in cluster.
 
-`docker build --build-arg REVISION=abcd1234 --build-arg VERSION=0.6.2 -t dnitsch/reststrategy-controller .`
+`docker build --build-arg REVISION=abcd1234 --build-arg VERSION=0.6.2 -t ghcr.io/dnitsch/reststrategy:0.6.2 .`
 
 ## Deployment
 

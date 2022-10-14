@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: reststrategy
+  labels:
+    role: reststrategy
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reststrategy
+  namespace: reststrategy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reststrategy
+  template:
+    metadata:
+      labels:
+        app: reststrategy
+    spec:
+      serviceAccountName: reststrategy
+      automountServiceAccountToken: true
+      containers:
+      - image: ghcr.io/dnitsch/reststrategy:0.6.3-pre
+        imagePullPolicy: IfNotPresent
+        name: reststrategy
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+         #limits:
+         #  cpu: "1"
+         #  memory: "1Gi"
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        args:
+          - --controllercount 2
+          - --namespace $(POD_NAMESPACE)
+          - --loglevel debug

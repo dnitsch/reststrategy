@@ -1,10 +1,8 @@
 OWNER := dnitsch
 VERSION := "v0.0.0"
-# VERSION := "$(shell git describe --tags --abbrev=0)"
-REVISION := $(shell git rev-parse --short HEAD)
+REVISION := "aaaa1111"
 
 LDFLAGS := -ldflags="-s -w -X \"github.com/dnitsch/reststrategy/controller/cmd/controller.Version=$(VERSION)\" -X \"github.com/dnitsch/reststrategy/controller/cmd/controller.Revision=$(REVISION)\" -extldflags -static"
-
 
 install:
 	go mod tidy
@@ -17,8 +15,16 @@ clean:
 	rm -rf vendor/*
 	mkdir -p dist
 
-build: clean install
-	GOOS=linux CGO_ENABLED=0 go build -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/controller ./cmd; \
+bingen:
+	for os in darwin linux windows; do \
+	    [ $$os = "windows" ] && EXT=".exe"; \
+		GOOS=$$os CGO_ENABLED=0 go build -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/seeder-$$os$$EXT ./cmd; \
+	done
+
+# local only as the target is the docker build
+build: clean install bingen
 
 build_ci: build
 
+docker:
+	docker build --build-arg REVISION=$(REVISION) --build-arg VERSION=$(VERSION) -t ghcr.io/dnitsch/reststrategy:$(VERSION) .

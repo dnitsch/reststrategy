@@ -4,4 +4,4 @@ const (
 	SELF_NAME = "strategyrestseeder"
 )
 
-var SHORT_NAME = []string{"restseeder", "srs"}
+var SHORT_NAME = []string{"restseeder", "srs", "seeder"}

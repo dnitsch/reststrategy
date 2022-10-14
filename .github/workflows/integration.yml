@@ -5,32 +5,32 @@ on:
     branches: [ master, main ]
 
 jobs:
-  release:
-    # if: github.event.pull_request.merged == true
-    runs-on: ubuntu-latest
-    container:
-      image: golang:1.19-bullseye
-      env:
-        FOO: Bar
-    steps:
-      - uses: actions/checkout@v3
-      - name: pre-requisites
-        run: |
-          mkdir -p ./ci-bin
-          curl -L -o ./ci-bin/jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 && chmod +x ./ci-bin/jq
-          export PATH=$PATH:$PWD/ci-bin
-          jq --version
-      - name: build
-        run: | 
-          make test
-          make REVISION=${{ github.sha }} PAT=${{ secrets.GITHUB_TOKEN }} build_ci
-      - name: publish
-        run: |
-          export PATH=$PATH:$PWD/ci-bin
-          git config user.email ${{ github.actor }}-ci@gha.org
-          git config user.name ${{ github.actor }}
-          make REVISION=${{ github.sha }} tag
-          make REVISION=${{ github.sha }} PAT=${{ secrets.GITHUB_TOKEN }} release
+  # release:
+  #   # if: github.event.pull_request.merged == true
+  #   runs-on: ubuntu-latest
+  #   container:
+  #     image: golang:1.19-bullseye
+  #     env:
+  #       FOO: Bar
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - name: pre-requisites
+  #       run: |
+  #         mkdir -p ./ci-bin
+  #         curl -L -o ./ci-bin/jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 && chmod +x ./ci-bin/jq
+  #         export PATH=$PATH:$PWD/ci-bin
+  #         jq --version
+  #     - name: build
+  #       run: | 
+  #         make test
+  #         make REVISION=${{ github.sha }} PAT=${{ secrets.GITHUB_TOKEN }} build_ci
+  #     - name: publish
+  #       run: |
+  #         export PATH=$PATH:$PWD/ci-bin
+  #         git config user.email ${{ github.actor }}-ci@gha.org
+  #         git config user.name ${{ github.actor }}
+  #         make REVISION=${{ github.sha }} tag
+  #         make REVISION=${{ github.sha }} PAT=${{ secrets.GITHUB_TOKEN }} release
   build-and-push-docker-image:
     name: build docker image and push to gchr
     # run only when code is compiling and tests are passing
@@ -54,8 +54,9 @@ jobs:
 
       - name: docker push controller
         run: |
-          export RAW_VERSION=$(git describe --all --tags --exact-match ${{ github.sha }})
-          VERSION=${RAW_VERSION##*/}
-          cd controller
-          docker build --build-arg REVISION=${{ github.sha }} --build-arg VERSION=${VERSION} -t ghcr.io/dnitsch/reststrategy:${VERSION} .
-          docker push ghcr.io/dnitsch/reststrategy:${VERSION}
+          make REVISION=${{ github.sha }} docker_release
+          # export RAW_VERSION=$(git describe --tags --exact-match ${{ github.sha }})
+          # VERSION=${RAW_VERSION##*/}
+          # cd controller
+          # docker build --build-arg REVISION=${{ github.sha }} --build-arg VERSION=${VERSION} -t ghcr.io/dnitsch/reststrategy:${VERSION} .
+          # docker push ghcr.io/dnitsch/reststrategy:${VERSION}

@@ -53,7 +53,7 @@ type CustomToken struct {
 	// e.g. "$.token"
 	// empty will take the entire response as the token - raw response must be string
 	ResponseKey string `yaml:"responseKey" json:"responseKey" `
-	// if ommited `Authorization` will be used
+	// if omitted `Authorization` will be used
 	// Could be X-API-Token etc..
 	HeaderKey string `yaml:"headerKey" json:"headerKey"`
 	// Token prefix - if omitted Bearer will be used
@@ -99,7 +99,7 @@ type customToToken struct {
 	// empty will take the entire response as the token - raw response must be string
 	// Default "$.access_token"
 	responseKey string
-	// if ommited `Authorization` will be used
+	// if omitted `Authorization` will be used
 	// Could be X-API-Token etc..
 	headerKey string
 	// Token prefix - if omitted Bearer will be used

@@ -1,5 +1,7 @@
 # RestStrategy Controller
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/dnitsch/reststrategy/controller)](https://goreportcard.com/report/github.com/dnitsch/reststrategy/controller)
+
 Custom Controller used to listen to changes on a specific object (CRD -> RestStrategy)
 
 Everytime a set of changes is done on the types a client needs to be regenerated and unit tests updated.
@@ -29,13 +31,13 @@ A VSCode launch.json is shared in the controller dir.
 
 ## Notes
 
-`docker build --build-arg REVISION=abcd1234 --build-arg VERSION=0.6.0 -t dnitsch/reststrategy-controller .`
+Build locally and test in cluster.
 
+`docker build --build-arg REVISION=abcd1234 --build-arg VERSION=0.6.2 -t dnitsch/reststrategy-controller .`
 
 ## Deployment
 
 Binary needs to be built and added to the container along with the dependencies
-
 
 ## Secret Token
 

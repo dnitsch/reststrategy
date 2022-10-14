@@ -4,7 +4,7 @@ Rest Strategy is a collection of packages to enable idempotent seeding of data a
 
 This module uses workspaces and is made up of following submodules/components.
 
-- [seeder](./seeder/README.md) modules which can be used as a library (used by the controller) or a CLI.
+- [seeder](./seeder/README.md) modules which can be used as a [library](https://pkg.go.dev/github.com/dnitsch/reststrategy/seeder) (used by the controller) or a CLI.
 
 - [controller](./controller/README.md) k8s controller code.
 
@@ -14,7 +14,10 @@ See the individual componenets for a lower level overview.
 
 When interacting with the modules use the top level Makefile tasks.
 
-`make build` 
+After any change or before any push to remote
+
+ - `make build`
+ - `make test`
 
 To run tests against the controller or the CLI use the `test/`
 

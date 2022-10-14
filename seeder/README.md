@@ -2,6 +2,8 @@
 
 > WIP
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/dnitsch/reststrategy/seeder)](https://goreportcard.com/report/github.com/dnitsch/reststrategy/seeder)
+
 Executes a series of instructions against an endpoint using a specified authentication on a given strategy.
 
 

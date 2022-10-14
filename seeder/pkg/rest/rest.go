@@ -37,16 +37,13 @@ func NewSeederImpl(log log.Loggeriface) *SeederImpl {
 	}
 }
 
+// 
 func (r *SeederImpl) WithClient(c Client) *SeederImpl {
 	r.client = c
 	return r
 }
 
-// func (r *SeederImpl) WithLogger(l log.Logger) *SeederImpl {
-// 	r.log = l
-// 	return r
-// }
-
+// WithAuth assigns auth options used by AuthMapRef within the actions
 func (r *SeederImpl) WithAuth(auth *AuthMap) *SeederImpl {
 	r.auth = NewAuth(auth)
 	return r
@@ -63,9 +60,15 @@ type StrategyConfig struct {
 type Seeders map[string]Action
 
 // NOTE: currently need to generate the below functions manually
+// To allow for both integer or string in x-kubernetes unknown fields
 
 // +k8s:deepcopy-gen=false
 type KvMapVarsAny map[string]any
+
+// KvMapVarsAny
+// type KvMapIntOrString interface {
+// 	int | string
+// }
 
 func (in *KvMapVarsAny) DeepCopyInto(out *KvMapVarsAny) {
 	if in == nil {
@@ -92,16 +95,16 @@ func (in *KvMapVarsAny) DeepCopy() *KvMapVarsAny {
 // GetEndpointSuffix can be used to specify a direct ID or query params
 // PostEndpointSuffix
 type Action struct {
-	name                 string             `yaml:"-"`
-	templatedPayload     string             `yaml:"-"`
-	foundId              string             `yaml:"-"`
-	header               *http.Header       `yaml:"-"`
+	name                 string             `yaml:"-" json:"-"`
+	templatedPayload     string             `yaml:"-" json:"-"`
+	foundId              string             `yaml:"-" json:"-"`
+	header               *http.Header       `yaml:"-" json:"-"`
 	Strategy             string             `yaml:"strategy" json:"strategy"`
 	Order                *int               `yaml:"order,omitempty" json:"order,omitempty"`
 	Endpoint             string             `yaml:"endpoint" json:"endpoint"`
 	GetEndpointSuffix    *string            `yaml:"getEndpointSuffix,omitempty" json:"getEndpointSuffix,omitempty"`
 	PostEndpointSuffix   *string            `yaml:"postEndpointSuffix,omitempty" json:"postEndpointSuffix,omitempty"`
-	PatchEndpointSuffix  *string            `yaml:"patchEndpointSuffix,omitempty" json"patchEndpointSuffix,omitempty"`
+	PatchEndpointSuffix  *string            `yaml:"patchEndpointSuffix,omitempty" json:"patchEndpointSuffix,omitempty"`
 	PutEndpointSuffix    *string            `yaml:"putEndpointSuffix,omitempty" json:"putEndpointSuffix,omitempty"`
 	DeleteEndpointSuffix *string            `yaml:"deleteEndpointSuffix,omitempty" json:"deleteEndpointSuffix,omitempty"`
 	FindByJsonPathExpr   string             `yaml:"findByJsonPathExpr,omitempty" json:"findByJsonPathExpr,omitempty"`

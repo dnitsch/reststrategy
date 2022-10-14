@@ -275,7 +275,7 @@ func (c *Controller) syncHandler(key string) error {
 	}
 
 	if err := rstsrv.Execute(*rspec); err != nil {
-		c.log.Errorf("+#v", err)
+		c.log.Errorf("%+#v", err)
 		c.recorder.Event(reststrategy, corev1.EventTypeNormal, ErrSync, fmt.Sprintf("#+%v", err))
 	} else {
 		c.recorder.Event(reststrategy, corev1.EventTypeNormal, SuccessSynced, MessageResourceSynced)

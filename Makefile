@@ -1,7 +1,7 @@
 
 OWNER := dnitsch
 NAME := reststrategy
-GIT_TAG := "0.6.3"
+GIT_TAG := "0.6.4"
 VERSION := "v$(GIT_TAG)"
 REVISION := $(shell git rev-parse --short HEAD)
 
@@ -30,6 +30,7 @@ release:
 install: 
 	go work sync
 
-test: build
-	cd seeder && make test
-	cd controller && make test
+.PHONY: test
+test:
+	cd seeder && go test -cover -v ./... 
+	cd controller && go test -cover -v ./... 

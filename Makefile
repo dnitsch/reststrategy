@@ -24,9 +24,9 @@ build_ci:
 	echo "build controller" && cd controller && make OWNER=$(OWNER) NAME=$(NAME) VERSION=$(VERSION) REVISION=$(REVISION) build_ci
 
 tag: 
-	git tag -a "v$(GIT_TAG)" $(REVISION)
-	git tag -a "apis/v$(GIT_TAG)" $(REVISION)
-	git tag -a "seeder/v$(GIT_TAG)" $(REVISION)
+	git tag -a v$(GIT_TAG) $(REVISION)
+	git tag -a apis/v$(GIT_TAG) $(REVISION)
+	git tag -a seeder/v$(GIT_TAG) $(REVISION)
 	git push --tags
 
 release: 

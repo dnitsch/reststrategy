@@ -27,6 +27,8 @@ jobs:
       - name: publish
         run: |
           export PATH=$PATH:$PWD/ci-bin
+          git config user.email ${{ github.actor }}-ci@gha.org
+          git config user.name ${{ github.actor }}
           make REVISION=${{ github.sha }} tag
           make REVISION=${{ github.sha }} PAT=${{ secrets.GITHUB_TOKEN }} release
   build-and-push-docker-image:

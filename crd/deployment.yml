@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: reststrategy
+  name: reststrategy-ns
   labels:
     role: reststrategy
 
@@ -11,7 +11,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: reststrategy
-  namespace: reststrategy
+  namespace: reststrategy-ns
 spec:
   replicas: 1
   selector:
@@ -22,8 +22,8 @@ spec:
       labels:
         app: reststrategy
     spec:
-      serviceAccountName: reststrategy
-      automountServiceAccountToken: true
+      # serviceAccountName: reststrategy
+      # automountServiceAccountToken: true
       containers:
       - image: ghcr.io/dnitsch/reststrategy:0.6.3-pre
         imagePullPolicy: IfNotPresent

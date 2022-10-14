@@ -20,6 +20,10 @@ RUN chmod +x ./dist/controller
 ## Deploy
 FROM gcr.io/distroless/base-debian11
 
+LABEL org.opencontainers.image.source=https://github.com/dnitsch/reststrategy
+LABEL org.opencontainers.image.description="RestStrategy controller"
+LABEL org.opencontainers.image.licence=MIT
+
 WORKDIR /
 
 COPY --from=build /app/dist/controller controller

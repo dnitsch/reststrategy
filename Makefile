@@ -31,6 +31,7 @@ tag:
 
 release: 
 	OWNER=$(OWNER) NAME=$(NAME) PAT=$(PAT) VERSION=$(VERSION) . hack/release.sh
+	cd controller && make VERSION=$(VERSION) REVISION=$(REVISION) docker
 
 # for local development install all dependencies 
 # in workspace

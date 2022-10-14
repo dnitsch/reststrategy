@@ -8,6 +8,10 @@ install:
 	go mod tidy
 	go mod vendor
 
+install_ci:
+	go mod vendor
+
+
 .PHONY: clean
 clean:
 	rm -rf bin/*
@@ -24,7 +28,7 @@ bingen:
 # local only as the target is the docker build
 build: clean install bingen
 
-build_ci: build
+build_ci: clean install_ci bingen
 
 docker:
 	docker build --build-arg REVISION=$(REVISION) --build-arg VERSION=$(VERSION) -t ghcr.io/dnitsch/reststrategy:$(VERSION) .

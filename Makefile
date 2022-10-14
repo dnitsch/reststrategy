@@ -1,6 +1,6 @@
 OWNER := dnitsch
 NAME := reststrategy
-GIT_TAG := "0.6.7"
+GIT_TAG := "0.6.7-alpha"
 VERSION := "v$(GIT_TAG)"
 REVISION := $(shell git rev-parse --short HEAD)
 

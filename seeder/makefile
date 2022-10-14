@@ -8,6 +8,9 @@ install:
 	go mod tidy
 	go mod vendor
 	
+install_ci:
+	go mod vendor
+
 codegen:
 	./hack/update-codegen.sh
 
@@ -35,4 +38,4 @@ bingen:
 
 build: clean install copygened bingen
 
-build_ci: clean install codegen_verify bingen
+build_ci: clean install_ci codegen_verify bingen

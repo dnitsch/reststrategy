@@ -1,7 +1,10 @@
-.PHONY: clean install codegen codegen_verify copygened build
+.PHONY: clean install codegen codegen_verify copygened build install_ci
 
 install: 
 	go mod tidy
+	go mod vendor
+
+install_ci: 
 	go mod vendor
 
 codegen:

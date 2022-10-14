@@ -18,7 +18,7 @@ jobs:
       - name: pre-requisites
         run: |
           mkdir -p ~/bin
-          curl -o ~/bin/jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 && chmod +x ~/bin/jq
+          curl -L -o ~/bin/jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 && chmod +x ~/bin/jq
           export PATH=$PATH:~/bin
           jq --version
       - name: build

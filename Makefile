@@ -1,6 +1,6 @@
 OWNER := dnitsch
 NAME := reststrategy
-GIT_TAG := "0.6.7-alpha"
+GIT_TAG := "0.6.7-alpha1"
 VERSION := "v$(GIT_TAG)"
 REVISION := $(shell git rev-parse --short HEAD)
 
@@ -24,14 +24,14 @@ build_ci:
 	echo "build controller" && cd controller && make OWNER=$(OWNER) NAME=$(NAME) VERSION=$(VERSION) REVISION=$(REVISION) build_ci
 
 tag: 
-	git tag "v$(GIT_TAG)"
-	git tag "apis/v$(GIT_TAG)"
-	git tag "seeder/v$(GIT_TAG)"
+	git tag -a "v$(GIT_TAG)" $(REVISION)
+	git tag -a "apis/v$(GIT_TAG)" $(REVISION)
+	git tag -a "seeder/v$(GIT_TAG)" $(REVISION)
 	git push --tags
 
 release: 
 	OWNER=$(OWNER) NAME=$(NAME) PAT=$(PAT) VERSION=$(VERSION) . hack/release.sh
-	cd controller && make VERSION=$(VERSION) REVISION=$(REVISION) docker
+# cd controller && make VERSION=$(VERSION) REVISION=$(REVISION) docker
 
 # for local development install all dependencies 
 # in workspace

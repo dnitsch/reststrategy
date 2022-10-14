@@ -19,7 +19,11 @@ After any change or before any push to remote
  - `make build`
  - `make test`
 
-To run tests against the controller or the CLI use the `test/crd-test.yml`
+To run tests against the controller or the CLI use the `test/crd-test.yml`. 
+
+## Examples
+
+To see some [examples](./docs/example.md)...
 
 ## Test pre-requisites
 

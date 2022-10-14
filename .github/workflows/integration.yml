@@ -32,7 +32,7 @@ jobs:
           make REVISION=${{ github.sha }} tag
           make REVISION=${{ github.sha }} PAT=${{ secrets.GITHUB_TOKEN }} release
   build-and-push-docker-image:
-    name: Build Docker image and push to repositories
+    name: build docker image and push to gchr
     # run only when code is compiling and tests are passing
     runs-on: ubuntu-latest
     # steps to perform in job
@@ -57,3 +57,4 @@ jobs:
           export VERSION=$(git describe --exact-match ${{ github.sha }})
           cd controller
           docker build --build-arg REVISION=${{ github.sha }} --build-arg VERSION=${VERSION} -t ghcr.io/dnitsch/reststrategy:${VERSION} .
+          docker push ghcr.io/dnitsch/reststrategy:${VERSION}

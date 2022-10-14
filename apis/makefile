@@ -24,5 +24,5 @@ clean:
 build: clean install copygened
 	echo "Types Updated"
 
-build_ci: clean install codegen_verify 
+build_ci: clean install_ci codegen_verify 
 	echo "Types Updated and verified"

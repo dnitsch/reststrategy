@@ -27,7 +27,6 @@ tag:
 	git tag "v$(GIT_TAG)"
 	git tag "apis/v$(GIT_TAG)"
 	git tag "seeder/v$(GIT_TAG)"
-	git tag "controller/v$(GIT_TAG)"
 	git push --tags
 
 release: 

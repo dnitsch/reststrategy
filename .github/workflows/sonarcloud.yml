@@ -43,6 +43,14 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+      # - name: make test 
+      #   run: |
+      #     make REVISION=$GITHUB_SHA test
+      # - name: Publish Junit style Test Report
+      #   uses: mikepenz/action-junit-report@v3
+      #   if: always() # always run even if the previous step fails
+      #   with:
+      #     report_paths: '**/report-junit.xml'
       - name: Analyze with SonarCloud         
 
         # You can pin the exact commit or the version.
@@ -56,8 +64,8 @@ jobs:
           args:             
             # Unique keys of your project and organization. You can find them in SonarCloud > Information (bottom-left menu)
             # mandatory
-            -Dsonar.projectKey=
-            -Dsonar.organization=
+            -Dsonar.projectKey=reststrategy
+            -Dsonar.organization=dnitsch
             # Comma-separated paths to directories containing main source files.
             #-Dsonar.sources= # optional, default is project base directory
             # When you need the analysis to take place in a directory other than the one from which it was launched

@@ -3,8 +3,8 @@ module github.com/dnitsch/reststrategy/controller
 go 1.19
 
 require (
-	github.com/dnitsch/reststrategy/apis v0.6.1-rc
-	github.com/dnitsch/reststrategy/seeder v0.6.1-rc
+	github.com/dnitsch/reststrategy/apis v0.6.7
+	github.com/dnitsch/reststrategy/seeder v0.6.7
 	// need to ensure that these packages are
 	// aligned to server version
 	k8s.io/api v0.25.2

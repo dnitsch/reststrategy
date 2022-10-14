@@ -57,8 +57,12 @@ github.com/dnitsch/configmanager v1.8.0 h1:IplCvObk6xRa2lAssLtpi0jur56DTsUwGrJEG
 github.com/dnitsch/configmanager v1.8.0/go.mod h1:hAFEcEd3mXlUWFUi+17iUdOO/qtNh7ft9Ri4Agz6J+c=
 github.com/dnitsch/reststrategy/apis v0.6.1-rc h1:iRuqzUHz31JOXf1ai9tpX2yTwyIwK6PESxMLMY+gLew=
 github.com/dnitsch/reststrategy/apis v0.6.1-rc/go.mod h1:ndKudRdvk/2UD5OTbMfQDiYtBrZNX5PmowlYiSbmsvw=
+github.com/dnitsch/reststrategy/apis v0.6.7 h1:HIlaeKuo913+gMF/ntryBTVYULVW7VAyWWM/IcBn9eE=
+github.com/dnitsch/reststrategy/apis v0.6.7/go.mod h1:ndKudRdvk/2UD5OTbMfQDiYtBrZNX5PmowlYiSbmsvw=
 github.com/dnitsch/reststrategy/seeder v0.6.1-rc h1:63Sto9D6FmPS/wf9cRcHgl9muPtxaarsL3oSi+ePBHY=
 github.com/dnitsch/reststrategy/seeder v0.6.1-rc/go.mod h1:RDdwl2zDJTwv2DfPOi4pVYeXp0/gpD6sj4EYN3EJvVM=
+github.com/dnitsch/reststrategy/seeder v0.6.7 h1:KOLIOx8AQ3i7TBYT0hdmNQbAUKJI+dCBnaDU+HzDxsY=
+github.com/dnitsch/reststrategy/seeder v0.6.7/go.mod h1:RDdwl2zDJTwv2DfPOi4pVYeXp0/gpD6sj4EYN3EJvVM=
 github.com/dnitsch/simplelog v1.5.1 h1:PhIFuZluJIAUiKgJ+xBzTZwqe49PFg20d3ToDucu3Dg=
 github.com/dnitsch/simplelog v1.5.1/go.mod h1:scPvWULBlruthxS6seGJkMbc1DM5f44IRZNmaSZCJVU=
 github.com/docopt/docopt-go v0.0.0-20180111231733-ee0de3bc6815/go.mod h1:WwZ+bS3ebgob9U8Nd0kOddGdZWjyMGR8Wziv+TBNwSE=

@@ -15,7 +15,7 @@ require (
 )
 
 require (
-	github.com/dnitsch/configmanager v1.10.0
+	github.com/dnitsch/configmanager v1.11.0
 	github.com/dnitsch/simplelog v1.5.1
 	github.com/spf13/cobra v1.5.0
 )

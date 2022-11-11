@@ -53,8 +53,7 @@ github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSs
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dnaeon/go-vcr v1.1.0 h1:ReYa/UBrRyQdant9B4fNHGoCNKw6qh6P0fsdGmZpR7c=
-github.com/dnitsch/configmanager v1.10.0 h1:0m09KEnd/cndy/9YTlnYo+SwSQEaeyfJ4kvKj79GO20=
-github.com/dnitsch/configmanager v1.10.0/go.mod h1:tTRID3zQ0WPQXjkfXljoDneAytYZuckj/TjLtBMoh9o=
+github.com/dnitsch/configmanager v1.11.0 h1:VKgg3aXuUlb9L9KuvAlz0YXiDTn1xfT/I617pPOpE4I=
 github.com/dnitsch/reststrategy/apis v0.6.7 h1:HIlaeKuo913+gMF/ntryBTVYULVW7VAyWWM/IcBn9eE=
 github.com/dnitsch/reststrategy/apis v0.6.7/go.mod h1:ndKudRdvk/2UD5OTbMfQDiYtBrZNX5PmowlYiSbmsvw=
 github.com/dnitsch/reststrategy/seeder v0.6.7 h1:KOLIOx8AQ3i7TBYT0hdmNQbAUKJI+dCBnaDU+HzDxsY=

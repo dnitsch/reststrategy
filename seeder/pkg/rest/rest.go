@@ -37,7 +37,6 @@ func NewSeederImpl(log log.Loggeriface) *SeederImpl {
 	}
 }
 
-// 
 func (r *SeederImpl) WithClient(c Client) *SeederImpl {
 	r.client = c
 	return r
@@ -201,18 +200,25 @@ func (r *SeederImpl) do(req *http.Request, action *Action) ([]byte, error) {
 func (r *SeederImpl) doAuth(req *http.Request, action *Action) *http.Request {
 	enrichedReq := req
 	am := *r.auth
-	switch currentAuthMap := am[action.AuthMapRef]; currentAuthMap.authStrategy {
+	switch cam := am[action.AuthMapRef]; cam.authStrategy {
 	case Basic:
-		enrichedReq.SetBasicAuth(currentAuthMap.basicAuth.username, currentAuthMap.basicAuth.password)
+		enrichedReq.SetBasicAuth(cam.basicAuth.username, cam.basicAuth.password)
 	case OAuth:
-		token, err := currentAuthMap.oAuthConfig.Token(enrichedReq.Context())
+		token, err := cam.oAuthConfig.Token(enrichedReq.Context())
+		if err != nil {
+			r.log.Errorf("failed to obtain token: %v", err)
+		}
+		enrichedReq.Header.Set("Authorization", fmt.Sprintf("%s %s", token.TokenType, token.AccessToken))
+	case OAuthPassword:
+		token, err := cam.passwordGrantConfig.oauthPassCredsConfig.PasswordCredentialsToken(enrichedReq.Context(), cam.passwordGrantConfig.resourceOwnerUser,
+			cam.passwordGrantConfig.resourceOwnerPass)
 		if err != nil {
 			r.log.Errorf("failed to obtain token: %v", err)
 		}
 		enrichedReq.Header.Set("Authorization", fmt.Sprintf("%s %s", token.TokenType, token.AccessToken))
 	case CustomToToken:
 		// TODO: ensure custom flow similar to OAuth happens for customToToken credentials
-		token, err := currentAuthMap.customToToken.Token(enrichedReq.Context(), r.log) //  customTokenExchange(*currentAuthMap.customToToken)
+		token, err := cam.customToToken.Token(enrichedReq.Context(), r.log) //  customTokenExchange(*currentAuthMap.customToToken)
 		if err != nil {
 			r.log.Errorf("failed to obtain custom token: %v", err)
 		}

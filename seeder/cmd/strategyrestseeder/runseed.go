@@ -5,13 +5,14 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/dnitsch/configmanager"
+	"github.com/dnitsch/configmanager/pkg/generator"
 	srs "github.com/dnitsch/reststrategy/seeder"
 	"github.com/dnitsch/reststrategy/seeder/internal/cmdutils"
 	"github.com/dnitsch/reststrategy/seeder/internal/config"
 	"github.com/dnitsch/reststrategy/seeder/pkg/rest"
 	log "github.com/dnitsch/simplelog"
 	"github.com/spf13/cobra"
-	yaml "gopkg.in/yaml.v3"
 )
 
 var (
@@ -55,7 +56,9 @@ func runExecute(cmd *cobra.Command, args []string) error {
 		return e
 	}
 
-	if err := yaml.Unmarshal(b, &strategy); err != nil {
+	cm := &configmanager.ConfigManager{}
+	config := generator.NewConfig().WithTokenSeparator("://")
+	if _, err := configmanager.RetrieveUnmarshalledFromYaml(b, &strategy, cm, *config); err != nil {
 		return err
 	}
 

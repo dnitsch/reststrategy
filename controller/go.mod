@@ -15,7 +15,7 @@ require (
 )
 
 require (
-	github.com/dnitsch/configmanager v1.8.0
+	github.com/dnitsch/configmanager v1.10.0
 	github.com/dnitsch/simplelog v1.5.1
 	github.com/spf13/cobra v1.5.0
 )
@@ -76,11 +76,11 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spyzhov/ajson v0.7.1 // indirect
 	golang.org/x/crypto v0.0.0-20220511200225-c6db032c6c88 // indirect
-	golang.org/x/net v0.0.0-20220906165146-f3363e06e74c // indirect
-	golang.org/x/oauth2 v0.0.0-20220822191816-0ebed06d0094 // indirect
-	golang.org/x/sys v0.0.0-20220907062415-87db552b00fd // indirect
-	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
-	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/net v0.2.0 // indirect
+	golang.org/x/oauth2 v0.2.0 // indirect
+	golang.org/x/sys v0.2.0 // indirect
+	golang.org/x/term v0.2.0 // indirect
+	golang.org/x/text v0.4.0 // indirect
 	golang.org/x/time v0.0.0-20220210224613-90d013bbcef8 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect

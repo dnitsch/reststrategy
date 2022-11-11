@@ -22,6 +22,7 @@ type AuthType string
 const (
 	Basic         AuthType = "BasicAuth"
 	OAuth         AuthType = "OAuthClientCredentials"
+	OAuthPassword AuthType = "OAuthPassCredentials"
 	CustomToToken AuthType = "CustomToToken"
 )
 
@@ -31,6 +32,9 @@ type ConfigOAuth struct {
 	Scopes                  []string            `yaml:"scopes"`
 	EndpointParams          map[string][]string `yaml:"endpointParams"`
 	OAuthSendParamsInHeader bool                `yaml:"oAuthSendParamsInHeader"`
+	// for grant_type=password use these for the addition RO auth
+	ResourceOwnerUser     *string `yaml:"resourceOwnerUser,omitempty"`
+	ResourceOwnerPassword *string `yaml:"resourceOwnerPass,omitempty"`
 }
 
 // +k8s:deepcopy-gen=true
@@ -74,12 +78,19 @@ type AuthConfig struct {
 // +k8s:deepcopy-gen=true
 type AuthMap map[string]AuthConfig
 
+type passwordGrantConfig struct {
+	oauthPassCredsConfig *oauth2.Config
+	resourceOwnerUser    string
+	resourceOwnerPass    string
+}
+
 // auth holds the auth strategy for each Action
 type auth struct {
-	authStrategy  AuthType
-	oAuthConfig   *clientcredentials.Config
-	basicAuth     *basicAuth
-	customToToken *customToToken
+	authStrategy        AuthType
+	oAuthConfig         *clientcredentials.Config
+	passwordGrantConfig *passwordGrantConfig
+	basicAuth           *basicAuth
+	customToToken       *customToToken
 	// currentToken string
 }
 
@@ -131,6 +142,29 @@ func NewAuth(am *AuthMap) *actionAuthMap {
 				c.AuthStyle = oauth2.AuthStyleInHeader
 			}
 			a.oAuthConfig = c
+			ac[k] = a
+		case OAuthPassword:
+			c := &passwordGrantConfig{
+				oauthPassCredsConfig: &oauth2.Config{
+					ClientID:     v.Username,
+					ClientSecret: v.Password,
+					Scopes:       v.OAuth.Scopes,
+					Endpoint: oauth2.Endpoint{
+						AuthURL:  v.OAuth.ServerUrl,
+						TokenURL: v.OAuth.ServerUrl,
+					},
+				},
+			}
+			if v.OAuth.ResourceOwnerUser != nil {
+				c.resourceOwnerUser = *v.OAuth.ResourceOwnerUser
+				// panic("grant type password credentials requires a resources owner username")
+			}
+
+			if v.OAuth.ResourceOwnerPassword != nil {
+				c.resourceOwnerPass = *v.OAuth.ResourceOwnerPassword
+				// panic("grant type password credentials requires a resources owner username")
+			}
+			a.passwordGrantConfig = c
 			ac[k] = a
 		case Basic:
 			a.basicAuth = &basicAuth{username: v.Username, password: v.Password}

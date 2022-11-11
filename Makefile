@@ -1,6 +1,6 @@
 OWNER := dnitsch
 NAME := reststrategy
-GIT_TAG := "0.6.8"
+GIT_TAG := "0.7.0"
 VERSION := "v$(GIT_TAG)"
 REVISION := $(shell git rev-parse --short HEAD)
 
@@ -16,7 +16,7 @@ build_controller:
 	echo "build controller"
 	cd controller && make OWNER=$(OWNER) NAME=$(NAME) VERSION=$(VERSION) REVISION=$(REVISION) build
 
-buidl: build_seeder build_apis build_controller
+build: build_seeder build_apis build_controller
 
 build_ci: 
 	echo "build seeder first as it contains nested types for APIs" && cd seeder && make OWNER=$(OWNER) NAME=$(NAME) VERSION=$(VERSION) REVISION=$(REVISION) build_ci

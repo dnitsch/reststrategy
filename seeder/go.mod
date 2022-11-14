@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/a8m/envsubst v1.3.0
-	github.com/dnitsch/configmanager v1.11.0
+	github.com/dnitsch/configmanager v1.11.1
 	github.com/dnitsch/simplelog v1.5.1
 	github.com/spf13/cobra v1.5.0
 	github.com/spyzhov/ajson v0.7.1

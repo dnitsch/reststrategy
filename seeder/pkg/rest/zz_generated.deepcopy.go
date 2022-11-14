@@ -174,6 +174,16 @@ func (in *ConfigOAuth) DeepCopyInto(out *ConfigOAuth) {
 			(*out)[key] = outVal
 		}
 	}
+	if in.ResourceOwnerUser != nil {
+		in, out := &in.ResourceOwnerUser, &out.ResourceOwnerUser
+		*out = new(string)
+		**out = **in
+	}
+	if in.ResourceOwnerPassword != nil {
+		in, out := &in.ResourceOwnerPassword, &out.ResourceOwnerPassword
+		*out = new(string)
+		**out = **in
+	}
 	return
 }
 

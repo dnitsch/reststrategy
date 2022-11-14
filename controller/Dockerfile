@@ -5,7 +5,6 @@ ARG VERSION=0.0.0
 
 ARG REVISION=aaaa1111
 
-
 WORKDIR /app
 
 COPY . .
@@ -20,7 +19,7 @@ RUN chmod +x ./dist/controller
 ## Deploy
 FROM gcr.io/distroless/base-debian11
 
-LABEL org.opencontainers.image.source=https://github.com/dnitsch/reststrategy
+LABEL org.opencontainers.image.source=https://github.com/dnitsch/reststrategy/controller
 LABEL org.opencontainers.image.description="RestStrategy controller"
 LABEL org.opencontainers.image.licence=MIT
 

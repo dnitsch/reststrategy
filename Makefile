@@ -1,6 +1,6 @@
 OWNER := dnitsch
 NAME := reststrategy
-GIT_TAG := "0.8.1"
+GIT_TAG := "0.9.0"
 VERSION := "v$(GIT_TAG)"
 REVISION := $(shell git rev-parse --short HEAD)
 
@@ -44,7 +44,26 @@ docker_release:
 install: 
 	go work sync
 
-.PHONY: test
-test:
-	cd seeder && go test -cover -v ./... 
-	cd controller && go test -cover -v ./... 
+.PHONY: test test_seeder test_controller
+test_seeder:
+	go test `go list ./seeder/... | grep -v */generated/` -v -mod=readonly -coverprofile=seeder/.coverage/out | go-junit-report > seeder/.coverage/report-junit.xml && \
+	gocov convert seeder/.coverage/out | gocov-xml > seeder/.coverage/report-cobertura.xml
+
+test_controller:
+	go test `go list ./controller/... | grep -v */generated/` -v -mod=readonly -coverprofile=controller/.coverage/out | go-junit-report > controller/.coverage/report-junit.xml && \
+	gocov convert controller/.coverage/out | gocov-xml > controller/.coverage/report-cobertura.xml
+
+test: test_prereq test_seeder test_controller
+
+test_ci:
+	go test ./... -mod=readonly
+
+test_prereq: 
+	mkdir -p seeder/.coverage controller/.coverage
+	go install github.com/jstemmer/go-junit-report/v2@latest && \
+	go install github.com/axw/gocov/gocov@latest && \
+	go install github.com/AlekSi/gocov-xml@latest
+
+coverage: test
+	go tool cover -html=seeder/.coverage/out
+	go tool cover -html=controller/.coverage/out

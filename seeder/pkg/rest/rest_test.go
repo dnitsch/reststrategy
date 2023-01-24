@@ -5,17 +5,19 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
 
 	"github.com/dnitsch/reststrategy/seeder/internal/testutils"
+
 	log "github.com/dnitsch/simplelog"
 	"github.com/spyzhov/ajson"
 )
 
 func Test_getSeeder(t *testing.T) {
-
+	ts := httptest.NewServer(testutils.TestMuxServer(t))
 	tests := []struct {
 		name   string
 		action *Action
@@ -32,7 +34,8 @@ func Test_getSeeder(t *testing.T) {
 			action: &Action{
 				PayloadTemplate:    "{}",
 				Strategy:           "GET/POST",
-				Endpoint:           "https://postman-echo.com/get?id=32",
+				Endpoint:           ts.URL,
+				GetEndpointSuffix:  String("/get/all/empty?simulate_resp=echo&id=32"),
 				FindByJsonPathExpr: "$.args.id",
 				AuthMapRef:         "foo",
 				HttpHeaders:        nil,
@@ -47,7 +50,8 @@ func Test_getSeeder(t *testing.T) {
 			action: &Action{
 				PayloadTemplate:    "{}",
 				Strategy:           "GET/POST",
-				Endpoint:           "https://postman-echo.com/get?id=32",
+				Endpoint:           ts.URL,
+				GetEndpointSuffix:  String("/get/all/empty?simulate_resp=echo&id=32"),
 				FindByJsonPathExpr: "$.args.id",
 				AuthMapRef:         "foo",
 				HttpHeaders:        &map[string]string{"foo": "bar"},
@@ -265,7 +269,7 @@ func Test_ActionWithHeader(t *testing.T) {
 				t.Error("failed to create local header on Action")
 			}
 			hc := 0
-			for k, _ := range *got.header {
+			for k := range *got.header {
 				if !strings.Contains(fmt.Sprintf("%v", got.header), k) {
 					t.Error("incorrect keys in header")
 				}

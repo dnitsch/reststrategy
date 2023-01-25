@@ -58,6 +58,22 @@ func Test_getSeeder(t *testing.T) {
 			},
 			expect: "32",
 		},
+		{
+			name:   "getRestFunc_with_static_token_header",
+			auth:   &AuthMap{"foo": {AuthStrategy: StaticToken, Username: "token", Password: "bar"}},
+			client: &http.Client{},
+			rimpl:  &SeederImpl{runtimeVars: runtimeVars{}},
+			action: &Action{
+				PayloadTemplate:    "{}",
+				Strategy:           "GET",
+				Endpoint:           ts.URL,
+				GetEndpointSuffix:  String("/staticToken"),
+				FindByJsonPathExpr: "$.args.id",
+				AuthMapRef:         "foo",
+				HttpHeaders:        &map[string]string{"foo": "bar"},
+			},
+			expect: "",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

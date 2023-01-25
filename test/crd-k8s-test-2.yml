@@ -1,22 +1,28 @@
-auth:
-  # https://pocketbase.io/docs/api-authentication/
-  pocketBaseAuth:
-    type: CustomToToken
-    custom:
-      authUrl: http://127.0.0.1:8090/api/admins/auth-via-email
-      credential:
-        email: test@example.com
-        password: AWSPARAMSTR:///int-test/pocketbase/admin-pwd
-      responseKey: $.token
-      headerKey: Authorization
-      tokenPrefix: Admin
-seed:
-  create-pocketbase-admin2:
-    endpoint: http://127.0.0.1:8090/api/admins
+apiVersion: dnitsch.net/v1alpha1
+kind: RestStrategy
+metadata:
+  name: test-int-local
+  namespace: runtime-config-sync
+spec:
+  auth:
+    # https://pocketbase.io/docs/api-authentication/
+    - name: customTest1
+      type: CustomToToken
+      custom:
+        authUrl: http://127.0.0.1:60965/api/admins/auth-via-email
+        credential:
+          email: test@example.com
+          password: AWSPARAMSTR:///int-test/pocketbase/admin-pwd
+        responseKey: $.token
+        headerKey: Authorization
+        tokenPrefix: Admin
+  seed:
+  - name: create-pocketbase-admin2
+    endpoint: http://127.0.0.1:60965/api/admins
     strategy: FIND/PATCH/POST
     getEndpointSuffix: "?page=1&perPage=100&sort=-created&filter="
     findByJsonPathExpr: "$.items[?(@.email=='test2@example.com')].id"
-    authMapRef: pocketBaseAuth
+    authMapRef: customTest1
     payloadTemplate: |
       {"email": "test2@example.com",
         "password": "${password}","passwordConfirm": "${password}",
@@ -29,39 +35,39 @@ seed:
         "passwordConfirm": "${password}"
       }
     variables:
-      # AWSPARAMSTR:///int-test/pocketbase/admin-pwd
-      password: password123!
+      password: AWSPARAMSTR:///int-test/pocketbase/admin-pwd
     runtimeVars:
-      admin1AvatarId: $.avatar
-  create-pocketbase-admin3:
+      admin1AvatarId: "$.avatar"
+  - name: create-pocketbase-admin3
     # /api/admins
-    endpoint: http://127.0.0.1:8090/api/admins
+    endpoint: http://127.0.0.1:60965/api/admins
     strategy: FIND/PATCH/POST
     getEndpointSuffix: "?page=1&perPage=100&sort=-created&filter="
     # postEndpointSuffix: /post
     findByJsonPathExpr: "$.items[?(@.email=='test3@example.com')].id"
-    authMapRef: pocketBaseAuth
+    authMapRef: customTest1
     payloadTemplate: |
       {"email": "test3@example.com",
-        "password": "${password}","passwordConfirm": "${password}",
-        "avatar": ${admin1AvatarId}
+        "password": "${password}",
+        "passwordConfirm": "${password}",
+        "avatar": 4
       }
-    # if a user does exist ensure password is set to below
     patchPayloadTemplate: |
       {
         "password": "${password}",
-        "passwordConfirm": "${password}","avatar": 4
+        "passwordConfirm": "${password}",
+        "avatar": ${admin1AvatarId}
       }
     variables:
       password: password789!000
-  create-pocketbase-test-collection:
+  - name: create-pocketbase-test-collection
     # /api/admins
-    endpoint: http://127.0.0.1:8090/api/collections
+    endpoint: http://127.0.0.1:60965/api/collections
     strategy: FIND/PATCH/POST
     getEndpointSuffix: "?page=1&perPage=100&sort=-created&filter="
     # postEndpointSuffix: /post
     findByJsonPathExpr: "$.items[?(@.name=='test')].id"
-    authMapRef: pocketBaseAuth
+    authMapRef: customTest1
     payloadTemplate: |
       {"id":"","created":"","updated":"","name":"test","system":false,"listRule":null,"viewRule":null,"createRule":null,"updateRule":null,"deleteRule":null,
       "schema":[
@@ -78,14 +84,13 @@ seed:
       "originalName":"test"}
     runtimeVars:
       testCollectionPatchId: $.items[?(@.name=='test')].id
-  create-pocketbase-user-for-qa-test:
-    endpoint: http://127.0.0.1:8090/api/users
+  - name: create-pocketbase-user-for-qa-test
+    endpoint: http://127.0.0.1:60965/api/users
     strategy: FIND/PATCH/POST
     getEndpointSuffix: "?page=1&perPage=100&sort=-created&filter="
     findByJsonPathExpr: "$.items[?(@.email=='qa-guy@example.com')].id"
-    authMapRef: pocketBaseAuth
+    authMapRef: customTest1
     payloadTemplate: |
       {"email":"qa-guy@example.com","password":"Password123","passwordConfirm":"Password123"}
     patchPayloadTemplate: |
       {"password":"Password456","passwordConfirm":"Password456"}
-

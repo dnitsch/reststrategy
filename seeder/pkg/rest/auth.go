@@ -24,6 +24,7 @@ const (
 	OAuth         AuthType = "OAuthClientCredentials"
 	OAuthPassword AuthType = "OAuthPassCredentials"
 	CustomToToken AuthType = "CustomToToken"
+	StaticToken   AuthType = "StaticToken"
 )
 
 // +k8s:deepcopy-gen=true
@@ -91,6 +92,7 @@ type auth struct {
 	passwordGrantConfig *passwordGrantConfig
 	basicAuth           *basicAuth
 	customToToken       *customToToken
+	staticToken         *staticToken
 	// currentToken string
 }
 
@@ -119,6 +121,11 @@ type customToToken struct {
 	// currentToken successfully retrieved and cached for re-use
 	// shuold be disabled as various things will need to be implemented
 	currentToken string
+}
+
+type staticToken struct {
+	headerKey   string
+	staticToken string
 }
 
 type actionAuthMap map[string]auth
@@ -190,6 +197,9 @@ func NewAuth(am *AuthMap) *actionAuthMap {
 			if v.CustomToken.ResponseKey != "" {
 				a.customToToken.responseKey = v.CustomToken.ResponseKey
 			}
+			ac[k] = a
+		case StaticToken:
+			a.staticToken = &staticToken{headerKey: v.Username, staticToken: v.Password}
 			ac[k] = a
 		default:
 			a.basicAuth = &basicAuth{username: v.Username, password: v.Password}

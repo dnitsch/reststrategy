@@ -79,7 +79,7 @@ spec:
       {"email": "test3@example.com",
         "password": "${password}",
         "passwordConfirm": "${password}",
-        "avatar": 8
+        "avatar": 4
       }
     patchPayloadTemplate: |
       {

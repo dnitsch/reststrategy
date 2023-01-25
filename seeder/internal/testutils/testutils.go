@@ -194,5 +194,18 @@ func TestMuxServer(t *testing.T) http.Handler {
 	mux.HandleFunc("/post", postHandle(t))
 	mux.HandleFunc("/delete", deletetHandle(t))
 	mux.HandleFunc("/delete/", deletetHandle(t))
+	mux.HandleFunc("/staticToken", getStaticTokenHandle(t))
 	return mux
+}
+
+func getStaticTokenHandle(t *testing.T) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		if _, ok := r.Header["Token"]; !ok {
+			t.Errorf("expected token to be set in header, got <nil>")
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{}`))
+
+	}
 }

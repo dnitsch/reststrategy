@@ -223,6 +223,8 @@ func (r *SeederImpl) doAuth(req *http.Request, action *Action) *http.Request {
 			r.log.Errorf("failed to obtain custom token: %v", err)
 		}
 		enrichedReq.Header.Set(token.HeaderKey, fmt.Sprintf("%s %s", token.TokenPrefix, token.TokenValue))
+	case StaticToken:
+		enrichedReq.Header.Set(cam.staticToken.headerKey, cam.staticToken.staticToken)
 	}
 	return enrichedReq
 }

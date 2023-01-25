@@ -22,7 +22,7 @@ jobs:
           apt update && apt install jq -y
           make PATCH_ID=$GITHUB_RUN_ID REVISION=$GITHUB_SHA install
       - name: Determine Version
-        uses: gittools/actions/gitversion/execute@latest
+        uses: gittools/actions/gitversion/execute@v0.9.15
       - name: echo REVISION
         run: | 
           echo "$GITHUB_SHA should match the commit ID of feature branch"

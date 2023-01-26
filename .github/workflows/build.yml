@@ -17,10 +17,9 @@ jobs:
         REVISION: $GITHUB_SHA
     steps:
       - uses: actions/checkout@v3
-      - name: install deps
+      - name: install cli deps
         run: |
           apt update && apt install jq -y
-          make PATCH_ID=$GITHUB_RUN_ID REVISION=$GITHUB_SHA install
       - name: Install GitVersion
         uses: gittools/actions/gitversion/setup@v0.9.15
         with:

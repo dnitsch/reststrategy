@@ -21,14 +21,14 @@ jobs:
         run: |
           apt update && apt install jq -y
           make PATCH_ID=$GITHUB_RUN_ID REVISION=$GITHUB_SHA install
-      - name: Determine Version
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0.9.15
+      - name: Set SemVer Version
         uses: gittools/actions/gitversion/execute@v0.9.15
-      - name: echo REVISION
+      - name: echo VERSIONS
         run: | 
-          echo "$GITHUB_SHA should match the commit ID of feature branch"
-          echo "github.sha -> ${{ github.sha }}"
-          echo "GITHUB_SHA -> $GITHUB_SHA"
-          echo "SEmVer: $GITVERSION_SEMVER"
+          echo "REVISION  -> $GITHUB_SHA"
+          echo "VERSION -> $GITVERSION_SEMVER"
       - name: make test 
         run: |
           make REVISION=$GITHUB_SHA test

@@ -16,8 +16,14 @@ require (
 
 replace github.com/dnitsch/reststrategy/seeder => ../seeder
 
+// hack replace due to MS tests
+replace (
+	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.2.0 => github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.1.0
+	github.com/AzureAD/microsoft-authentication-library-for-go => github.com/AzureAD/microsoft-authentication-library-for-go v0.7.0
+)
+
 require (
-	github.com/dnitsch/configmanager v1.17.2
+	github.com/dnitsch/configmanager v1.17.3
 	github.com/dnitsch/simplelog v1.5.1
 	github.com/spf13/cobra v1.6.1
 )

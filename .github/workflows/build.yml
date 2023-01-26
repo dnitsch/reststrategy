@@ -17,6 +17,8 @@ jobs:
         REVISION: $GITHUB_SHA
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: Install GitVersion
         uses: gittools/actions/gitversion/setup@v0.9.15
         with:
@@ -36,6 +38,10 @@ jobs:
         REVISION: $GITHUB_SHA
     steps:
       - uses: actions/checkout@v3
+      - name: echo VERSIONS
+        run: | 
+          echo "REVISION  -> $GITHUB_SHA"
+          echo "VERSION -> $GITVERSION_SEMVER"
       - name: install cli deps
         run: |
           apt update && apt install jq -y

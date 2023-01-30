@@ -91,10 +91,11 @@ func (s *StrategyRestSeeder) Execute(ctx context.Context) []error {
 			e := fn(ctx, &action, s.rest)
 			if e != nil {
 				errs = append(errs, e)
+				continue
 			}
-		} else {
-			s.log.Infof("unknown strategy")
+			continue
 		}
+		s.log.Infof("unknown strategy")
 	}
 	return errs
 }

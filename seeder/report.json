@@ -1,0 +1,138 @@
+{"Time":"2023-01-28T09:16:48.578779Z","Action":"run","Package":"github.com/dnitsch/reststrategy/seeder/internal/config","Test":"Test_SelfName"}
+{"Time":"2023-01-28T09:16:48.579006Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/internal/config","Test":"Test_SelfName","Output":"=== RUN   Test_SelfName\n"}
+{"Time":"2023-01-28T09:16:48.579073Z","Action":"run","Package":"github.com/dnitsch/reststrategy/seeder/internal/config","Test":"Test_SelfName/strategyrestseeder"}
+{"Time":"2023-01-28T09:16:48.579128Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/internal/config","Test":"Test_SelfName/strategyrestseeder","Output":"=== RUN   Test_SelfName/strategyrestseeder\n"}
+{"Time":"2023-01-28T09:16:48.579186Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/internal/config","Test":"Test_SelfName","Output":"--- PASS: Test_SelfName (0.00s)\n"}
+{"Time":"2023-01-28T09:16:48.579206Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/internal/config","Test":"Test_SelfName/strategyrestseeder","Output":"    --- PASS: Test_SelfName/strategyrestseeder (0.00s)\n"}
+{"Time":"2023-01-28T09:16:48.579236Z","Action":"pass","Package":"github.com/dnitsch/reststrategy/seeder/internal/config","Test":"Test_SelfName/strategyrestseeder","Elapsed":0}
+{"Time":"2023-01-28T09:16:48.579301Z","Action":"pass","Package":"github.com/dnitsch/reststrategy/seeder/internal/config","Test":"Test_SelfName","Elapsed":0}
+{"Time":"2023-01-28T09:16:48.579317Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/internal/config","Output":"PASS\n"}
+{"Time":"2023-01-28T09:16:48.579332Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/internal/config","Output":"coverage: [no statements]\n"}
+{"Time":"2023-01-28T09:16:48.579785Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/internal/config","Output":"ok  \tgithub.com/dnitsch/reststrategy/seeder/internal/config\t0.303s\tcoverage: [no statements]\n"}
+{"Time":"2023-01-28T09:16:48.579833Z","Action":"pass","Package":"github.com/dnitsch/reststrategy/seeder/internal/config","Elapsed":0.304}
+{"Time":"2023-01-28T09:16:49.124288Z","Action":"run","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_InitAuthMap"}
+{"Time":"2023-01-28T09:16:49.124402Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_InitAuthMap","Output":"=== RUN   Test_InitAuthMap\n"}
+{"Time":"2023-01-28T09:16:49.124462Z","Action":"run","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_InitAuthMap/default_custom_vals"}
+{"Time":"2023-01-28T09:16:49.124493Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_InitAuthMap/default_custom_vals","Output":"=== RUN   Test_InitAuthMap/default_custom_vals\n"}
+{"Time":"2023-01-28T09:16:49.124529Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_InitAuthMap","Output":"--- PASS: Test_InitAuthMap (0.00s)\n"}
+{"Time":"2023-01-28T09:16:49.124553Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_InitAuthMap/default_custom_vals","Output":"    --- PASS: Test_InitAuthMap/default_custom_vals (0.00s)\n"}
+{"Time":"2023-01-28T09:16:49.124581Z","Action":"pass","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_InitAuthMap/default_custom_vals","Elapsed":0}
+{"Time":"2023-01-28T09:16:49.124636Z","Action":"pass","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_InitAuthMap","Elapsed":0}
+{"Time":"2023-01-28T09:16:49.12466Z","Action":"run","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_getSeeder"}
+{"Time":"2023-01-28T09:16:49.124688Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_getSeeder","Output":"=== RUN   Test_getSeeder\n"}
+{"Time":"2023-01-28T09:16:49.124719Z","Action":"run","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_getSeeder/getRestFunc_without_header"}
+{"Time":"2023-01-28T09:16:49.124741Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_getSeeder/getRestFunc_without_header","Output":"=== RUN   Test_getSeeder/getRestFunc_without_header\n"}
+{"Time":"2023-01-28T09:16:49.125496Z","Action":"run","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_getSeeder/getRestFunc_with_header"}
+{"Time":"2023-01-28T09:16:49.125538Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_getSeeder/getRestFunc_with_header","Output":"=== RUN   Test_getSeeder/getRestFunc_with_header\n"}
+{"Time":"2023-01-28T09:16:49.126212Z","Action":"run","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_getSeeder/getRestFunc_with_static_token_header"}
+{"Time":"2023-01-28T09:16:49.126249Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_getSeeder/getRestFunc_with_static_token_header","Output":"=== RUN   Test_getSeeder/getRestFunc_with_static_token_header\n"}
+{"Time":"2023-01-28T09:16:49.12654Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_getSeeder","Output":"--- PASS: Test_getSeeder (0.00s)\n"}
+{"Time":"2023-01-28T09:16:49.12658Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_getSeeder/getRestFunc_without_header","Output":"    --- PASS: Test_getSeeder/getRestFunc_without_header (0.00s)\n"}
+{"Time":"2023-01-28T09:16:49.126603Z","Action":"pass","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_getSeeder/getRestFunc_without_header","Elapsed":0}
+{"Time":"2023-01-28T09:16:49.126621Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_getSeeder/getRestFunc_with_header","Output":"    --- PASS: Test_getSeeder/getRestFunc_with_header (0.00s)\n"}
+{"Time":"2023-01-28T09:16:49.126639Z","Action":"pass","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_getSeeder/getRestFunc_with_header","Elapsed":0}
+{"Time":"2023-01-28T09:16:49.126656Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_getSeeder/getRestFunc_with_static_token_header","Output":"    --- PASS: Test_getSeeder/getRestFunc_with_static_token_header (0.00s)\n"}
+{"Time":"2023-01-28T09:16:49.126681Z","Action":"pass","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_getSeeder/getRestFunc_with_static_token_header","Elapsed":0}
+{"Time":"2023-01-28T09:16:49.126698Z","Action":"pass","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_getSeeder","Elapsed":0}
+{"Time":"2023-01-28T09:16:49.126713Z","Action":"run","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_findByPathExpression"}
+{"Time":"2023-01-28T09:16:49.126729Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_findByPathExpression","Output":"=== RUN   Test_findByPathExpression\n"}
+{"Time":"2023-01-28T09:16:49.126752Z","Action":"run","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_findByPathExpression/single_depth_escaped"}
+{"Time":"2023-01-28T09:16:49.126769Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_findByPathExpression/single_depth_escaped","Output":"=== RUN   Test_findByPathExpression/single_depth_escaped\n"}
+{"Time":"2023-01-28T09:16:49.126786Z","Action":"run","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_findByPathExpression/single_depth_unescaped"}
+{"Time":"2023-01-28T09:16:49.126801Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_findByPathExpression/single_depth_unescaped","Output":"=== RUN   Test_findByPathExpression/single_depth_unescaped\n"}
+{"Time":"2023-01-28T09:16:49.126817Z","Action":"run","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_findByPathExpression/lookup_string_in_array_"}
+{"Time":"2023-01-28T09:16:49.126832Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_findByPathExpression/lookup_string_in_array_","Output":"=== RUN   Test_findByPathExpression/lookup_string_in_array_\n"}
+{"Time":"2023-01-28T09:16:49.12687Z","Action":"run","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_findByPathExpression/lookup_int_in_array"}
+{"Time":"2023-01-28T09:16:49.126888Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_findByPathExpression/lookup_int_in_array","Output":"=== RUN   Test_findByPathExpression/lookup_int_in_array\n"}
+{"Time":"2023-01-28T09:16:49.126911Z","Action":"run","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_findByPathExpression/lookup_float_in_array_"}
+{"Time":"2023-01-28T09:16:49.126927Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_findByPathExpression/lookup_float_in_array_","Output":"=== RUN   Test_findByPathExpression/lookup_float_in_array_\n"}
+{"Time":"2023-01-28T09:16:49.12698Z","Action":"run","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_findByPathExpression/lookup_object_in_array_-_expect_error"}
+{"Time":"2023-01-28T09:16:49.127003Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_findByPathExpression/lookup_object_in_array_-_expect_error","Output":"=== RUN   Test_findByPathExpression/lookup_object_in_array_-_expect_error\n"}
+{"Time":"2023-01-28T09:16:49.127021Z","Action":"run","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_findByPathExpression/lookup_null_in_array_-_expect_error"}
+{"Time":"2023-01-28T09:16:49.127036Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_findByPathExpression/lookup_null_in_array_-_expect_error","Output":"=== RUN   Test_findByPathExpression/lookup_null_in_array_-_expect_error\n"}
+{"Time":"2023-01-28T09:16:49.127055Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_findByPathExpression","Output":"--- PASS: Test_findByPathExpression (0.00s)\n"}
+{"Time":"2023-01-28T09:16:49.127075Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_findByPathExpression/single_depth_escaped","Output":"    --- PASS: Test_findByPathExpression/single_depth_escaped (0.00s)\n"}
+{"Time":"2023-01-28T09:16:49.127093Z","Action":"pass","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_findByPathExpression/single_depth_escaped","Elapsed":0}
+{"Time":"2023-01-28T09:16:49.12711Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_findByPathExpression/single_depth_unescaped","Output":"    --- PASS: Test_findByPathExpression/single_depth_unescaped (0.00s)\n"}
+{"Time":"2023-01-28T09:16:49.127127Z","Action":"pass","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_findByPathExpression/single_depth_unescaped","Elapsed":0}
+{"Time":"2023-01-28T09:16:49.127143Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_findByPathExpression/lookup_string_in_array_","Output":"    --- PASS: Test_findByPathExpression/lookup_string_in_array_ (0.00s)\n"}
+{"Time":"2023-01-28T09:16:49.127165Z","Action":"pass","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_findByPathExpression/lookup_string_in_array_","Elapsed":0}
+{"Time":"2023-01-28T09:16:49.127183Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_findByPathExpression/lookup_int_in_array","Output":"    --- PASS: Test_findByPathExpression/lookup_int_in_array (0.00s)\n"}
+{"Time":"2023-01-28T09:16:49.127203Z","Action":"pass","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_findByPathExpression/lookup_int_in_array","Elapsed":0}
+{"Time":"2023-01-28T09:16:49.127223Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_findByPathExpression/lookup_float_in_array_","Output":"    --- PASS: Test_findByPathExpression/lookup_float_in_array_ (0.00s)\n"}
+{"Time":"2023-01-28T09:16:49.127258Z","Action":"pass","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_findByPathExpression/lookup_float_in_array_","Elapsed":0}
+{"Time":"2023-01-28T09:16:49.127287Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_findByPathExpression/lookup_object_in_array_-_expect_error","Output":"    --- PASS: Test_findByPathExpression/lookup_object_in_array_-_expect_error (0.00s)\n"}
+{"Time":"2023-01-28T09:16:49.127311Z","Action":"pass","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_findByPathExpression/lookup_object_in_array_-_expect_error","Elapsed":0}
+{"Time":"2023-01-28T09:16:49.127329Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_findByPathExpression/lookup_null_in_array_-_expect_error","Output":"    --- PASS: Test_findByPathExpression/lookup_null_in_array_-_expect_error (0.00s)\n"}
+{"Time":"2023-01-28T09:16:49.127345Z","Action":"pass","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_findByPathExpression/lookup_null_in_array_-_expect_error","Elapsed":0}
+{"Time":"2023-01-28T09:16:49.127361Z","Action":"pass","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_findByPathExpression","Elapsed":0}
+{"Time":"2023-01-28T09:16:49.127377Z","Action":"run","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_templatePayload"}
+{"Time":"2023-01-28T09:16:49.127395Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_templatePayload","Output":"=== RUN   Test_templatePayload\n"}
+{"Time":"2023-01-28T09:16:49.127412Z","Action":"run","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_templatePayload/global_only"}
+{"Time":"2023-01-28T09:16:49.127428Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_templatePayload/global_only","Output":"=== RUN   Test_templatePayload/global_only\n"}
+{"Time":"2023-01-28T09:16:49.127446Z","Action":"run","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_templatePayload/global_+_injected"}
+{"Time":"2023-01-28T09:16:49.127462Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_templatePayload/global_+_injected","Output":"=== RUN   Test_templatePayload/global_+_injected\n"}
+{"Time":"2023-01-28T09:16:49.12748Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_templatePayload","Output":"--- PASS: Test_templatePayload (0.00s)\n"}
+{"Time":"2023-01-28T09:16:49.127497Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_templatePayload/global_only","Output":"    --- PASS: Test_templatePayload/global_only (0.00s)\n"}
+{"Time":"2023-01-28T09:16:49.127514Z","Action":"pass","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_templatePayload/global_only","Elapsed":0}
+{"Time":"2023-01-28T09:16:49.127531Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_templatePayload/global_+_injected","Output":"    --- PASS: Test_templatePayload/global_+_injected (0.00s)\n"}
+{"Time":"2023-01-28T09:16:49.127548Z","Action":"pass","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_templatePayload/global_+_injected","Elapsed":0}
+{"Time":"2023-01-28T09:16:49.127564Z","Action":"pass","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_templatePayload","Elapsed":0}
+{"Time":"2023-01-28T09:16:49.12758Z","Action":"run","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_ActionWithHeader"}
+{"Time":"2023-01-28T09:16:49.127596Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_ActionWithHeader","Output":"=== RUN   Test_ActionWithHeader\n"}
+{"Time":"2023-01-28T09:16:49.127621Z","Action":"run","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_ActionWithHeader/default_header"}
+{"Time":"2023-01-28T09:16:49.12766Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_ActionWithHeader/default_header","Output":"=== RUN   Test_ActionWithHeader/default_header\n"}
+{"Time":"2023-01-28T09:16:49.127678Z","Action":"run","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_ActionWithHeader/additional"}
+{"Time":"2023-01-28T09:16:49.127695Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_ActionWithHeader/additional","Output":"=== RUN   Test_ActionWithHeader/additional\n"}
+{"Time":"2023-01-28T09:16:49.127712Z","Action":"run","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_ActionWithHeader/additional_with_custom_overwrite"}
+{"Time":"2023-01-28T09:16:49.127729Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_ActionWithHeader/additional_with_custom_overwrite","Output":"=== RUN   Test_ActionWithHeader/additional_with_custom_overwrite\n"}
+{"Time":"2023-01-28T09:16:49.127747Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_ActionWithHeader","Output":"--- PASS: Test_ActionWithHeader (0.00s)\n"}
+{"Time":"2023-01-28T09:16:49.127766Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_ActionWithHeader/default_header","Output":"    --- PASS: Test_ActionWithHeader/default_header (0.00s)\n"}
+{"Time":"2023-01-28T09:16:49.127788Z","Action":"pass","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_ActionWithHeader/default_header","Elapsed":0}
+{"Time":"2023-01-28T09:16:49.127827Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_ActionWithHeader/additional","Output":"    --- PASS: Test_ActionWithHeader/additional (0.00s)\n"}
+{"Time":"2023-01-28T09:16:49.127849Z","Action":"pass","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_ActionWithHeader/additional","Elapsed":0}
+{"Time":"2023-01-28T09:16:49.127868Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_ActionWithHeader/additional_with_custom_overwrite","Output":"    --- PASS: Test_ActionWithHeader/additional_with_custom_overwrite (0.00s)\n"}
+{"Time":"2023-01-28T09:16:49.127886Z","Action":"pass","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_ActionWithHeader/additional_with_custom_overwrite","Elapsed":0}
+{"Time":"2023-01-28T09:16:49.127904Z","Action":"pass","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_ActionWithHeader","Elapsed":0}
+{"Time":"2023-01-28T09:16:49.127921Z","Action":"run","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_setRunTimeVars"}
+{"Time":"2023-01-28T09:16:49.127937Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_setRunTimeVars","Output":"=== RUN   Test_setRunTimeVars\n"}
+{"Time":"2023-01-28T09:16:49.127955Z","Action":"run","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_setRunTimeVars/vars_found_and_replaced"}
+{"Time":"2023-01-28T09:16:49.127972Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_setRunTimeVars/vars_found_and_replaced","Output":"=== RUN   Test_setRunTimeVars/vars_found_and_replaced\n"}
+{"Time":"2023-01-28T09:16:49.12799Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_setRunTimeVars","Output":"--- PASS: Test_setRunTimeVars (0.00s)\n"}
+{"Time":"2023-01-28T09:16:49.128008Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_setRunTimeVars/vars_found_and_replaced","Output":"    --- PASS: Test_setRunTimeVars/vars_found_and_replaced (0.00s)\n"}
+{"Time":"2023-01-28T09:16:49.128025Z","Action":"pass","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_setRunTimeVars/vars_found_and_replaced","Elapsed":0}
+{"Time":"2023-01-28T09:16:49.128042Z","Action":"pass","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Test":"Test_setRunTimeVars","Elapsed":0}
+{"Time":"2023-01-28T09:16:49.128078Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Output":"PASS\n"}
+{"Time":"2023-01-28T09:16:49.131486Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Output":"coverage: 20.6% of statements\n"}
+{"Time":"2023-01-28T09:16:49.1327Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Output":"ok  \tgithub.com/dnitsch/reststrategy/seeder/pkg/rest\t0.207s\tcoverage: 20.6% of statements\n"}
+{"Time":"2023-01-28T09:16:49.132753Z","Action":"pass","Package":"github.com/dnitsch/reststrategy/seeder/pkg/rest","Elapsed":0.207}
+{"Time":"2023-01-28T09:16:49.303542Z","Action":"run","Package":"github.com/dnitsch/reststrategy/seeder","Test":"Test_Execute"}
+{"Time":"2023-01-28T09:16:49.303595Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder","Test":"Test_Execute","Output":"=== RUN   Test_Execute\n"}
+{"Time":"2023-01-28T09:16:49.303781Z","Action":"run","Package":"github.com/dnitsch/reststrategy/seeder","Test":"Test_Execute/OAuth_find_put_post_rest_calls"}
+{"Time":"2023-01-28T09:16:49.303828Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder","Test":"Test_Execute/OAuth_find_put_post_rest_calls","Output":"=== RUN   Test_Execute/OAuth_find_put_post_rest_calls\n"}
+{"Time":"2023-01-28T09:16:49.307942Z","Action":"run","Package":"github.com/dnitsch/reststrategy/seeder","Test":"Test_Execute/BasicAuth_calls_PUT"}
+{"Time":"2023-01-28T09:16:49.307988Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder","Test":"Test_Execute/BasicAuth_calls_PUT","Output":"=== RUN   Test_Execute/BasicAuth_calls_PUT\n"}
+{"Time":"2023-01-28T09:16:49.309307Z","Action":"run","Package":"github.com/dnitsch/reststrategy/seeder","Test":"Test_Execute/Mix_BasicAuth_and_OAuth_calls_find-delete-post"}
+{"Time":"2023-01-28T09:16:49.309343Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder","Test":"Test_Execute/Mix_BasicAuth_and_OAuth_calls_find-delete-post","Output":"=== RUN   Test_Execute/Mix_BasicAuth_and_OAuth_calls_find-delete-post\n"}
+{"Time":"2023-01-28T09:16:49.310378Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder","Test":"Test_Execute/Mix_BasicAuth_and_OAuth_calls_find-delete-post","Output":"2023/01/28 09:16:49 http: superfluous response.WriteHeader call from github.com/dnitsch/reststrategy/seeder/internal/testutils.deletetHandle.func1 (testutils.go:183)\n"}
+{"Time":"2023-01-28T09:16:49.311284Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder","Test":"Test_Execute/Mix_BasicAuth_and_OAuth_calls_find-delete-post","Output":"2023/01/28 09:16:49 http: superfluous response.WriteHeader call from github.com/dnitsch/reststrategy/seeder/internal/testutils.deletetHandle.func1 (testutils.go:183)\n"}
+{"Time":"2023-01-28T09:16:49.311701Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder","Test":"Test_Execute","Output":"--- PASS: Test_Execute (0.01s)\n"}
+{"Time":"2023-01-28T09:16:49.31174Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder","Test":"Test_Execute/OAuth_find_put_post_rest_calls","Output":"    --- PASS: Test_Execute/OAuth_find_put_post_rest_calls (0.00s)\n"}
+{"Time":"2023-01-28T09:16:49.311762Z","Action":"pass","Package":"github.com/dnitsch/reststrategy/seeder","Test":"Test_Execute/OAuth_find_put_post_rest_calls","Elapsed":0}
+{"Time":"2023-01-28T09:16:49.311781Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder","Test":"Test_Execute/BasicAuth_calls_PUT","Output":"    --- PASS: Test_Execute/BasicAuth_calls_PUT (0.00s)\n"}
+{"Time":"2023-01-28T09:16:49.311798Z","Action":"pass","Package":"github.com/dnitsch/reststrategy/seeder","Test":"Test_Execute/BasicAuth_calls_PUT","Elapsed":0}
+{"Time":"2023-01-28T09:16:49.311814Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder","Test":"Test_Execute/Mix_BasicAuth_and_OAuth_calls_find-delete-post","Output":"    --- PASS: Test_Execute/Mix_BasicAuth_and_OAuth_calls_find-delete-post (0.00s)\n"}
+{"Time":"2023-01-28T09:16:49.311847Z","Action":"pass","Package":"github.com/dnitsch/reststrategy/seeder","Test":"Test_Execute/Mix_BasicAuth_and_OAuth_calls_find-delete-post","Elapsed":0}
+{"Time":"2023-01-28T09:16:49.311865Z","Action":"pass","Package":"github.com/dnitsch/reststrategy/seeder","Test":"Test_Execute","Elapsed":0.01}
+{"Time":"2023-01-28T09:16:49.311882Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder","Output":"PASS\n"}
+{"Time":"2023-01-28T09:16:49.312365Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder","Output":"coverage: 85.7% of statements\n"}
+{"Time":"2023-01-28T09:16:49.313327Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder","Output":"ok  \tgithub.com/dnitsch/reststrategy/seeder\t0.385s\tcoverage: 85.7% of statements\n"}
+{"Time":"2023-01-28T09:16:49.313352Z","Action":"pass","Package":"github.com/dnitsch/reststrategy/seeder","Elapsed":0.386}
+{"Time":"2023-01-28T09:16:49.31555Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/cmd","Output":"?   \tgithub.com/dnitsch/reststrategy/seeder/cmd\t[no test files]\n"}
+{"Time":"2023-01-28T09:16:49.315703Z","Action":"skip","Package":"github.com/dnitsch/reststrategy/seeder/cmd","Elapsed":0}
+{"Time":"2023-01-28T09:16:49.315738Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/cmd/strategyrestseeder","Output":"?   \tgithub.com/dnitsch/reststrategy/seeder/cmd/strategyrestseeder\t[no test files]\n"}
+{"Time":"2023-01-28T09:16:49.315776Z","Action":"skip","Package":"github.com/dnitsch/reststrategy/seeder/cmd/strategyrestseeder","Elapsed":0}
+{"Time":"2023-01-28T09:16:49.31582Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/internal/cmdutils","Output":"?   \tgithub.com/dnitsch/reststrategy/seeder/internal/cmdutils\t[no test files]\n"}
+{"Time":"2023-01-28T09:16:49.315853Z","Action":"skip","Package":"github.com/dnitsch/reststrategy/seeder/internal/cmdutils","Elapsed":0}
+{"Time":"2023-01-28T09:16:49.315915Z","Action":"output","Package":"github.com/dnitsch/reststrategy/seeder/internal/testutils","Output":"?   \tgithub.com/dnitsch/reststrategy/seeder/internal/testutils\t[no test files]\n"}
+{"Time":"2023-01-28T09:16:49.315952Z","Action":"skip","Package":"github.com/dnitsch/reststrategy/seeder/internal/testutils","Elapsed":0}

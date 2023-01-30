@@ -95,7 +95,7 @@ require (
 	github.com/oklog/run v1.0.0 // indirect
 	github.com/pierrec/lz4 v2.5.2+incompatible // indirect
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8 // indirect
-	github.com/rs/zerolog v1.28.0 // indirect
+	github.com/rs/zerolog v1.29.0 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	go.opencensus.io v0.24.0 // indirect
@@ -116,9 +116,9 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/gengo v0.0.0-20220902162205-c0856e24416d // indirect
-	k8s.io/klog/v2 v2.80.1 // indirect
+	k8s.io/klog/v2 v2.90.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20221012153701-172d655c2280 // indirect
-	sigs.k8s.io/json v0.0.0-20220713155537-f223a00ba0e2 // indirect
+	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )

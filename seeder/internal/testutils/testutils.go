@@ -12,7 +12,8 @@ import (
 )
 
 const (
-	TestPhrase string = "Want: %v\nGot: %v"
+	TestPhrase            string = "got: %v want: %v\n"
+	TestPhraseWithContext string = "%s got: %v want: %v\n"
 )
 
 func token(t *testing.T) func(w http.ResponseWriter, r *http.Request) {

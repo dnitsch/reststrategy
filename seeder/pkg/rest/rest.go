@@ -217,8 +217,7 @@ func (r *SeederImpl) doAuth(req *http.Request, action *Action) *http.Request {
 		}
 		enrichedReq.Header.Set("Authorization", fmt.Sprintf("%s %s", token.TokenType, token.AccessToken))
 	case CustomToToken:
-		// TODO: ensure custom flow similar to OAuth happens for customToToken credentials
-		token, err := cam.customToToken.Token(enrichedReq.Context(), r.log) //  customTokenExchange(*currentAuthMap.customToToken)
+		token, err := cam.customToToken.Token(enrichedReq.Context(), r.client, r.log)
 		if err != nil {
 			r.log.Errorf("failed to obtain custom token: %v", err)
 		}

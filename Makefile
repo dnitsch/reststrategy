@@ -55,6 +55,9 @@ test_controller:
 
 test: test_prereq test_seeder test_controller
 
+test_sonar: 
+	
+
 test_ci:
 	go test ./... -mod=readonly
 

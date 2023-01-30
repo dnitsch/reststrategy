@@ -9,7 +9,7 @@ spec:
     - name: customTest1
       type: CustomToToken
       custom:
-        authUrl: http://127.0.0.1:60965/api/admins/auth-via-email
+        authUrl: http://127.0.0.1:59886/api/admins/auth-via-email
         credential:
           email: test@example.com
           password: AWSPARAMSTR:///int-test/pocketbase/admin-pwd
@@ -18,7 +18,7 @@ spec:
         tokenPrefix: Admin
   seed:
   - name: create-pocketbase-admin2
-    endpoint: http://127.0.0.1:60965/api/admins
+    endpoint: http://127.0.0.1:59886/api/admins
     strategy: FIND/PATCH/POST
     getEndpointSuffix: "?page=1&perPage=100&sort=-created&filter="
     findByJsonPathExpr: "$.items[?(@.email=='test2@example.com')].id"
@@ -40,7 +40,7 @@ spec:
       admin1AvatarId: "$.avatar"
   - name: create-pocketbase-admin3
     # /api/admins
-    endpoint: http://127.0.0.1:60965/api/admins
+    endpoint: http://127.0.0.1:59886/api/admins
     strategy: FIND/PATCH/POST
     getEndpointSuffix: "?page=1&perPage=100&sort=-created&filter="
     # postEndpointSuffix: /post
@@ -62,7 +62,7 @@ spec:
       password: password789!000
   - name: create-pocketbase-test-collection
     # /api/admins
-    endpoint: http://127.0.0.1:60965/api/collections
+    endpoint: http://127.0.0.1:59886/api/collections
     strategy: FIND/PATCH/POST
     getEndpointSuffix: "?page=1&perPage=100&sort=-created&filter="
     # postEndpointSuffix: /post
@@ -85,7 +85,7 @@ spec:
     runtimeVars:
       testCollectionPatchId: $.items[?(@.name=='test')].id
   - name: create-pocketbase-user-for-qa-test
-    endpoint: http://127.0.0.1:60965/api/users
+    endpoint: http://127.0.0.1:59886/api/users
     strategy: FIND/PATCH/POST
     getEndpointSuffix: "?page=1&perPage=100&sort=-created&filter="
     findByJsonPathExpr: "$.items[?(@.email=='qa-guy@example.com')].id"

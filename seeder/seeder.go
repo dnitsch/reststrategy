@@ -34,7 +34,7 @@ type StrategyRestSeeder struct {
 // New initializes a default StrategySeeder with
 // error log level and os.StdErr as log writer
 // uses standard http.Client as rest client for rest SeederImplementation
-func New(log *log.Logger) *StrategyRestSeeder {
+func New(log log.Loggeriface) *StrategyRestSeeder {
 	r := rest.NewSeederImpl(log)
 	r.WithClient(&http.Client{})
 

@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/dnitsch/reststrategy/controller/internal/k8sutils"
+	"github.com/dnitsch/reststrategy/controller/pkg/signals"
 	log "github.com/dnitsch/simplelog"
 	"github.com/spf13/cobra"
 )
@@ -53,6 +54,7 @@ func controllerRun(cmd *cobra.Command, args []string) error {
 		Namespace:       namespace,
 		LogLevel:        logLevel,
 	}
-
-	return k8sutils.Run(config, logger)
+	// set up signals so we handle the first shutdown signal gracefully
+	stopCh := signals.SetupSignalHandler()
+	return k8sutils.Run(config, logger, stopCh)
 }

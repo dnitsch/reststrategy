@@ -142,6 +142,14 @@ spec:
                           Key Value map where the key will be the name of the variable which other Actions can access and the Value will be in form of a JSONPath expression, 
                           which will be applied to each request
                         x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              properties:
+                message:
+                  type: string
+      subresources:
+        # enables the status subresource
+        status: {}
   # either Namespaced or Cluster
   scope: Namespaced
   names:

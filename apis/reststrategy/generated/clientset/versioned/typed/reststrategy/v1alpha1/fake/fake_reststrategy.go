@@ -92,6 +92,18 @@ func (c *FakeRestStrategies) Update(ctx context.Context, restStrategy *v1alpha1.
 	return obj.(*v1alpha1.RestStrategy), err
 }
 
+// UpdateStatus was generated because the type contains a Status member.
+// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
+func (c *FakeRestStrategies) UpdateStatus(ctx context.Context, restStrategy *v1alpha1.RestStrategy, opts v1.UpdateOptions) (*v1alpha1.RestStrategy, error) {
+	obj, err := c.Fake.
+		Invokes(testing.NewUpdateSubresourceAction(reststrategiesResource, "status", c.ns, restStrategy), &v1alpha1.RestStrategy{})
+
+	if obj == nil {
+		return nil, err
+	}
+	return obj.(*v1alpha1.RestStrategy), err
+}
+
 // Delete takes name of the restStrategy and deletes it. Returns an error if one occurs.
 func (c *FakeRestStrategies) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.

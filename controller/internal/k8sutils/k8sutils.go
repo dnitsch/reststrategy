@@ -10,7 +10,6 @@ import (
 	clientset "github.com/dnitsch/reststrategy/apis/reststrategy/generated/clientset/versioned"
 	controllerinformers "github.com/dnitsch/reststrategy/apis/reststrategy/generated/informers/externalversions"
 	"github.com/dnitsch/reststrategy/controller"
-	"github.com/dnitsch/reststrategy/controller/pkg/signals"
 	log "github.com/dnitsch/simplelog"
 	kubeinformers "k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
@@ -28,10 +27,8 @@ type Config struct {
 	LogLevel        string
 }
 
-// Run accepts config object and logger implementation
-func Run(config Config, log log.Logger) error {
-	// set up signals so we handle the first shutdown signal gracefully
-	stopCh := signals.SetupSignalHandler()
+// Run accepts config object and logger implementation and 
+func Run(config Config, log log.Loggeriface, stopCh <-chan struct{}) error {
 
 	cfg, err := clientcmd.BuildConfigFromFlags(config.MasterURL, config.Kubeconfig)
 	if err != nil {

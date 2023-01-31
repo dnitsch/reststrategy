@@ -393,6 +393,7 @@ func templatePayload(payload string, vars KvMapVarsAny) (string, error) {
 	for k, v := range vars {
 		os.Setenv(k, fmt.Sprintf("%v", v))
 	}
+	// envsubst.StringNoReplace(payload, false, false, true, true)
 	return envsubst.String(payload)
 }
 

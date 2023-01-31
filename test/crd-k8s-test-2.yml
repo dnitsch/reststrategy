@@ -93,6 +93,6 @@ spec:
     payloadTemplate: |
       {"email":"qa-guy@example.com","password":"Password123_alwaysChange","passwordConfirm":"Password123_alwaysChange"}
     patchPayloadTemplate: |
-      {"password":"${newPass}","passwordConfirm":"${newPass}"}
+      {"password":"AWSPARAMSTR:///int-test/pocketbase/admin-pwd","passwordConfirm":"AWSPARAMSTR:///int-test/pocketbase/admin-pwd"}
     variables:
-      newPass: AWSPARAMSTR:///int-test/pocketbase/admin-pwd
+      newPass: unused22

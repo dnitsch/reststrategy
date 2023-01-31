@@ -98,7 +98,7 @@ spec:
       serviceAccountName: reststrategy
       automountServiceAccountToken: true
       containers:
-      - image: ghcr.io/dnitsch/reststrategy:0.6.3-pre
+      - image: ghcr.io/dnitsch/reststrategy:v0.9.0
         imagePullPolicy: IfNotPresent
         name: reststrategy
         resources:
@@ -121,5 +121,6 @@ spec:
               fieldPath: metadata.name
         args:
           - --controllercount=2
-          - --namespace=reststrategy
+          - --namespace=runtime-config-sync-in-k8s
           - --loglevel=debug
+          - --rsync=4

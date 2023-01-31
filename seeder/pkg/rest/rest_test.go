@@ -13,8 +13,42 @@ import (
 	"github.com/dnitsch/reststrategy/seeder/internal/testutils"
 
 	log "github.com/dnitsch/simplelog"
-	"github.com/spyzhov/ajson"
 )
+
+func Test_InitAuthMap(t *testing.T) {
+	tests := []struct {
+		name    string
+		authMap *AuthMap
+	}{
+		{
+			name: "default custom vals",
+			authMap: &AuthMap{
+				"customTest1": {
+					AuthStrategy: CustomToToken,
+					CustomToken: &CustomToken{
+						AuthUrl:       "https://foo.bar",
+						CustomAuthMap: map[string]any{"name": "skywalker", "secret_pass": "empire"},
+						HeaderKey:     "Foo",
+					},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			a := NewAuth(tt.authMap)
+			for _, d := range *a {
+				if d.authStrategy != CustomToToken {
+					t.Errorf("incorrect authStrategy: %v, wanted: %s", d.authStrategy, "CustomToToken")
+				}
+				if d.customToToken.headerKey != "Foo" {
+					t.Errorf(testutils.TestPhrase, d.customToToken.headerKey, "Foo")
+				}
+			}
+		})
+	}
+}
 
 func Test_getSeeder(t *testing.T) {
 	ts := httptest.NewServer(testutils.TestMuxServer(t))
@@ -96,7 +130,6 @@ func Test_findByPathExpression(t *testing.T) {
 		payload        []byte
 		pathExpression string
 		expect         string
-		expErr         *string
 	}{
 		{
 			name:           "single depth escaped",
@@ -141,13 +174,13 @@ func Test_findByPathExpression(t *testing.T) {
 		{
 			name:           "lookup object in array - expect error",
 			payload:        []byte(`{"items":[{"id":3,"name":"fubar","object": {"f": "g"},"a":"b","c":"d"},{"id":32,"name":"fubar2","a":"f","c":"h"},{"id":42,"name":"fubar42","a":"i","c":"j"}]}`),
-			expErr:         String(fmt.Sprintf("cannot use type: %v in further processing - can only be a numeric or string value", ajson.Object)),
+			expect:         "cannot use type: 5 in further processing - can only be a numeric or string value",
 			pathExpression: "$.items[?(@.name=='fubar')].object",
 		},
 		{
 			name:           "lookup null in array - expect error",
 			payload:        []byte(`{"items":[{"id":3,"name":"fubar","null": null,"a":"b","c":"d"},{"id":32,"name":"fubar2","a":"f","c":"h"},{"id":42,"name":"fubar42","a":"i","c":"j"}]}`),
-			expErr:         String(fmt.Sprintf("cannot use type: %v in further processing - can only be a numeric or string value", ajson.Null)),
+			expect:         "cannot use type: 0 in further processing - can only be a numeric or string value",
 			pathExpression: "$.items[?(@.name=='fubar')].null",
 		},
 	}
@@ -156,20 +189,14 @@ func Test_findByPathExpression(t *testing.T) {
 			r := &SeederImpl{runtimeVars: runtimeVars{}, log: log.New(&bytes.Buffer{}, log.DebugLvl), client: &http.Client{}}
 			got, err := r.findPathByExpression(tt.payload, tt.pathExpression)
 			if err != nil {
-				if tt.expErr != nil {
-					if err.Error() != *tt.expErr {
-						t.Errorf(testutils.TestPhrase, tt.expErr, err)
-					}
-				} else {
-					t.Error(err)
+				if err.Error() != tt.expect {
+					t.Errorf(testutils.TestPhrase, err, tt.expect)
 				}
+				return
 			}
-			if tt.expErr != nil && err.Error() != *tt.expErr {
-				t.Errorf(testutils.TestPhrase, tt.expErr, err)
-			} else {
-				if got != tt.expect {
-					t.Errorf(testutils.TestPhrase, tt.expect, got)
-				}
+
+			if got != tt.expect {
+				t.Errorf(testutils.TestPhrase, got, tt.expect)
 			}
 
 		})
@@ -205,7 +232,7 @@ func Test_templatePayload(t *testing.T) {
 
 			got := tt.rest.templatePayload(tt.payload, tt.variables)
 			if got != tt.expect {
-				t.Errorf(testutils.TestPhrase, tt.expect, got)
+				t.Errorf(testutils.TestPhrase, got, tt.expect)
 			}
 		})
 	}

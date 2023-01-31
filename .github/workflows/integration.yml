@@ -14,16 +14,54 @@ jobs:
         FOO: Bar
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: pre-requisites
         run: |
           mkdir -p ./ci-bin
           curl -L -o ./ci-bin/jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 && chmod +x ./ci-bin/jq
           export PATH=$PATH:$PWD/ci-bin
           jq --version
+      - name: Determine Version
+        uses: gittools/actions/gitversion/execute@v0.9.15
       - name: build
         run: | 
+          echo "SEmVer: $GITVERSION_SEMVER"
           make test
-          make REVISION=${{ github.sha }} PAT=${{ secrets.GITHUB_TOKEN }} build_ci
+          make GIT_TAG=$GITVERSION_SEMVER REVISION=${{ github.sha }} PAT=${{ secrets.GITHUB_TOKEN }} build_ci
+      - name: Publish Junit style Test Report
+        uses: mikepenz/action-junit-report@v3
+        if: always()
+        with:
+          report_paths: '**/report-junit.xml'
+      - name: Analyze with SonarCloud         
+        # You can pin the exact commit or the version.
+        # uses: SonarSource/sonarcloud-github-action@de2e56b42aa84d0b1c5b622644ac17e505c9a049
+        uses: SonarSource/sonarcloud-github-action@de2e56b42aa84d0b1c5b622644ac17e505c9a049
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   # Generate a token on Sonarcloud.io, add it to the secrets of this repo with the name SONAR_TOKEN (Settings > Secrets > Actions > add new repository secret)
+        with:
+          # Additional arguments for the sonarcloud scanner
+          args:             
+            # Unique keys of your project and organization. You can find them in SonarCloud > Information (bottom-left menu)
+            # mandatory
+            -Dsonar.projectKey=reststrategy
+            -Dsonar.organization=dnitsch
+            -Dsonar.tests=**/report-junit.xml
+            -Dsonar.exclusions=**/*_test.go,**/*_generated*.go,**/*_generated/**,**/vendor/**
+            -Dsonar.test.inclusions=**/*_test.go
+            -Dsonar.test.exclusions=**/*_generated*.go,**/*_generated/**,**/vendor/**
+            -Dsonar.go.tests.reportPaths=report.json
+            -Dsonar.go.coverage.reportPaths=coverage.out
+            # Comma-separated paths to directories containing main source files.
+            #-Dsonar.sources= # optional, default is project base directory
+            # When you need the analysis to take place in a directory other than the one from which it was launched
+            #-Dsonar.projectBaseDir= # optional, default is .
+            # Comma-separated paths to directories containing test source files.
+            # optional. For more info about Code Coverage, please refer to https://docs.sonarcloud.io/enriching/test-coverage/overview/
+            # Adds more detail to both client and server-side analysis logs, activating DEBUG mode for the scanner, and adding client-side environment variables and system properties to the server-side log of analysis report processing.
+            #-Dsonar.verbose= # optional, default is false
       - name: publish
         run: |
           export PATH=$PATH:$PWD/ci-bin
@@ -39,7 +77,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
+      - name: Determine Version
+        uses: gittools/actions/gitversion/execute@v0.9.15
       # setup Docker buld action
       - name: Set up Docker Buildx
         id: buildx
@@ -54,9 +93,5 @@ jobs:
 
       - name: docker push controller
         run: |
-          make REVISION=${{ github.sha }} docker_release
-          # export RAW_VERSION=$(git describe --tags --exact-match ${{ github.sha }})
-          # VERSION=${RAW_VERSION##*/}
-          # cd controller
-          # docker build --build-arg REVISION=${{ github.sha }} --build-arg VERSION=${VERSION} -t ghcr.io/dnitsch/reststrategy:${VERSION} .
-          # docker push ghcr.io/dnitsch/reststrategy:${VERSION}
+          echo "SEmVer: $GITVERSION_SEMVER"
+          make GIT_TAG=$GITVERSION_SEMVER REVISION=${{ github.sha }} docker_release

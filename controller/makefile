@@ -32,3 +32,6 @@ build_ci: clean install_ci bingen
 
 docker:
 	docker build --build-arg REVISION=$(REVISION) --build-arg VERSION=$(VERSION) -t ghcr.io/dnitsch/reststrategy:$(VERSION) .
+
+# show_coverage: 
+# 	go tool cover -html=.coverage/out

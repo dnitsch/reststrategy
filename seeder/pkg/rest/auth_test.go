@@ -1,41 +1,54 @@
-package rest
+package rest_test
 
 import (
+	"bytes"
+	"context"
+	"io"
+	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/dnitsch/reststrategy/seeder/internal/testutils"
+	"github.com/dnitsch/reststrategy/seeder/pkg/rest"
+	log "github.com/dnitsch/simplelog"
 )
 
-func Test_InitAuthMap(t *testing.T) {
-	tests := []struct {
-		name    string
-		authMap *AuthMap
+type mockClient func(req *http.Request) (*http.Response, error)
+
+func (m mockClient) Do(req *http.Request) (*http.Response, error) {
+	return m(req)
+}
+func TestCustomToken(t *testing.T) {
+	ttests := map[string]struct {
+		customAuth func(t *testing.T) *rest.CustomFlowAuth
+		client     func(t *testing.T) rest.Client
+		expect     rest.CustomTokenResponse
 	}{
-		{
-			name: "default custom vals",
-			authMap: &AuthMap{
-				"customTest1": {
-					AuthStrategy: CustomToToken,
-					CustomToken: &CustomToken{
-						AuthUrl:       "https://foo.bar",
-						CustomAuthMap: map[string]any{"name": "skywalker", "secret_pass": "empire"},
-						HeaderKey:     "Foo",
-					},
-				},
+		"success with default": {
+			func(t *testing.T) *rest.CustomFlowAuth {
+				return rest.NewCustomFlowAuth().WithAuthUrl("http://foo.bar").WithAuthMap(rest.KvMapVarsAny{"email": "bar@qux.boo", "pass": "barrr"})
+			},
+			func(t *testing.T) rest.Client {
+				return mockClient(func(req *http.Request) (*http.Response, error) {
+					resp := &http.Response{Body: io.NopCloser(strings.NewReader(`{"access_token":"8s0ghews87ghv78gh8ergh8dfgfdg"}`))}
+					return resp, nil
+				})
+			},
+			rest.CustomTokenResponse{
+				TokenPrefix: "Bearer",
+				TokenValue:  "8s0ghews87ghv78gh8ergh8dfgfdg",
+				HeaderKey:   "Authorization",
 			},
 		},
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
-			a := NewAuth(tt.authMap)
-			for _, d := range *a {
-				if d.authStrategy != CustomToToken {
-					t.Errorf("incorrect authStrategy: %v, wanted: %s", d.authStrategy, "CustomToToken")
-				}
-				if d.customToToken.headerKey != "Foo" {
-					t.Errorf(testutils.TestPhrase, "Foo", d.customToToken.headerKey)
-				}
+	for name, tt := range ttests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tt.customAuth(t).Token(context.TODO(), tt.client(t), log.New(&bytes.Buffer{}, log.DebugLvl))
+			if err != nil {
+				t.Errorf(testutils.TestPhrase, got, tt.expect)
+			}
+			if got.TokenValue != tt.expect.TokenValue {
+				t.Errorf(testutils.TestPhraseWithContext, "custom token not returned properly", got.TokenValue, tt.expect.TokenValue)
 			}
 		})
 	}

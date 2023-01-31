@@ -5,6 +5,7 @@ influenced by k8s.io samplecontroller
 package controller
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -21,6 +22,7 @@ import (
 	log "github.com/dnitsch/simplelog"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
@@ -56,6 +58,16 @@ const (
 	MessageResourceFailed = "RestStrategy failed to sync"
 )
 
+type ConfigManagerRetrieve interface {
+	RetrieveWithInputReplaced(input string, config generator.GenVarsConfig) (string, error)
+}
+
+// custom configmanager stuff
+type ControllerConfigManager struct {
+	retrieve ConfigManagerRetrieve
+	config   generator.GenVarsConfig
+}
+
 // Controller is the controller implementation for RestStrategy resources
 type Controller struct {
 	// kubeclientset is a standard kubernetes clientset
@@ -76,11 +88,13 @@ type Controller struct {
 	// Kubernetes API.
 	recorder record.EventRecorder
 	// logger - init with Standard
-	log log.Logger
+	log log.Loggeriface
 	// service struct that will perform the business logic
 	restClient rest.Client
 	// resyncPeriod in hours
 	resyncServicePeriod int
+	// configManager
+	confmgr ControllerConfigManager
 }
 
 // NewController returns a new RestStrategy controller
@@ -110,6 +124,7 @@ func NewController(
 		workqueue:             workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), kindCrdName),
 		recorder:              recorder,
 		resyncServicePeriod:   resyncServicePeriodHours,
+		confmgr:               ControllerConfigManager{&configmanager.ConfigManager{}, *generator.NewConfig().WithTokenSeparator("://")},
 	}
 
 	fmt.Print("Setting up event handlers")
@@ -123,7 +138,7 @@ func NewController(
 }
 
 // WithLogger overwrites logger with Custom implementation
-func (c *Controller) WithLogger(l log.Logger) *Controller {
+func (c *Controller) WithLogger(l log.Loggeriface) *Controller {
 	c.log = l
 	return c
 }
@@ -131,6 +146,11 @@ func (c *Controller) WithLogger(l log.Logger) *Controller {
 // WithService assigns a service instance
 func (c *Controller) WithRestClient(rc rest.Client) *Controller {
 	c.restClient = rc
+	return c
+}
+
+func (c *Controller) WithConfigManager(v ControllerConfigManager) *Controller {
+	c.confmgr = v
 	return c
 }
 
@@ -261,29 +281,47 @@ func (c *Controller) syncHandler(key string) error {
 	c.log.Debugf("Handing over resource: '%s' in namespace: '%s' to the service handler. allocating new srv instance", name, namespace)
 
 	rstsrv := rstservice.New(c.log, c.restClient)
-
-	cm := &configmanager.ConfigManager{}
-
+	// begin potentially move to a helper
 	// use custom token separator inline with future releases
-	config := generator.NewConfig().WithTokenSeparator("://")
-
-	rspec, err := configmanager.KubeControllerSpecHelper(reststrategyCopy.Spec, cm, *config)
+	// config := generator.NewConfig().WithTokenSeparator("://")
+	rspec, err := configmanager.RetrieveMarshalledJson(&reststrategyCopy.Spec, c.confmgr.retrieve, c.confmgr.config)
+	// end potentially move to a helper
 
 	if err != nil {
-		c.log.Debugf("failed to replace any found tokens on the CRD spec: %s", key)
+		c.log.Errorf("failed to replace any found tokens on the crd spec: %s", key)
+		c.log.Debug("will not attempt to re-queue")
+		return nil
+	}
+
+	ec := rstsrv.Execute(*rspec)
+
+	if len(ec) > 0 {
+		c.log.Errorf("%v", ec)
+		c.updateStatus(reststrategyCopy, fmt.Sprintf("%v", ec), true)
+		c.recorder.Event(reststrategy, corev1.EventTypeWarning, ErrSync, fmt.Sprintf("%v", ec))
+		return nil
+	}
+
+	c.updateStatus(reststrategyCopy, MessageResourceSynced, false)
+	c.recorder.Event(reststrategy, corev1.EventTypeNormal, SuccessSynced, MessageResourceSynced)
+	return nil
+}
+
+func (c *Controller) updateStatus(reststrategy *v1alpha1.RestStrategy, message string, errored bool) error {
+	// NEVER modify objects from the store. It's a read-only, local cache.
+	// You can use DeepCopy() to make a deep copy of original object and modify this copy
+	// Or create a copy manually for better performance
+	statusUpdate := reststrategy.DeepCopy()
+
+	statusUpdate.Status.Message = message
+
+	// If the CustomResourceSubresources feature gate is not enabled,
+	// we must use Update instead of UpdateStatus to update the Status block of the OnboardApp resource.
+	// UpdateStatus will not allow changes to the Spec of the resource,
+	// which is ideal for ensuring nothing other than resource status has been updated.
+	if _, err := c.reststrategyclientset.ReststrategyV1alpha1().RestStrategies(statusUpdate.Namespace).UpdateStatus(context.TODO(), statusUpdate, v1.UpdateOptions{}); err != nil {
 		return err
 	}
-
-	if err := rstsrv.Execute(*rspec); err != nil {
-		c.log.Errorf("%+#v", err)
-		c.recorder.Event(reststrategy, corev1.EventTypeNormal, ErrSync, fmt.Sprintf("#+%v", err))
-	} else {
-		c.recorder.Event(reststrategy, corev1.EventTypeNormal, SuccessSynced, MessageResourceSynced)
-	}
-
-	// force quicker GC ... deallocation from heap
-	rstsrv = nil
-
 	return nil
 }
 

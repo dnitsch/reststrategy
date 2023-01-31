@@ -91,7 +91,7 @@ type auth struct {
 	oAuthConfig         *clientcredentials.Config
 	passwordGrantConfig *passwordGrantConfig
 	basicAuth           *basicAuth
-	customToToken       *customToToken
+	customToToken       *CustomFlowAuth
 	staticToken         *staticToken
 	// currentToken string
 }
@@ -101,7 +101,7 @@ type basicAuth struct {
 	password string
 }
 
-type customToToken struct {
+type CustomFlowAuth struct {
 	authUrl string
 	// holds the K/V pairs
 	customAuthMap KvMapVarsAny
@@ -121,6 +121,53 @@ type customToToken struct {
 	// currentToken successfully retrieved and cached for re-use
 	// shuold be disabled as various things will need to be implemented
 	currentToken string
+}
+
+func NewCustomFlowAuth() *CustomFlowAuth {
+	return &CustomFlowAuth{
+		// authUrl:       CustomToken.AuthUrl,
+		// customAuthMap: v.CustomToken.CustomAuthMap,
+		headerKey:    "Authorization",
+		tokenPrefix:  "Bearer",
+		sendInHeader: false,
+		responseKey:  "$.access_token",
+	}
+}
+
+func (cfa *CustomFlowAuth) WithAuthUrl(v string) *CustomFlowAuth {
+	cfa.authUrl = v
+	return cfa
+}
+
+func (cfa *CustomFlowAuth) WithAuthMap(v KvMapVarsAny) *CustomFlowAuth {
+	cfa.customAuthMap = v
+	return cfa
+}
+
+// WithHeaderKey overwrites the detault `Authorization“
+func (cfa *CustomFlowAuth) WithHeaderKey(v string) *CustomFlowAuth {
+	cfa.headerKey = v
+	return cfa
+}
+
+// WithTokenPrefix overwrites the detault `Bearer`
+func (cfa *CustomFlowAuth) WithTokenPrefix(v string) *CustomFlowAuth {
+	cfa.tokenPrefix = v
+	return cfa
+}
+
+// WithSendInHeader sends custom request in the header
+//
+//	as opposed to a in url encoded form in body POST
+func (cfa *CustomFlowAuth) WithSendInHeader() *CustomFlowAuth {
+	cfa.sendInHeader = true
+	return cfa
+}
+
+// WithResponseKey overwrites the default "$.access_token"
+func (cfa *CustomFlowAuth) WithResponseKey(v string) *CustomFlowAuth {
+	cfa.responseKey = v
+	return cfa
 }
 
 type staticToken struct {
@@ -177,25 +224,19 @@ func NewAuth(am *AuthMap) *actionAuthMap {
 			a.basicAuth = &basicAuth{username: v.Username, password: v.Password}
 			ac[k] = a
 		case CustomToToken:
-			a.customToToken = &customToToken{
-				authUrl:       v.CustomToken.AuthUrl,
-				customAuthMap: v.CustomToken.CustomAuthMap,
-				headerKey:     "Authorization",
-				tokenPrefix:   "Bearer",
-				sendInHeader:  false,
-				responseKey:   "$.access_token",
-			}
+			a.customToToken = NewCustomFlowAuth().WithAuthMap(v.CustomToken.CustomAuthMap).WithAuthUrl(v.CustomToken.AuthUrl)
+
 			if v.CustomToken.HeaderKey != "" {
-				a.customToToken.headerKey = v.CustomToken.HeaderKey
+				a.customToToken.WithHeaderKey(v.CustomToken.HeaderKey)
 			}
 			if v.CustomToken.TokenPrefix != "" {
-				a.customToToken.tokenPrefix = v.CustomToken.TokenPrefix
+				a.customToToken.WithTokenPrefix(v.CustomToken.TokenPrefix)
 			}
 			if v.CustomToken.SendInHeader {
-				a.customToToken.sendInHeader = true
+				a.customToToken.WithSendInHeader()
 			}
 			if v.CustomToken.ResponseKey != "" {
-				a.customToToken.responseKey = v.CustomToken.ResponseKey
+				a.customToToken.WithResponseKey(v.CustomToken.ResponseKey)
 			}
 			ac[k] = a
 		case StaticToken:
@@ -216,9 +257,9 @@ type CustomTokenResponse struct {
 }
 
 // NOTE: for oauth an basicAuthToToken it might make sense to build a in-memory map of tokens to strategy name
-func (c *customToToken) Token(ctx context.Context, log log.Loggeriface) (CustomTokenResponse, error) {
+func (c *CustomFlowAuth) Token(ctx context.Context, client Client, log log.Loggeriface) (CustomTokenResponse, error) {
 
-	st, err := customTokenExchange(*c)
+	st, err := customTokenExchange(*c, client)
 	if err != nil {
 		return CustomTokenResponse{}, err
 	}
@@ -229,7 +270,7 @@ func (c *customToToken) Token(ctx context.Context, log log.Loggeriface) (CustomT
 	if token == "" {
 		return CustomTokenResponse{}, fmt.Errorf("unable to retrieve and parse custom token from: %v, by pathx: %s", st, c.responseKey)
 	}
-	// TODO: currently disable caching of custom tokens
+	// TODO: currently disabled caching of custom tokens
 	// if c.currentToken == "" {
 	c.currentToken = token
 	// }
@@ -241,10 +282,9 @@ func (c *customToToken) Token(ctx context.Context, log log.Loggeriface) (CustomT
 	}, nil
 }
 
-func customTokenExchange(am customToToken) ([]byte, error) {
+func customTokenExchange(am CustomFlowAuth, client Client) ([]byte, error) {
 	var body io.Reader
 	tokenResp := []byte{}
-	c := &http.Client{}
 	// call endpoint
 	b, err := json.Marshal(am.customAuthMap)
 	if err != nil {
@@ -272,7 +312,7 @@ func customTokenExchange(am customToToken) ([]byte, error) {
 		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	}
 
-	resp, err := c.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return tokenResp, err
 	}

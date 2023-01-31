@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	TestPhrase         string = "Want: %v\\nGot: %v"
-	TestPhraseWContext string = "Failed %s => Want: %v\\nGot: %v"
+	TestPhrase         string = "got: %v want: %v"
+	TestPhraseWContext string = "failed %s => got: %v want: %v"
 )
 
 func SetHttpUpMockServer(handlerFunc http.HandlerFunc) *httptest.Server {

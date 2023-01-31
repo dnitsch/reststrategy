@@ -10,12 +10,12 @@ import (
 )
 
 type Seeder struct {
-	log    log.Logger
+	log    log.Loggeriface
 	seeder *seeder.StrategyRestSeeder
 }
 
-func New(log log.Logger, rc rest.Client) *Seeder {
-	srs := seeder.New(&log).WithRestClient(rc)
+func New(log log.Loggeriface, rc rest.Client) *Seeder {
+	srs := seeder.New(log).WithRestClient(rc)
 	return &Seeder{
 		log:    log,
 		seeder: srs,

@@ -27,7 +27,7 @@ type Config struct {
 	LogLevel        string
 }
 
-// Run accepts config object and logger implementation and 
+// Run accepts config object and logger implementation and stop channel 
 func Run(config Config, log log.Loggeriface, stopCh <-chan struct{}) error {
 
 	cfg, err := clientcmd.BuildConfigFromFlags(config.MasterURL, config.Kubeconfig)

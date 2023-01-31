@@ -59,7 +59,7 @@ spec:
         "avatar": ${admin1AvatarId}
       }
     variables:
-      password: password789!000
+      password: AWSPARAMSTR:///int-test/pocketbase/admin-pwd
   - name: create-pocketbase-test-collection
     # /api/admins
     endpoint: http://127.0.0.1:59886/api/collections
@@ -84,13 +84,15 @@ spec:
       "originalName":"test"}
     runtimeVars:
       testCollectionPatchId: $.items[?(@.name=='test')].id
-  - name: create-pocketbase-user-for-qa-test
+  - name: create-pocketbase-user-for-qa-tes1
     endpoint: http://127.0.0.1:59886/api/users
     strategy: FIND/PATCH/POST
     getEndpointSuffix: "?page=1&perPage=100&sort=-created&filter="
     findByJsonPathExpr: "$.items[?(@.email=='qa-guy@example.com')].id"
     authMapRef: customTest1
     payloadTemplate: |
-      {"email":"qa-guy@example.com","password":"Password123","passwordConfirm":"Password123"}
+      {"email":"qa-guy@example.com","password":"Password123_alwaysChange","passwordConfirm":"Password123_alwaysChange"}
     patchPayloadTemplate: |
-      {"password":"Password456","passwordConfirm":"Password456"}
+      {"password":"${newPass}","passwordConfirm":"${newPass}"}
+    variables:
+      newPass: AWSPARAMSTR:///int-test/pocketbase/admin-pwd

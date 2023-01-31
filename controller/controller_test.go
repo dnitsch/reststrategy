@@ -1,260 +1,327 @@
 package controller
 
-// import (
+import (
+	"bytes"
+	"net/http"
+	"net/http/httptest"
+	"reflect"
+	"testing"
+	"time"
 
-// 	"reflect"
-// 	"testing"
-// 	"time"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/util/diff"
+	kubeinformers "k8s.io/client-go/informers"
+	k8sfake "k8s.io/client-go/kubernetes/fake"
+	core "k8s.io/client-go/testing"
+	"k8s.io/client-go/tools/cache"
+	"k8s.io/client-go/tools/record"
 
-// 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-// 	"k8s.io/apimachinery/pkg/runtime"
-// 	"k8s.io/apimachinery/pkg/runtime/schema"
-// 	"k8s.io/apimachinery/pkg/util/diff"
-// 	kubeinformers "k8s.io/client-go/informers"
-// 	k8sfake "k8s.io/client-go/kubernetes/fake"
-// 	core "k8s.io/client-go/testing"
-// 	"k8s.io/client-go/tools/cache"
-// 	"k8s.io/client-go/tools/record"
+	"github.com/dnitsch/configmanager/pkg/generator"
+	"github.com/dnitsch/reststrategy/controller/internal/testutils"
+	"github.com/dnitsch/reststrategy/seeder/pkg/rest"
+	log "github.com/dnitsch/simplelog"
 
-// 	"github.com/dnitsch/reststrategy/controller/internal/testutils"
+	"github.com/dnitsch/reststrategy/apis/reststrategy/generated/clientset/versioned/fake"
+	informers "github.com/dnitsch/reststrategy/apis/reststrategy/generated/informers/externalversions"
+	v1alphacontroller "github.com/dnitsch/reststrategy/apis/reststrategy/v1alpha1"
+)
 
-// 	"github.com/dnitsch/reststrategy/apis/reststrategy/generated/clientset/versioned/fake"
-// 	informers "github.com/dnitsch/reststrategy/apis/reststrategy/generated/informers/externalversions"
-// 	v1alphacontroller "github.com/dnitsch/reststrategy/apis/reststrategy/v1alpha1"
-// )
+var (
+	alwaysReady        = func() bool { return true }
+	noResyncPeriodFunc = func() time.Duration { return 0 }
+	kind               = "RestStrategy"
+	resource           = "reststrategies"
+	group              = "reststrategy.dnitsch.net"
+	version            = "v1alpha1"
+)
 
-// var (
-// 	alwaysReady        = func() bool { return true }
-// 	noResyncPeriodFunc = func() time.Duration { return 0 }
-// 	resourceKind       = "RestStrategy"
-// )
+type fixture struct {
+	t *testing.T
 
-// type fixture struct {
-// 	t *testing.T
+	client     *fake.Clientset
+	kubeclient *k8sfake.Clientset
+	// Objects to put in the store.
+	testLister []*v1alphacontroller.RestStrategy
+	// Actions expected to happen on the client.
+	kubeactions []core.Action
+	actions     []core.Action
+	// Objects from here preloaded into NewSimpleFake.
+	kubeobjects []runtime.Object
+	objects     []runtime.Object
+	configmgr   ControllerConfigManager
+}
 
-// 	client     *fake.Clientset
-// 	kubeclient *k8sfake.Clientset
-// 	// Objects to put in the store.
-// 	testLister []*v1alphacontroller.RestStrategy
-// 	// Actions expected to happen on the client.
-// 	kubeactions []core.Action
-// 	actions     []core.Action
-// 	// Objects from here preloaded into NewSimpleFake.
-// 	kubeobjects []runtime.Object
-// 	objects     []runtime.Object
-// 	orcConfig   *config.Config
-// }
+type testFuncs struct {
+	path   string
+	tfuncs func(w http.ResponseWriter, r *http.Request)
+}
 
-// func newFixture(t *testing.T) *fixture {
-// 	f := &fixture{}
-// 	f.t = t
-// 	f.objects = []runtime.Object{}
-// 	f.kubeobjects = []runtime.Object{}
-// 	return f
-// }
+func setupServer(t *testing.T, tf []testFuncs) http.Handler {
+	mux := http.NewServeMux()
 
-// func newRestStrategySuccess(name string) *v1alphacontroller.RestStrategy {
-// 	onboardappSpec := &v1alphacontroller.RestStrategySpec{}
-// 	file, err := testutils.TestGoodInputFile()
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
+	for _, v := range tf {
+		mux.HandleFunc(v.path, v.tfuncs)
+	}
 
-// 	input, err := testutils.AppOnboardJson(file, onboardappSpec)
-// 	if err != nil {
-// 		log.Fatalf("Err: %s", err)
-// 	}
+	return mux
+}
 
-// 	return &v1alphacontroller.RestStrategy{
-// 		TypeMeta: metav1.TypeMeta{APIVersion: v1alphacontroller.SchemeGroupVersion.String()},
-// 		ObjectMeta: metav1.ObjectMeta{
-// 			Name:      name,
-// 			Namespace: metav1.NamespaceDefault,
-// 		},
-// 		Spec: *input,
-// 	}
-// }
+func newFixture(t *testing.T) *fixture {
+	f := &fixture{}
+	f.t = t
+	f.objects = []runtime.Object{}
+	f.kubeobjects = []runtime.Object{}
+	return f
+}
 
-// func (f *fixture) newController() (*Controller, informers.SharedInformerFactory, kubeinformers.SharedInformerFactory) {
-// 	f.client = fake.NewSimpleClientset(f.objects...)
-// 	f.kubeclient = k8sfake.NewSimpleClientset(f.kubeobjects...)
+func newRestStrategySuccess(name, url string) *v1alphacontroller.RestStrategy {
+	testAuthBasic := rest.AuthConfig{
+		AuthStrategy: rest.Basic,
+		Username:     "foo",
+		Password:     "bar",
+	}
+	testSeedBasic := rest.Action{
+		Strategy:          "PUT",
+		Endpoint:          url,
+		GetEndpointSuffix: rest.String("/get"),
+		PutEndpointSuffix: rest.String("/put"),
+		AuthMapRef:        "test1",
+		HttpHeaders:       &map[string]string{},
+		RuntimeVars:       &map[string]string{},
+		Variables:         rest.KvMapVarsAny{},
+	}
+	return &v1alphacontroller.RestStrategy{
+		TypeMeta: metav1.TypeMeta{APIVersion: v1alphacontroller.SchemeGroupVersion.String()},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: metav1.NamespaceDefault,
+		},
+		Spec: v1alphacontroller.StrategySpec{
+			AuthConfig: []v1alphacontroller.AuthConfig{
+				{"test1", testAuthBasic},
+			},
+			Seeders: []v1alphacontroller.SeederConfig{
+				{"test1-action", testSeedBasic},
+				{"test2-action", testSeedBasic}},
+		},
+		Status: v1alphacontroller.StrategyStatus{Message: "RestStrategy successfully executed"},
+	}
+}
 
-// 	i := informers.NewSharedInformerFactory(f.client, noResyncPeriodFunc())
-// 	k8sI := kubeinformers.NewSharedInformerFactory(f.kubeclient, noResyncPeriodFunc())
+type fakeConfMgr func(input string, config generator.GenVarsConfig) (string, error)
 
-// 	c := NewController(f.kubeclient, f.client,
-// 		i.reststrategy().V1alpha1().RestStrategys())
+func (f fakeConfMgr) RetrieveWithInputReplaced(input string, config generator.GenVarsConfig) (string, error) {
+	return f(input, config)
+}
 
-// 	c.reststrategysSynced = alwaysReady
+func (f *fixture) newController() (*Controller, informers.SharedInformerFactory, kubeinformers.SharedInformerFactory) {
+	f.client = fake.NewSimpleClientset(f.objects...)
+	f.kubeclient = k8sfake.NewSimpleClientset(f.kubeobjects...)
 
-// 	c.recorder = &record.FakeRecorder{}
+	i := informers.NewSharedInformerFactory(f.client, noResyncPeriodFunc())
+	k8sI := kubeinformers.NewSharedInformerFactory(f.kubeclient, noResyncPeriodFunc())
 
-// 	for _, f := range f.testLister {
-// 		i.reststrategy().V1alpha1().RestStrategys().Informer().GetIndexer().Add(f)
-// 	}
+	c := NewController(f.kubeclient, f.client,
+		i.Reststrategy().V1alpha1().RestStrategies(), 8)
+	c.WithLogger(log.New(&bytes.Buffer{}, log.DebugLvl)).WithRestClient(&http.Client{})
 
-// 	return c, i, k8sI
-// }
+	//&tClient{})
 
-// func (f *fixture) run(name string) {
-// 	f.runController(name, true, false)
-// }
+	c.reststrategysSynced = alwaysReady
 
-// func (f *fixture) runExpectError(name string) {
-// 	f.runController(name, true, true)
-// }
+	c.recorder = &record.FakeRecorder{}
 
-// func (f *fixture) runController(fooName string, startInformers bool, expectError bool) {
-// 	c, i, k8sI := f.newController()
+	// scheme := runtime.NewScheme()
+	// _ = v1alphacontroller.AddToScheme(scheme)
 
-// 	srv := testutils.SetHttpUpMockServer(testutils.SetUpHandlerFuncPositiveResponse(`{"message": "oapp", "success": true}`))
-// 	defer srv.Close()
+	for _, f := range f.testLister {
+		i.Reststrategy().V1alpha1().RestStrategies().Informer().GetIndexer().Add(f)
+	}
+	// conf := generator.NewConfig().WithKeySeparator("://")
+	// c.WithConfigManager(ControllerConfigManager{retrieve: fakeConfMgr(func(input string, config generator.GenVarsConfig) (string, error) {
+	// 	return `{}`, nil
+	// }), config: *conf})
 
-// 	f.orcConfig = config.New(srv.URL, 12)
+	return c, i, k8sI
+}
 
-// 	c.WithOrchestrator(*f.orcConfig)
+func (f *fixture) run(name string) {
+	f.runController(name, true, false)
+}
 
-// 	// c.WithOrchestrator(*f.orcConfig)
-// 	if startInformers {
-// 		stopCh := make(chan struct{})
-// 		defer close(stopCh)
-// 		i.Start(stopCh)
-// 		k8sI.Start(stopCh)
-// 	}
+func (f *fixture) runExpectError(name string) {
+	f.runController(name, true, true)
+}
 
-// 	err := c.syncHandler(fooName)
-// 	if !expectError && err != nil {
-// 		f.t.Errorf("error syncing %s: %v", resourceKind, err)
-// 	} else if expectError && err == nil {
-// 		f.t.Errorf("expected error syncing %s, got nil", resourceKind)
-// 	}
+func (f *fixture) runController(fooName string, startInformers bool, expectError bool) {
+	c, i, k8sI := f.newController()
 
-// 	actions := filterInformerActions(f.client.Actions())
-// 	for i, action := range actions {
-// 		if len(f.actions) < i+1 {
-// 			f.t.Errorf("%d unexpected actions: %+v", len(actions)-len(f.actions), actions[i:])
-// 			break
-// 		}
+	if startInformers {
+		stopCh := make(chan struct{})
+		defer close(stopCh)
+		i.Start(stopCh)
+		k8sI.Start(stopCh)
+	}
 
-// 		expectedAction := f.actions[i]
-// 		checkAction(expectedAction, action, f.t)
-// 	}
+	err := c.syncHandler(fooName)
+	if !expectError && err != nil {
+		f.t.Errorf("error syncing %s: %v", kind, err)
+	} else if expectError && err == nil {
+		f.t.Errorf("expected error syncing %s, got nil", kind)
+	}
 
-// 	if len(f.actions) > len(actions) {
-// 		f.t.Errorf("%d additional expected actions:%+v", len(f.actions)-len(actions), f.actions[len(actions):])
-// 	}
+	actions := filterInformerActions(f.client.Actions())
+	for i, action := range actions {
+		if len(f.actions) < i+1 {
+			f.t.Errorf("%d unexpected actions: %+v", len(actions)-len(f.actions), actions[i:])
+			break
+		}
 
-// 	k8sActions := filterInformerActions(f.kubeclient.Actions())
-// 	for i, action := range k8sActions {
-// 		if len(f.kubeactions) < i+1 {
-// 			f.t.Errorf("%d unexpected actions: %+v", len(k8sActions)-len(f.kubeactions), k8sActions[i:])
-// 			break
-// 		}
+		expectedAction := f.actions[i]
+		checkAction(expectedAction, action, f.t)
+	}
 
-// 		expectedAction := f.kubeactions[i]
-// 		checkAction(expectedAction, action, f.t)
-// 	}
+	if len(f.actions) > len(actions) {
+		f.t.Errorf("%d additional expected actions:%+v", len(f.actions)-len(actions), f.actions[len(actions):])
+	}
 
-// 	if len(f.kubeactions) > len(k8sActions) {
-// 		f.t.Errorf("%d additional expected actions:%+v", len(f.kubeactions)-len(k8sActions), f.kubeactions[len(k8sActions):])
-// 	}
-// }
+	k8sActions := filterInformerActions(f.kubeclient.Actions())
+	for i, action := range k8sActions {
+		if len(f.kubeactions) < i+1 {
+			f.t.Errorf("%d unexpected actions: %+v", len(k8sActions)-len(f.kubeactions), k8sActions[i:])
+			break
+		}
 
-// // checkAction verifies that expected and actual actions are equal and both have
-// // same attached resources
-// func checkAction(expected, actual core.Action, t *testing.T) {
-// 	if !(expected.Matches(actual.GetVerb(), actual.GetResource().Resource) && actual.GetSubresource() == expected.GetSubresource()) {
-// 		t.Errorf("Expected\n\t%#v\ngot\n\t%#v", expected, actual)
-// 		return
-// 	}
+		expectedAction := f.kubeactions[i]
+		checkAction(expectedAction, action, f.t)
+	}
 
-// 	if reflect.TypeOf(actual) != reflect.TypeOf(expected) {
-// 		t.Errorf("Action has wrong type. Expected: %t. Got: %t", expected, actual)
-// 		return
-// 	}
+	if len(f.kubeactions) > len(k8sActions) {
+		f.t.Errorf("%d additional expected actions:%+v", len(f.kubeactions)-len(k8sActions), f.kubeactions[len(k8sActions):])
+	}
+}
 
-// 	switch a := actual.(type) {
-// 	case core.CreateActionImpl:
-// 		e, _ := expected.(core.CreateActionImpl)
-// 		expObject := e.GetObject()
-// 		object := a.GetObject()
+// checkAction verifies that expected and actual actions are equal and both have
+// same attached resources
+func checkAction(expected, actual core.Action, t *testing.T) {
+	if !(expected.Matches(actual.GetVerb(), actual.GetResource().Resource) && actual.GetSubresource() == expected.GetSubresource()) {
+		t.Errorf("Expected\n\t%#v\ngot\n\t%#v", expected, actual)
+		return
+	}
 
-// 		if !reflect.DeepEqual(expObject, object) {
-// 			t.Errorf("Action %s %s has wrong object\nDiff:\n %s",
-// 				a.GetVerb(), a.GetResource().Resource, diff.ObjectGoPrintSideBySide(expObject, object))
-// 		}
-// 	case core.UpdateActionImpl:
-// 		e, _ := expected.(core.UpdateActionImpl)
-// 		expObject := e.GetObject()
-// 		object := a.GetObject()
+	if reflect.TypeOf(actual) != reflect.TypeOf(expected) {
+		t.Errorf("Action has wrong type. Expected: %t. Got: %t", expected, actual)
+		return
+	}
 
-// 		if !reflect.DeepEqual(expObject, object) {
-// 			t.Errorf("Action %s %s has wrong object\nDiff:\n %s",
-// 				a.GetVerb(), a.GetResource().Resource, diff.ObjectGoPrintSideBySide(expObject, object))
-// 		}
-// 	case core.PatchActionImpl:
-// 		e, _ := expected.(core.PatchActionImpl)
-// 		expPatch := e.GetPatch()
-// 		patch := a.GetPatch()
+	switch a := actual.(type) {
+	case core.ListActionImpl:
+		e, _ := expected.(core.ListActionImpl)
+		expObject := e.GetResource()
+		object := a.GetResource()
 
-// 		if !reflect.DeepEqual(expPatch, patch) {
-// 			t.Errorf("Action %s %s has wrong patch\nDiff:\n %s",
-// 				a.GetVerb(), a.GetResource().Resource, diff.ObjectGoPrintSideBySide(expPatch, patch))
-// 		}
-// 	default:
-// 		t.Errorf("Uncaptured Action %s %s, you should explicitly add a case to capture it",
-// 			actual.GetVerb(), actual.GetResource().Resource)
-// 	}
-// }
+		if !reflect.DeepEqual(expObject, object) {
+			t.Errorf("Action %s %s has wrong object\nDiff:\n %s",
+				a.GetVerb(), a.GetResource().Resource, diff.ObjectGoPrintSideBySide(expObject, object))
+		}
+	case core.CreateActionImpl:
+		e, _ := expected.(core.CreateActionImpl)
+		expObject := e.GetObject()
+		object := a.GetObject()
 
-// // filterInformerActions filters list and watch actions for testing resources.
-// // Since list and watch don't change resource state we can filter it to lower
-// // nose level in our tests.
-// func filterInformerActions(actions []core.Action) []core.Action {
-// 	ret := []core.Action{}
-// 	for _, action := range actions {
-// 		if len(action.GetNamespace()) == 0 &&
-// 			(action.Matches("list", resourceKind) ||
-// 				action.Matches("watch", resourceKind)) {
-// 			continue
-// 		}
-// 		ret = append(ret, action)
-// 	}
+		if !reflect.DeepEqual(expObject, object) {
+			t.Errorf("Action %s %s has wrong object\nDiff:\n %s",
+				a.GetVerb(), a.GetResource().Resource, diff.ObjectGoPrintSideBySide(expObject, object))
+		}
+	case core.UpdateActionImpl:
+		e, _ := expected.(core.UpdateActionImpl)
+		expObject := e.GetObject()
+		object := a.GetObject()
 
-// 	return ret
-// }
+		if !reflect.DeepEqual(expObject, object) {
+			t.Errorf("Action %s %s has wrong object\nDiff:\n %s",
+				a.GetVerb(), a.GetResource().Resource, diff.ObjectGoPrintSideBySide(expObject, object))
+		}
+	case core.PatchActionImpl:
+		e, _ := expected.(core.PatchActionImpl)
+		expPatch := e.GetPatch()
+		patch := a.GetPatch()
 
-// func (f *fixture) expectUpdateOAappStatusAction(oapp *v1alphacontroller.RestStrategy) {
-// 	f.kubeactions = append(f.kubeactions, core.NewCreateAction(schema.GroupVersionResource{Resource: "crd"}, oapp.Namespace, oapp))
-// 	action := core.NewUpdateSubresourceAction(schema.GroupVersionResource{Resource: "onboardapps"}, "status", oapp.Namespace, oapp)
-// 	f.actions = append(f.actions, action)
-// }
+		if !reflect.DeepEqual(expPatch, patch) {
+			t.Errorf("Action %s %s has wrong patch\nDiff:\n %s",
+				a.GetVerb(), a.GetResource().Resource, diff.ObjectGoPrintSideBySide(expPatch, patch))
+		}
+	default:
+		t.Errorf("Uncaptured Action %s %s, you should explicitly add a case to capture it",
+			actual.GetVerb(), actual.GetResource().Resource)
+	}
+}
 
-// func getKey(oapp *v1alphacontroller.RestStrategy, t *testing.T) string {
-// 	key, err := cache.DeletionHandlingMetaNamespaceKeyFunc(oapp)
-// 	if err != nil {
-// 		t.Errorf("Unexpected error getting key for %s %v: %v", resourceKind, oapp.Name, err)
-// 		return ""
-// 	}
-// 	return key
-// }
+// filterInformerActions filters list and watch actions for testing resources.
+// Since list and watch don't change resource state we can filter it to lower
+// nose level in our tests.
+func filterInformerActions(actions []core.Action) []core.Action {
+	ret := []core.Action{}
+	for _, action := range actions {
+		if len(action.GetNamespace()) == 0 &&
+			(action.Matches("list", resource) ||
+				action.Matches("watch", resource) ||
+				action.Matches("list", kind)) {
+			continue
+		}
+		ret = append(ret, action)
+	}
 
-// // Tests need fixing up a bit
-// // TODO: enable these top level tests when ready
-// func TestCreatesCrdRestStrategy(t *testing.T) {
-// 	f := newFixture(t)
-// 	oapp := newRestStrategySuccess("test")
+	return ret
+}
 
-// 	f.testLister = append(f.testLister, oapp)
-// 	f.objects = append(f.objects, oapp)
+func (f *fixture) expectUpdateStatusAction(rst *v1alphacontroller.RestStrategy) {
+	// f.kubeactions = append(f.kubeactions, core.NewCreateAction(
+	// 	schema.GroupVersionResource{Resource: "crd"},
+	// 	rst.Namespace,
+	// 	rst))
+	// listAction := core.NewListAction(
+	// 	schema.GroupVersionResource{Resource: resource, Group: "dnitsch.net", Version: version},
+	// 	schema.GroupVersionKind{Kind: kind}, rst.Namespace, metav1.ListOptions{})
+	updateAction := core.NewUpdateSubresourceAction(schema.GroupVersionResource{Resource: resource}, "status", rst.Namespace, rst)
+	f.actions = append(f.actions, []core.Action{updateAction}...)
+}
 
-// 	f.expectUpdateOAappStatusAction(oapp)
+func getKey(rst *v1alphacontroller.RestStrategy, t *testing.T) string {
+	key, err := cache.DeletionHandlingMetaNamespaceKeyFunc(rst)
+	if err != nil {
+		t.Errorf("Unexpected error getting key for %s %v: %v", kind, rst.Name, err)
+		return ""
+	}
+	return key
+}
 
-// 	// f.run(getKey(oapp, t))
-// 	if false {
-// 		t.Errorf("Skipped tests for now")
-// 	}
-// }
+func TestCreatesCrdRestStrategy(t *testing.T) {
+
+	ts := httptest.NewServer(setupServer(t, []testFuncs{{"/put", func(w http.ResponseWriter, r *http.Request) {
+
+		if r.Header.Get("Authorization") == "" {
+			t.Errorf(testutils.TestPhraseWContext, "basic auth", r.Header.Get("Authorization"), "not empty")
+		}
+		if r.Method != "PUT" {
+			t.Errorf(testutils.TestPhraseWContext, "method incorrect", r.Method, "get")
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"id":3,"name":"fubar","a":"b","c":"d"}`))
+	}}}))
+	defer ts.Close()
+
+	f := newFixture(t)
+	reststrategy := newRestStrategySuccess("test", ts.URL)
+	f.testLister = append(f.testLister, reststrategy)
+	f.objects = append(f.objects, reststrategy)
+
+	f.expectUpdateStatusAction(reststrategy)
+
+	f.run(getKey(reststrategy, t))
+}
 
 // func TestDoNothing(t *testing.T) {
 // 	f := newFixture(t)

@@ -58,6 +58,16 @@ const (
 	MessageResourceFailed = "RestStrategy failed to sync"
 )
 
+type ConfigManagerRetrieve interface {
+	RetrieveWithInputReplaced(input string, config generator.GenVarsConfig) (string, error)
+}
+
+// custom configmanager stuff
+type ControllerConfigManager struct {
+	retrieve ConfigManagerRetrieve
+	config   generator.GenVarsConfig
+}
+
 // Controller is the controller implementation for RestStrategy resources
 type Controller struct {
 	// kubeclientset is a standard kubernetes clientset
@@ -83,6 +93,8 @@ type Controller struct {
 	restClient rest.Client
 	// resyncPeriod in hours
 	resyncServicePeriod int
+	// configManager
+	confmgr ControllerConfigManager
 }
 
 // NewController returns a new RestStrategy controller
@@ -112,6 +124,7 @@ func NewController(
 		workqueue:             workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), kindCrdName),
 		recorder:              recorder,
 		resyncServicePeriod:   resyncServicePeriodHours,
+		confmgr:               ControllerConfigManager{&configmanager.ConfigManager{}, *generator.NewConfig().WithTokenSeparator("://")},
 	}
 
 	fmt.Print("Setting up event handlers")
@@ -133,6 +146,11 @@ func (c *Controller) WithLogger(l log.Loggeriface) *Controller {
 // WithService assigns a service instance
 func (c *Controller) WithRestClient(rc rest.Client) *Controller {
 	c.restClient = rc
+	return c
+}
+
+func (c *Controller) WithConfigManager(v ControllerConfigManager) *Controller {
+	c.confmgr = v
 	return c
 }
 
@@ -263,23 +281,24 @@ func (c *Controller) syncHandler(key string) error {
 	c.log.Debugf("Handing over resource: '%s' in namespace: '%s' to the service handler. allocating new srv instance", name, namespace)
 
 	rstsrv := rstservice.New(c.log, c.restClient)
-
-	cm := &configmanager.ConfigManager{}
-
+	// begin potentially move to a helper
 	// use custom token separator inline with future releases
-	config := generator.NewConfig().WithTokenSeparator("://")
-
-	rspec, err := configmanager.RetrieveMarshalledJson(&reststrategyCopy.Spec, cm, *config)
+	// config := generator.NewConfig().WithTokenSeparator("://")
+	rspec, err := configmanager.RetrieveMarshalledJson(&reststrategyCopy.Spec, c.confmgr.retrieve, c.confmgr.config)
+	// end potentially move to a helper
 
 	if err != nil {
-		c.log.Debugf("failed to replace any found tokens on the CRD spec: %s", key)
-		return err
+		c.log.Errorf("failed to replace any found tokens on the crd spec: %s", key)
+		c.log.Debug("will not attempt to re-queue")
+		return nil
 	}
 
-	err := rstsrv.Execute(*rspec); err != nil {
-		c.log.Errorf("%v", err)
-		c.updateStatus(reststrategyCopy, fmt.Sprintf("%v", err), true)
-		c.recorder.Event(reststrategy, corev1.EventTypeWarning, ErrSync, fmt.Sprintf("#+%v", err))
+	ec := rstsrv.Execute(*rspec)
+
+	if len(ec) > 0 {
+		c.log.Errorf("%v", ec)
+		c.updateStatus(reststrategyCopy, fmt.Sprintf("%v", ec), true)
+		c.recorder.Event(reststrategy, corev1.EventTypeWarning, ErrSync, fmt.Sprintf("%v", ec))
 		return nil
 	}
 

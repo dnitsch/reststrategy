@@ -17,7 +17,7 @@ curl -L https://github.com/dnitsch/reststrategy/releases/latest/download/seeder-
 Windows
 
 ```posh
-iwr -Uri "https://github.com/dnitsch/reststrategy/releases/latest/download/seeder-windows.exe" -OutFile "restseeder"
+iwr -Uri "https://github.com/dnitsch/reststrategy/releases/latest/download/seeder-windows" -OutFile "restseeder"
 ```
 
 ```bash

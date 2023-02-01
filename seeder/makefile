@@ -32,8 +32,7 @@ clean:
 
 bingen:
 	for os in darwin linux windows; do \
-	    [ $$os = "windows" ] && EXT=".exe"; \
-		GOOS=$$os CGO_ENABLED=0 go build -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/seeder-$$os$$EXT ./cmd; \
+		GOOS=$$os CGO_ENABLED=0 go build -mod=readonly -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/seeder-$$os ./cmd; \
 	done
 
 build: clean install copygened bingen

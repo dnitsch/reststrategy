@@ -7,7 +7,7 @@ ARG REVISION=aaaa1111
 
 WORKDIR /app
 
-COPY . .
+COPY ./ ./
 
 RUN go mod vendor
 

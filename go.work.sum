@@ -213,10 +213,10 @@ github.com/dnitsch/configmanager v1.7.2/go.mod h1:LZDgT0PunLE7tuC1GM5DGPnQu3TQJE
 github.com/dnitsch/configmanager v1.10.1 h1:Jc+KRSwCbZvoZ579NTf+yi+OtQ8xC2P6uR4G3W0Lmqw=
 github.com/dnitsch/configmanager v1.10.1/go.mod h1:tTRID3zQ0WPQXjkfXljoDneAytYZuckj/TjLtBMoh9o=
 github.com/dnitsch/configmanager v1.17.2/go.mod h1:BsMzt3r4t6PG2zWx/RVTyfpeBbQrPYyDrI9bKEekxl8=
-github.com/dnitsch/configmanager v1.18.2 h1:q8lRxzr9+x/O0QbwTzMVRF7xAtKI5cA5jQPldzHAqm0=
-github.com/dnitsch/configmanager v1.18.2/go.mod h1:nusGrNL4RdLfLx+qDabbyDLQ2nk/npmns8k4tTHQf8k=
 github.com/dnitsch/reststrategy/apis v0.0.0-20221011155009-3126798d4ab4/go.mod h1:8TRfjTrp7s/zw+ROKkKtU+PeqNKdiUFG+2LacihMPIQ=
 github.com/dnitsch/reststrategy/apis v0.0.0-20221013111705-737702f51051/go.mod h1:ndKudRdvk/2UD5OTbMfQDiYtBrZNX5PmowlYiSbmsvw=
+github.com/dnitsch/reststrategy/apis v0.9.0/go.mod h1:cni8LnkrtN5tu/yFuXaSDeTTYE4Ojljuh/Pz5htW5PE=
+github.com/dnitsch/reststrategy/seeder v0.9.0/go.mod h1:5MVCs1mhjHnqz2C0IxaNS87vK+VIgl52a6/kEFcqjYc=
 github.com/dnitsch/simplelog v1.3.1 h1:LiIXqsBGo/G6MERjilLVU5uk+PbxDExRLLpkJZAh8XI=
 github.com/dnitsch/simplelog v1.3.1/go.mod h1:scPvWULBlruthxS6seGJkMbc1DM5f44IRZNmaSZCJVU=
 github.com/elazarl/goproxy v0.0.0-20180725130230-947c36da3153/go.mod h1:/Zj4wYkgs4iZTTu3o/KG3Itv/qCCa8VVMlb3i9OVuzc=

@@ -3,8 +3,8 @@ module github.com/dnitsch/reststrategy/controller
 go 1.19
 
 require (
-	github.com/dnitsch/reststrategy/apis v0.9.0
-	github.com/dnitsch/reststrategy/seeder v0.9.0
+	github.com/dnitsch/reststrategy/apis v0.9.1-0.20230201144759-a386d28e051e
+	github.com/dnitsch/reststrategy/seeder v0.9.1-0.20230201144759-a386d28e051e
 	// need to ensure that these packages are
 	// aligned to server version
 	k8s.io/api v0.26.1
@@ -13,10 +13,6 @@ require (
 	// end k8s packages
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
-
-replace github.com/dnitsch/reststrategy/seeder => ../seeder
-
-replace github.com/dnitsch/reststrategy/apis => ../apis
 
 // hack replace due to MS tests
 replace (
@@ -41,7 +37,7 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/keyvault/azsecrets v0.11.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/keyvault/internal v0.7.1 // indirect
 	github.com/AzureAD/microsoft-authentication-library-for-go v0.8.0 // indirect
-	github.com/a8m/envsubst v1.3.0 // indirect
+	github.com/a8m/envsubst v1.3.1-0.20221106143949-dffd7176fbc4 // indirect
 	github.com/armon/go-metrics v0.4.1 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.17.3 // indirect

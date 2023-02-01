@@ -64,18 +64,9 @@ jobs:
           args:             
             # Unique keys of your project and organization. You can find them in SonarCloud > Information (bottom-left menu)
             # mandatory
-            -Dsonar.projectKey=dnitsch_reststrategy
-            -Dsonar.organization=dnitsch
             -Dsonar.projectVersion=$SEMVER
-            -Dsonar.sources=controller/,seeder/
-            -Dsonar.exclusions=**/*_test.go,**/*_generated*.go,**/*_generated/**,**/vendor/**
-            -Dsonar.inclusions=**/*.go
-            -Dsonar.tests=controller/,seeder/
-            -Dsonar.test.inclusions=**/*_test.go
-            -Dsonar.test.exclusions=**/*_generated*.go,**/*_generated/**,**/vendor/**
             -Dsonar.go.coverage.reportPaths=/github/workspace/controller/.coverage/out,/github/workspace/seeder/.coverage/out
             -X
-            # -Dsonar.go.tests.reportPaths=report.json
   publish-binary:
     name: tag repo and publish binary
     runs-on: ubuntu-latest
@@ -87,6 +78,9 @@ jobs:
     env:
       SEMVER: ${{ needs.set-deps-dotnet-poop-here.outputs.semVer }}
     steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: generate binaries
         run: | 
           make GIT_TAG=$SEMVER REVISION=${{ github.sha }} PAT=${{ secrets.GITHUB_TOKEN }} build_ci
@@ -127,5 +121,5 @@ jobs:
 
       - name: docker push controller
         run: |
-          echo "SEmVer: $GITVERSION_SEMVER"
+          echo "SemVer: $SEMVER"
           make GIT_TAG=$SEMVER REVISION=${{ github.sha }} docker_release

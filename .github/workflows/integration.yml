@@ -44,7 +44,7 @@ jobs:
           curl -L -o ./ci-bin/jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 && chmod +x ./ci-bin/jq
           export PATH=$PATH:$PWD/ci-bin
           jq --version
-      - name: build
+      - name: run tests
         run: | 
           echo "SEmVer: $SEMVER"
           make test
@@ -73,8 +73,10 @@ jobs:
             -Dsonar.test.inclusions=**/*_test.go
             -Dsonar.test.exclusions=**/*_generated*.go,**/*_generated/**,**/vendor/**
             -Dsonar.go.coverage.reportPaths=/github/workspace/controller/.coverage/out,/github/workspace/seeder/.coverage/out
+            -X
             # -Dsonar.go.tests.reportPaths=report.json
   publish-binary:
+    name: tag repo and publish binary
     runs-on: ubuntu-latest
     container:
       image: golang:1.19-bullseye

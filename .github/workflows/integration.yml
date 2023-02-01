@@ -48,7 +48,6 @@ jobs:
         run: | 
           echo "SEmVer: $SEMVER"
           make test
-          make GIT_TAG=$SEMVER REVISION=${{ github.sha }} PAT=${{ secrets.GITHUB_TOKEN }} build_ci
       - name: Publish Junit style Test Report
         uses: mikepenz/action-junit-report@v3
         if: always()
@@ -82,19 +81,37 @@ jobs:
             # optional. For more info about Code Coverage, please refer to https://docs.sonarcloud.io/enriching/test-coverage/overview/
             # Adds more detail to both client and server-side analysis logs, activating DEBUG mode for the scanner, and adding client-side environment variables and system properties to the server-side log of analysis report processing.
             #-Dsonar.verbose= # optional, default is false
-      - name: publish
+  publish:
+    runs-on: ubuntu-latest
+    container:
+      image: golang:1.19-bullseye
+    needs: 
+      - set-deps-dotnet-poop-here
+      - test
+    env:
+      SEMVER: ${{ needs.set-deps-dotnet-poop-here.outputs.semVer }}
+    steps:
+      - name: generate binaries
+        run: | 
+          make GIT_TAG=$SEMVER REVISION=${{ github.sha }} PAT=${{ secrets.GITHUB_TOKEN }} build_ci
+      - name: release library
         run: |
           export PATH=$PATH:$PWD/ci-bin
           git config user.email ${{ github.actor }}-ci@gha.org
           git config user.name ${{ github.actor }}
           make GIT_TAG=$SEMVER REVISION=${{ github.sha }} tag
+      - name: release cli 
+        run: |
+          export PATH=$PATH:$PWD/ci-bin
           make GIT_TAG=$SEMVER REVISION=${{ github.sha }} PAT=${{ secrets.GITHUB_TOKEN }} release
   build-and-push-docker-image:
     name: build docker image and push to gchr
     # run only when code is compiling and tests are passing
     runs-on: ubuntu-latest
     # steps to perform in job
-    needs: set-deps-dotnet-poop-here
+    needs: 
+      - set-deps-dotnet-poop-here
+      - test
     env:
       SEMVER: ${{ needs.set-deps-dotnet-poop-here.outputs.semVer }}
     steps:

@@ -47,15 +47,20 @@ type CustomToken struct {
 	// Url to use to POST the customRequest
 	AuthUrl string `yaml:"authUrl" json:"authUrl"`
 	// holds the K/V credential pair. e.g.
+	//
 	// email: some@one.com
 	// password: pass123
+	//
 	// will post this body or send in header params that payload
 	CustomAuthMap KvMapVarsAny `yaml:"credential" json:"credential"`
 	// whether to send the values in the header as params
-	// defaults to false and map is posted in the body
+	// defaults to false and CustomAuthMap
+	// is posted in the body as json post
 	SendInHeader bool `yaml:"inHeader" json:"inHeader"`
-	// JSONPAth expression to use to get the token from response
+	// JSONPath expression to use to get the token from response
+	// 
 	// e.g. "$.token"
+	// 
 	// empty will take the entire response as the token - raw response must be string
 	ResponseKey string `yaml:"responseKey" json:"responseKey" `
 	// if omitted `Authorization` will be used

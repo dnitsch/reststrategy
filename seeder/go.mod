@@ -3,7 +3,7 @@ module github.com/dnitsch/reststrategy/seeder
 go 1.19
 
 require (
-	github.com/a8m/envsubst v1.3.0
+	github.com/a8m/envsubst v1.3.1-0.20221106143949-dffd7176fbc4
 	github.com/dnitsch/configmanager v1.18.2
 	github.com/dnitsch/simplelog v1.5.1
 	github.com/spf13/cobra v1.6.1

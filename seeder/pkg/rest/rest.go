@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/a8m/envsubst"
+
 	log "github.com/dnitsch/simplelog"
 	"github.com/spyzhov/ajson"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -43,8 +44,8 @@ func (r *SeederImpl) WithClient(c Client) *SeederImpl {
 }
 
 // WithAuth assigns auth options used by AuthMapRef within the actions
-func (r *SeederImpl) WithAuth(auth *AuthMap) *SeederImpl {
-	r.auth = NewAuth(auth)
+func (r *SeederImpl) WithAuth(a *AuthMap) *SeederImpl {
+	r.auth = NewAuth(a)
 	return r
 }
 
@@ -192,7 +193,8 @@ func (r *SeederImpl) do(req *http.Request, action *Action) ([]byte, error) {
 		}
 		return nil, diag
 	}
-	//
+	// every successful response should be passed through
+	// setRunTimeVar to ensure we grab anything highlighted by users
 	r.setRuntimeVar(respBody, action)
 	return respBody, nil
 }
@@ -325,7 +327,7 @@ func (r *SeederImpl) delete(ctx context.Context, action *Action) error {
 	return nil
 }
 
-func (r *SeederImpl) findPathByExpression(resp []byte, pathExpression string) (string, error) {
+func (r *SeederImpl) FindPathByExpression(resp []byte, pathExpression string) (string, error) {
 	return findPathByExpression(resp, pathExpression, r.log)
 }
 
@@ -369,10 +371,10 @@ func findPathByExpression(resp []byte, pathExpression string, log log.Loggerifac
 	return "", nil
 }
 
-// templatePayload parses input payload and replaces all $var ${var} with
+// TemplatePayload parses input payload and replaces all $var ${var} with
 // existing global env variable as well as injected from inside RestAction
 // into the local context
-func (r *SeederImpl) templatePayload(payload string, vars KvMapVarsAny) string {
+func (r *SeederImpl) TemplatePayload(payload string, vars KvMapVarsAny) string {
 	localVars := &KvMapVarsAny{}
 	if vars == nil {
 		vars = *localVars
@@ -393,8 +395,13 @@ func templatePayload(payload string, vars KvMapVarsAny) (string, error) {
 	for k, v := range vars {
 		os.Setenv(k, fmt.Sprintf("%v", v))
 	}
-	// envsubst.StringNoReplace(payload, false, false, true, true)
-	return envsubst.String(payload)
+
+	// // double escape any $ or ${ conforming to this regex
+	// // so that it is not picked up by envsubst substitution
+	// envSubstEscaped := regexp.MustCompile(`[^\$]\$[a-zA-Z\{]`).ReplaceAllStringFunc(payload, func(entry string) string {
+	// 	return strings.Replace(entry, "$", "$$", -1)
+	// })
+	return envsubst.StringRestrictedNoDigit(payload, false, false, true)
 }
 
 // setRunTimeVars
@@ -404,7 +411,7 @@ func (r *SeederImpl) setRuntimeVar(createUpdateResponse []byte, action *Action) 
 	}
 	// runtimeVars
 	for k, v := range *action.RuntimeVars {
-		found, err := r.findPathByExpression(createUpdateResponse, v)
+		found, err := r.FindPathByExpression(createUpdateResponse, v)
 		if err != nil {
 			r.log.Errorf("error finding pathexpr in runtime var")
 			r.log.Debugf("failed on: %v, with expr: %v", k, v)

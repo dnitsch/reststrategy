@@ -70,6 +70,10 @@ spec:
                           tokenPrefix: 
                             type: string
                             default: Bearer
+                          inHeader: 
+                            description: Sends the custom auth request in as url encoded form in the header
+                            type: boolean
+                            default: false
                       oauth: 
                         type: object
                         description: OAuth ClientCredentials Grant

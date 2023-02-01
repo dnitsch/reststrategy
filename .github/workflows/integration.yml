@@ -5,13 +5,35 @@ on:
     branches: [ master, main ]
 
 jobs:
+  set-deps-dotnet-poop-here:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/dotnet/sdk:6.0 
+    outputs:
+      semVer: ${{ steps.gitversion.outputs.semVer }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0.9.15
+        with:
+          versionSpec: '5.x'
+      - name: Set SemVer Version
+        uses: gittools/actions/gitversion/execute@v0.9.15
+        id: gitversion
+
+      - name: echo VERSIONS
+        run: | 
+          echo "REVISION  -> $GITHUB_SHA"
+          echo "VERSION -> $GITVERSION_SEMVER"
   test:
-    # if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     container:
       image: golang:1.19-bullseye
-      env:
-        FOO: Bar
+    needs: set-deps-dotnet-poop-here
+    env:
+      SEMVER: ${{ needs.set-deps-dotnet-poop-here.outputs.semVer }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -22,13 +44,11 @@ jobs:
           curl -L -o ./ci-bin/jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 && chmod +x ./ci-bin/jq
           export PATH=$PATH:$PWD/ci-bin
           jq --version
-      - name: Determine Version
-        uses: gittools/actions/gitversion/execute@v0.9.15
       - name: build
         run: | 
-          echo "SEmVer: $GITVERSION_SEMVER"
+          echo "SEmVer: $SEMVER"
           make test
-          make GIT_TAG=$GITVERSION_SEMVER REVISION=${{ github.sha }} PAT=${{ secrets.GITHUB_TOKEN }} build_ci
+          make GIT_TAG=$SEMVER REVISION=${{ github.sha }} PAT=${{ secrets.GITHUB_TOKEN }} build_ci
       - name: Publish Junit style Test Report
         uses: mikepenz/action-junit-report@v3
         if: always()
@@ -67,18 +87,19 @@ jobs:
           export PATH=$PATH:$PWD/ci-bin
           git config user.email ${{ github.actor }}-ci@gha.org
           git config user.name ${{ github.actor }}
-          make REVISION=${{ github.sha }} tag
-          make REVISION=${{ github.sha }} PAT=${{ secrets.GITHUB_TOKEN }} release
+          make GIT_TAG=$SEMVER REVISION=${{ github.sha }} tag
+          make GIT_TAG=$SEMVER REVISION=${{ github.sha }} PAT=${{ secrets.GITHUB_TOKEN }} release
   build-and-push-docker-image:
     name: build docker image and push to gchr
     # run only when code is compiling and tests are passing
     runs-on: ubuntu-latest
     # steps to perform in job
+    needs: set-deps-dotnet-poop-here
+    env:
+      SEMVER: ${{ needs.set-deps-dotnet-poop-here.outputs.semVer }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - name: Determine Version
-        uses: gittools/actions/gitversion/execute@v0.9.15
       # setup Docker buld action
       - name: Set up Docker Buildx
         id: buildx
@@ -94,4 +115,4 @@ jobs:
       - name: docker push controller
         run: |
           echo "SEmVer: $GITVERSION_SEMVER"
-          make GIT_TAG=$GITVERSION_SEMVER REVISION=${{ github.sha }} docker_release
+          make GIT_TAG=$SEMVER REVISION=${{ github.sha }} docker_release

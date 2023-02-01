@@ -187,7 +187,7 @@ func Test_findByPathExpression(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r := &SeederImpl{runtimeVars: runtimeVars{}, log: log.New(&bytes.Buffer{}, log.DebugLvl), client: &http.Client{}}
-			got, err := r.findPathByExpression(tt.payload, tt.pathExpression)
+			got, err := r.FindPathByExpression(tt.payload, tt.pathExpression)
 			if err != nil {
 				if err.Error() != tt.expect {
 					t.Errorf(testutils.TestPhrase, err, tt.expect)
@@ -230,7 +230,7 @@ func Test_templatePayload(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			os.Setenv("FUZZ", "BOO")
 
-			got := tt.rest.templatePayload(tt.payload, tt.variables)
+			got := tt.rest.TemplatePayload(tt.payload, tt.variables)
 			if got != tt.expect {
 				t.Errorf(testutils.TestPhrase, got, tt.expect)
 			}

@@ -9,7 +9,7 @@ import (
 // does not support an update of existing item.
 func (r *SeederImpl) GetPost(ctx context.Context, action *Action) error {
 
-	action.templatedPayload = r.templatePayload(action.PayloadTemplate, action.Variables)
+	action.templatedPayload = r.TemplatePayload(action.PayloadTemplate, action.Variables)
 	resp, err := r.get(ctx, action)
 	if err != nil {
 		return err
@@ -28,12 +28,12 @@ func (r *SeederImpl) GetPost(ctx context.Context, action *Action) error {
 // does not support an update of existing item.
 func (r *SeederImpl) FindPost(ctx context.Context, action *Action) error {
 
-	action.templatedPayload = r.templatePayload(action.PayloadTemplate, action.Variables)
+	action.templatedPayload = r.TemplatePayload(action.PayloadTemplate, action.Variables)
 	resp, err := r.get(ctx, action)
 	if err != nil {
 		return err
 	}
-	found, err := r.findPathByExpression(resp, action.FindByJsonPathExpr)
+	found, err := r.FindPathByExpression(resp, action.FindByJsonPathExpr)
 	if err != nil {
 		return err
 	}
@@ -50,12 +50,12 @@ func (r *SeederImpl) FindPost(ctx context.Context, action *Action) error {
 // else it will do a POST as the item can be created
 func (r *SeederImpl) FindPutPost(ctx context.Context, action *Action) error {
 
-	action.templatedPayload = r.templatePayload(action.PayloadTemplate, action.Variables)
+	action.templatedPayload = r.TemplatePayload(action.PayloadTemplate, action.Variables)
 	resp, err := r.get(ctx, action)
 	if err != nil {
 		return err
 	}
-	found, err := r.findPathByExpression(resp, action.FindByJsonPathExpr)
+	found, err := r.FindPathByExpression(resp, action.FindByJsonPathExpr)
 	if err != nil {
 		return err
 	}
@@ -72,12 +72,12 @@ func (r *SeederImpl) FindPutPost(ctx context.Context, action *Action) error {
 // FindPatchPost is same as FindPutPost strategy but uses PATCH
 func (r *SeederImpl) FindPatchPost(ctx context.Context, action *Action) error {
 
-	action.templatedPayload = r.templatePayload(action.PayloadTemplate, action.Variables)
+	action.templatedPayload = r.TemplatePayload(action.PayloadTemplate, action.Variables)
 	resp, err := r.get(ctx, action)
 	if err != nil {
 		return err
 	}
-	found, err := r.findPathByExpression(resp, action.FindByJsonPathExpr)
+	found, err := r.FindPathByExpression(resp, action.FindByJsonPathExpr)
 	if err != nil {
 		return err
 	}
@@ -88,14 +88,14 @@ func (r *SeederImpl) FindPatchPost(ctx context.Context, action *Action) error {
 
 	r.log.Infof("item: %s,found by expression: %s\nupdating in place", found, action.FindByJsonPathExpr)
 	action.foundId = found
-	action.templatedPayload = r.templatePayload(action.PatchPayloadTemplate, action.Variables)
+	action.templatedPayload = r.TemplatePayload(action.PatchPayloadTemplate, action.Variables)
 	return r.patch(ctx, action)
 }
 
 // FindDeletePost
 func (r *SeederImpl) FindDeletePost(ctx context.Context, action *Action) error {
 
-	action.templatedPayload = r.templatePayload(action.PayloadTemplate, action.Variables)
+	action.templatedPayload = r.TemplatePayload(action.PayloadTemplate, action.Variables)
 	resp, err := r.get(ctx, action)
 	if err != nil {
 		if d, ok := err.(*Diagnostic); ok {
@@ -108,7 +108,7 @@ func (r *SeederImpl) FindDeletePost(ctx context.Context, action *Action) error {
 			return err
 		}
 	}
-	found, err := r.findPathByExpression(resp, action.FindByJsonPathExpr)
+	found, err := r.FindPathByExpression(resp, action.FindByJsonPathExpr)
 	if err != nil {
 		return err
 	}
@@ -131,7 +131,7 @@ func (r *SeederImpl) FindDeletePost(ctx context.Context, action *Action) error {
 // else it will do a POST as the item can be created
 func (r *SeederImpl) GetPutPost(ctx context.Context, action *Action) error {
 
-	action.templatedPayload = r.templatePayload(action.PayloadTemplate, action.Variables)
+	action.templatedPayload = r.TemplatePayload(action.PayloadTemplate, action.Variables)
 	resp, err := r.get(ctx, action)
 	if err != nil {
 		if d, ok := err.(*Diagnostic); ok {
@@ -157,14 +157,14 @@ func (r *SeederImpl) GetPutPost(ctx context.Context, action *Action) error {
 // Put strategy calls a PUT endpoint
 // if standards compliant this should be an idempotent operation
 func (r *SeederImpl) Put(ctx context.Context, action *Action) error {
-	action.templatedPayload = r.templatePayload(action.PayloadTemplate, action.Variables)
+	action.templatedPayload = r.TemplatePayload(action.PayloadTemplate, action.Variables)
 	return r.put(ctx, action)
 }
 
 // Put strategy calls a PUT endpoint
 // if standards compliant this should be an idempotent operation
 func (r *SeederImpl) PutPost(ctx context.Context, action *Action) error {
-	action.templatedPayload = r.templatePayload(action.PayloadTemplate, action.Variables)
+	action.templatedPayload = r.TemplatePayload(action.PayloadTemplate, action.Variables)
 	if err := r.put(ctx, action); err != nil {
 		if d, ok := err.(*Diagnostic); ok {
 			if d.IsFatal || !d.ProceedFallback {

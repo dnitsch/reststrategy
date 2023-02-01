@@ -56,3 +56,8 @@ See `test/*-test.yaml` for an integration style test locally.
 This is a bit of experiment with controller structures and workspaces to see if some re-usable patterns can be gleamed and used in some code generation scaffolding.
 
 At the very least a copy and paste into a new workspace of existing structure and Make tasks -> deleting following `seeder`, `controller/pkg/rstservice`, removing k8sutils should leave you with a fairly re-useable controller pkg which can be exchanged with other top level types coming from custom/new `apis` module.
+
+> __NOTES ON TEMPLATING__
+
+> When assigning ConfigManager tokens to the 
+ 

@@ -78,12 +78,10 @@ func (s *StrategyRestSeeder) WithActions(actions map[string]rest.Action) *Strate
 }
 
 // Execute the built actions list
-// TODO: create a custom error object
 func (s *StrategyRestSeeder) Execute(ctx context.Context) []error {
 	var errs []error
 	// assign each action to method
 	s.log.Debugf("actions: %v", s.actions)
-	// TODO: when order is set
 	// do some ordering if exists
 	// else send to fixed size channel goroutine
 	for _, action := range s.actions {

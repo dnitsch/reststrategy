@@ -1,6 +1,4 @@
 /*
-Copyright DNITSCH
-
-WTFPL
+Copyright DNITSCH WTFPL
 */
 

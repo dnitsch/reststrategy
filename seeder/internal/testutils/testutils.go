@@ -1,3 +1,4 @@
+// +go:build !ignore
 package testutils
 
 import (
@@ -185,7 +186,7 @@ func deletetHandle(t *testing.T) func(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func TestMuxServer(t *testing.T) http.Handler {
+func NewTestMuxServer(t *testing.T) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/token", token(t))
 	mux.HandleFunc("/token/header", tokenInHeader(t))

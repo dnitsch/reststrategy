@@ -1,6 +1,8 @@
 /*
-Copyright DNITSCH
 
-WTFPL
+Copyright DNITSCH - WTFPL :) 
+
+Generated types for seeder used in apis module.
+
 */
 

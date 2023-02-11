@@ -7,10 +7,10 @@ import (
 
 	"github.com/dnitsch/configmanager"
 	"github.com/dnitsch/configmanager/pkg/generator"
+	"github.com/dnitsch/reststrategy/seeder"
 	srs "github.com/dnitsch/reststrategy/seeder"
 	"github.com/dnitsch/reststrategy/seeder/internal/cmdutils"
 	"github.com/dnitsch/reststrategy/seeder/internal/config"
-	"github.com/dnitsch/reststrategy/seeder/pkg/rest"
 	log "github.com/dnitsch/simplelog"
 	"github.com/spf13/cobra"
 )
@@ -48,7 +48,7 @@ func runExecute(cmd *cobra.Command, args []string) error {
 		l = log.New(os.Stderr, log.ErrorLvl)
 	}
 
-	strategy := rest.StrategyConfig{}
+	strategy := seeder.StrategyConfig{}
 	s := srs.New(&l).WithRestClient(&http.Client{})
 
 	b, e := os.ReadFile(path)

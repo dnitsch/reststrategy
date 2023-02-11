@@ -1,4 +1,4 @@
-package rest_test
+package seeder_test
 
 import (
 	"bytes"
@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/dnitsch/reststrategy/seeder"
 	"github.com/dnitsch/reststrategy/seeder/internal/testutils"
-	"github.com/dnitsch/reststrategy/seeder/pkg/rest"
 	log "github.com/dnitsch/simplelog"
 )
 
@@ -20,21 +20,21 @@ func (m mockClient) Do(req *http.Request) (*http.Response, error) {
 }
 func TestCustomToken(t *testing.T) {
 	ttests := map[string]struct {
-		customAuth func(t *testing.T) *rest.CustomFlowAuth
-		client     func(t *testing.T) rest.Client
-		expect     rest.CustomTokenResponse
+		customAuth func(t *testing.T) *seeder.CustomFlowAuth
+		client     func(t *testing.T) seeder.Client
+		expect     seeder.CustomTokenResponse
 	}{
 		"success with default": {
-			func(t *testing.T) *rest.CustomFlowAuth {
-				return rest.NewCustomFlowAuth().WithAuthUrl("http://foo.bar").WithAuthMap(rest.KvMapVarsAny{"email": "bar@qux.boo", "pass": "barrr"})
+			func(t *testing.T) *seeder.CustomFlowAuth {
+				return seeder.NewCustomFlowAuth().WithAuthUrl("http://foo.bar").WithAuthMap(seeder.KvMapVarsAny{"email": "bar@qux.boo", "pass": "barrr"})
 			},
-			func(t *testing.T) rest.Client {
+			func(t *testing.T) seeder.Client {
 				return mockClient(func(req *http.Request) (*http.Response, error) {
 					resp := &http.Response{Body: io.NopCloser(strings.NewReader(`{"access_token":"8s0ghews87ghv78gh8ergh8dfgfdg"}`))}
 					return resp, nil
 				})
 			},
-			rest.CustomTokenResponse{
+			seeder.CustomTokenResponse{
 				TokenPrefix: "Bearer",
 				TokenValue:  "8s0ghews87ghv78gh8ergh8dfgfdg",
 				HeaderKey:   "Authorization",
@@ -56,15 +56,15 @@ func TestCustomToken(t *testing.T) {
 
 func TestClientCredentials(t *testing.T) {
 	ttests := map[string]struct {
-		am rest.AuthMap
+		am seeder.AuthMap
 	}{
 		"clientcreds": {
-			am: map[string]rest.AuthConfig{
+			am: map[string]seeder.AuthConfig{
 				"client": {
-					AuthStrategy: rest.OAuth,
+					AuthStrategy: seeder.OAuth,
 					Username:     "foo",
 					Password:     "bar",
-					OAuth: &rest.ConfigOAuth{
+					OAuth: &seeder.ConfigOAuth{
 						ServerUrl:               "http://test.bar",
 						Scopes:                  []string{"profile"},
 						EndpointParams:          map[string][]string{"foo": {"bar", "bax"}},
@@ -78,7 +78,7 @@ func TestClientCredentials(t *testing.T) {
 	}
 	for name, tt := range ttests {
 		t.Run(name, func(t *testing.T) {
-			got := rest.NewAuth(tt.am)
+			got := seeder.NewAuth(tt.am)
 			if got == nil {
 				t.Errorf(testutils.TestPhraseWithContext, "auth map", "not nil", "<nil>")
 			}

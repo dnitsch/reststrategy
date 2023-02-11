@@ -5,10 +5,9 @@ import (
 	"fmt"
 
 	srs "github.com/dnitsch/reststrategy/seeder"
-	"github.com/dnitsch/reststrategy/seeder/pkg/rest"
 )
 
-func RunSeed(svc *srs.StrategyRestSeeder, strategy rest.StrategyConfig, path string, verbose bool) error {
+func RunSeed(svc *srs.StrategyRestSeeder, strategy srs.StrategyConfig, path string, verbose bool) error {
 
 	svc.WithActions(strategy.Seeders).WithAuth(strategy.AuthConfig)
 

@@ -11,7 +11,6 @@ import (
 
 	"github.com/dnitsch/reststrategy/seeder"
 	"github.com/dnitsch/reststrategy/seeder/internal/testutils"
-	"github.com/dnitsch/reststrategy/seeder/pkg/rest"
 	log "github.com/dnitsch/simplelog"
 )
 
@@ -23,18 +22,18 @@ func TestExecute(t *testing.T) {
 
 	tests := map[string]struct {
 		handler    func(t *testing.T) http.Handler
-		authConfig func(url string) rest.AuthMap
+		authConfig func(url string) seeder.AuthMap
 		expect     func(url string) error
-		seeders    func(url string) rest.Seeders
+		seeders    func(url string) seeder.Seeders
 	}{
 		"OAuth Client Creds GET/PUT/POST rest success": {
-			authConfig: func(url string) rest.AuthMap {
-				return rest.AuthMap{
+			authConfig: func(url string) seeder.AuthMap {
+				return seeder.AuthMap{
 					"oauth2-test": {
-						AuthStrategy: rest.OAuth,
+						AuthStrategy: seeder.OAuth,
 						Username:     "randClientIdOrUsernameForBasicAuth",
 						Password:     "randClientSecretOrPassExpr",
-						OAuth: &rest.ConfigOAuth{
+						OAuth: &seeder.ConfigOAuth{
 							OAuthSendParamsInHeader: false,
 							ServerUrl:               fmt.Sprintf("%s/token", url),
 							Scopes:                  []string{"foo", "bar"},
@@ -43,26 +42,26 @@ func TestExecute(t *testing.T) {
 					},
 				}
 			},
-			seeders: func(url string) rest.Seeders {
-				return rest.Seeders{
+			seeders: func(url string) seeder.Seeders {
+				return seeder.Seeders{
 					"get-put-post-found": {
 						Strategy:           string(seeder.GET_PUT_POST),
-						Order:              rest.Int(0),
+						Order:              seeder.Int(0),
 						Endpoint:           url,
-						GetEndpointSuffix:  rest.String("/get/1234"),
-						PostEndpointSuffix: rest.String("/post"),
-						PutEndpointSuffix:  rest.String("/put/1234"),
+						GetEndpointSuffix:  seeder.String("/get/1234"),
+						PostEndpointSuffix: seeder.String("/post"),
+						PutEndpointSuffix:  seeder.String("/put/1234"),
 						PayloadTemplate:    `{"value": "$foo"}`,
 						Variables:          map[string]any{"foo": "bar"},
 						AuthMapRef:         "oauth2-test",
 					},
 					"get-put-post-not-found": {
 						Strategy:           string(seeder.GET_PUT_POST),
-						Order:              rest.Int(0),
+						Order:              seeder.Int(0),
 						Endpoint:           url,
-						GetEndpointSuffix:  rest.String("/get/not-found"),
-						PostEndpointSuffix: rest.String("/post/new"),
-						PutEndpointSuffix:  rest.String("/put/not-found"),
+						GetEndpointSuffix:  seeder.String("/get/not-found"),
+						PostEndpointSuffix: seeder.String("/post/new"),
+						PutEndpointSuffix:  seeder.String("/put/not-found"),
 						PayloadTemplate:    `{"value": "$foo"}`,
 						Variables:          map[string]any{"foo": "bar"},
 						AuthMapRef:         "oauth2-test",
@@ -118,32 +117,32 @@ func TestExecute(t *testing.T) {
 			},
 		},
 		"OAuth PAsswordCredentials FIND/PUT/POST success": {
-			authConfig: func(url string) rest.AuthMap {
-				return rest.AuthMap{
+			authConfig: func(url string) seeder.AuthMap {
+				return seeder.AuthMap{
 					"oauth2-passwd": {
-						AuthStrategy: rest.OAuthPassword,
+						AuthStrategy: seeder.OAuthPassword,
 						Username:     "randClientIdOrUsernameForBasicAuth",
 						Password:     "randClientSecretOrPassExpr",
-						OAuth: &rest.ConfigOAuth{
+						OAuth: &seeder.ConfigOAuth{
 							OAuthSendParamsInHeader: false,
 							ServerUrl:               fmt.Sprintf("%s/token", url),
 							Scopes:                  []string{"foo", "bar"},
 							EndpointParams:          map[string][]string{"params": {"baz", "boom"}},
-							ResourceOwnerUser:       rest.String("bob"),
-							ResourceOwnerPassword:   rest.String("barfooqux"),
+							ResourceOwnerUser:       seeder.String("bob"),
+							ResourceOwnerPassword:   seeder.String("barfooqux"),
 						},
 					},
 				}
 			},
-			seeders: func(url string) rest.Seeders {
-				return rest.Seeders{
+			seeders: func(url string) seeder.Seeders {
+				return seeder.Seeders{
 					"find-put-post-found": {
 						Strategy:           string(seeder.FIND_PUT_POST),
-						Order:              rest.Int(0),
+						Order:              seeder.Int(0),
 						Endpoint:           url,
-						GetEndpointSuffix:  rest.String("/get/all"),
-						PostEndpointSuffix: rest.String("/post"),
-						PutEndpointSuffix:  rest.String("/put"),
+						GetEndpointSuffix:  seeder.String("/get/all"),
+						PostEndpointSuffix: seeder.String("/post"),
+						PutEndpointSuffix:  seeder.String("/put"),
 						PayloadTemplate:    `{"value": "$foo"}`,
 						FindByJsonPathExpr: "$.[?(@.name=='fubar')].id",
 						Variables:          map[string]any{"foo": "bar"},
@@ -151,11 +150,11 @@ func TestExecute(t *testing.T) {
 					},
 					"find-put-post-not-found": {
 						Strategy:           string(seeder.FIND_PUT_POST),
-						Order:              rest.Int(0),
+						Order:              seeder.Int(0),
 						Endpoint:           url,
-						GetEndpointSuffix:  rest.String("/get/not-found"),
-						PostEndpointSuffix: rest.String("/post/new"),
-						PutEndpointSuffix:  rest.String("/put/not-found"),
+						GetEndpointSuffix:  seeder.String("/get/not-found"),
+						PostEndpointSuffix: seeder.String("/post/new"),
+						PutEndpointSuffix:  seeder.String("/put/not-found"),
 						FindByJsonPathExpr: "$.[?(@.name=='fubar')].id",
 						PayloadTemplate:    `{"value": "$foo"}`,
 						Variables:          map[string]any{"foo": "bar"},
@@ -207,23 +206,23 @@ func TestExecute(t *testing.T) {
 			},
 		},
 		"BasicAuth Get/Post success": {
-			authConfig: func(url string) rest.AuthMap {
-				return rest.AuthMap{
+			authConfig: func(url string) seeder.AuthMap {
+				return seeder.AuthMap{
 					"basic": {
-						AuthStrategy: rest.Basic,
+						AuthStrategy: seeder.Basic,
 						Username:     "randClientIdOrUsernameForBasicAuth",
 						Password:     "randClientSecretOrPassExpr",
 					},
 				}
 			},
-			seeders: func(url string) rest.Seeders {
-				return rest.Seeders{
+			seeders: func(url string) seeder.Seeders {
+				return seeder.Seeders{
 					"get-post-found": {
 						Strategy:           string(seeder.GET_POST),
-						Order:              rest.Int(0),
+						Order:              seeder.Int(0),
 						Endpoint:           url,
-						GetEndpointSuffix:  rest.String("/get/1234"),
-						PostEndpointSuffix: rest.String("/post"),
+						GetEndpointSuffix:  seeder.String("/get/1234"),
+						PostEndpointSuffix: seeder.String("/post"),
 						PayloadTemplate:    `{"value": "$foo"}`,
 						FindByJsonPathExpr: "$.[?(@.name=='fubar')].id",
 						Variables:          map[string]any{"foo": "bar"},
@@ -231,10 +230,10 @@ func TestExecute(t *testing.T) {
 					},
 					"get-post-not-found": {
 						Strategy:           string(seeder.GET_POST),
-						Order:              rest.Int(0),
+						Order:              seeder.Int(0),
 						Endpoint:           url,
-						GetEndpointSuffix:  rest.String("/get/not-found"),
-						PostEndpointSuffix: rest.String("/post/new"),
+						GetEndpointSuffix:  seeder.String("/get/not-found"),
+						PostEndpointSuffix: seeder.String("/post/new"),
 						FindByJsonPathExpr: "$.[?(@.name=='fubar')].id",
 						PayloadTemplate:    `{"value": "$foo"}`,
 						Variables:          map[string]any{"foo": "bar"},

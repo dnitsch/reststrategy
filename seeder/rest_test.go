@@ -1,12 +1,12 @@
-package rest_test
+package seeder_test
 
 import (
 	"bytes"
 	"os"
 	"testing"
 
+	"github.com/dnitsch/reststrategy/seeder"
 	"github.com/dnitsch/reststrategy/seeder/internal/testutils"
-	"github.com/dnitsch/reststrategy/seeder/pkg/rest"
 	log "github.com/dnitsch/simplelog"
 )
 
@@ -64,7 +64,7 @@ func Test_findByPathExpression(t *testing.T) {
 	}
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			r := rest.NewSeederImpl(log.New(&bytes.Buffer{}, log.ErrorLvl))
+			r := seeder.NewSeederImpl(log.New(&bytes.Buffer{}, log.ErrorLvl))
 			got, err := r.FindPathByExpression(tt.payload, tt.pathExpression)
 			if err != nil {
 				if err.Error() != tt.expect {
@@ -84,21 +84,21 @@ func Test_findByPathExpression(t *testing.T) {
 func Test_templatePayload(t *testing.T) {
 	tests := []struct {
 		name      string
-		rest      *rest.SeederImpl
+		rest      *seeder.SeederImpl
 		payload   string
 		variables map[string]any
 		expect    string
 	}{
 		{
 			name:      "global only",
-			rest:      &rest.SeederImpl{},
+			rest:      &seeder.SeederImpl{},
 			payload:   `{"foo":"${bar}","BAZ":"$FUZZ"}`,
 			variables: map[string]any{},
 			expect:    `{"foo":"","BAZ":"BOO"}`,
 		},
 		{
 			name:      "global + injected",
-			rest:      &rest.SeederImpl{},
+			rest:      &seeder.SeederImpl{},
 			payload:   `{"foo":"${bar}","BAZ":"$FUZZ"}`,
 			variables: map[string]any{"bar": "hoo"},
 			expect:    `{"foo":"hoo","BAZ":"BOO"}`,
@@ -119,13 +119,13 @@ func Test_templatePayload(t *testing.T) {
 func Test_ActionWithHeader(t *testing.T) {
 	tests := []struct {
 		name   string
-		action *rest.Action
+		action *seeder.Action
 		header *map[string]string
 		expect []string
 	}{
 		{
 			name: "default header",
-			action: &rest.Action{
+			action: &seeder.Action{
 				Strategy:             "",
 				Order:                new(int),
 				Endpoint:             "",
@@ -144,7 +144,7 @@ func Test_ActionWithHeader(t *testing.T) {
 		},
 		{
 			name: "additional",
-			action: &rest.Action{
+			action: &seeder.Action{
 				Strategy:             "",
 				Order:                new(int),
 				Endpoint:             "",
@@ -163,7 +163,7 @@ func Test_ActionWithHeader(t *testing.T) {
 		},
 		{
 			name: "additional with custom overwrite",
-			action: &rest.Action{
+			action: &seeder.Action{
 				Strategy:             "",
 				Order:                new(int),
 				Endpoint:             "",
@@ -207,14 +207,14 @@ func Test_ActionWithHeader(t *testing.T) {
 // func Test_setRunTimeVars(t *testing.T) {
 
 // 	tests := map[string]struct {
-// 		rest                 *rest.SeederImpl
+// 		rest                 *seeder.SeederImpl
 // 		createUpdateResponse []byte
-// 		action               *rest.Action
+// 		action               *seeder.Action
 // 	}{
 // 		"vars found and replaced": {
-// 			rest:                 &rest.SeederImpl{},
+// 			rest:                 &seeder.SeederImpl{},
 // 			createUpdateResponse: []byte(`{"id": "aaabbbccc"}`),
-// 			action: &rest.Action{
+// 			action: &seeder.Action{
 // 				// name:                 "foo1",
 // 				PayloadTemplate:      `{"foo": "${GLOBAL}","local": "${local}", "runtime":"${someId}" }`,
 // 				PatchPayloadTemplate: "",
@@ -228,12 +228,12 @@ func Test_ActionWithHeader(t *testing.T) {
 // 	for name, tt := range tests {
 // 		t.Run(name, func(t *testing.T) {
 
-// 			if len(tt.rest.RuntimeVars()) > 0 {
-// 				t.Errorf("runtimeVars should be empty at this point, instead found: %v", len(tt.rest.RuntimeVars()))
+// 			if len(tt.seeder.RuntimeVars()) > 0 {
+// 				t.Errorf("runtimeVars should be empty at this point, instead found: %v", len(tt.seeder.RuntimeVars()))
 // 			}
-// 			tt.rest.SetRuntimeVar(tt.createUpdateResponse, tt.action)
+// 			tt.seeder.SetRuntimeVar(tt.createUpdateResponse, tt.action)
 
-// 			if len(tt.rest.runtimeVars) < 1 {
+// 			if len(tt.seeder.runtimeVars) < 1 {
 // 				t.Error("no vars found and replaced")
 // 			}
 // 		})

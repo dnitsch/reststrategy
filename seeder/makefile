@@ -15,7 +15,7 @@ codegen:
 	./hack/update-codegen.sh
 
 copygened: codegen
-	echo "Copying Generated DeepCopyFunc" && cp -fr github.com/dnitsch/reststrategy/seeder/pkg/rest/* ./pkg/rest/ && \
+	echo "Copying Generated DeepCopyFunc" && cp -fr github.com/dnitsch/reststrategy/seeder/* ./ && \
 	echo "rm -rf github.com" && rm -rf github.com
 	echo "Types Updated"
 

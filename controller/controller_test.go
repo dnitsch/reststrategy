@@ -20,12 +20,13 @@ import (
 
 	"github.com/dnitsch/configmanager/pkg/generator"
 	"github.com/dnitsch/reststrategy/controller/internal/testutils"
-	"github.com/dnitsch/reststrategy/seeder/pkg/rest"
+
 	log "github.com/dnitsch/simplelog"
 
 	"github.com/dnitsch/reststrategy/apis/reststrategy/generated/clientset/versioned/fake"
 	informers "github.com/dnitsch/reststrategy/apis/reststrategy/generated/informers/externalversions"
 	v1alphacontroller "github.com/dnitsch/reststrategy/apis/reststrategy/v1alpha1"
+	"github.com/dnitsch/reststrategy/seeder"
 )
 
 var (
@@ -77,20 +78,20 @@ func newFixture(t *testing.T) *fixture {
 }
 
 func newRestStrategySuccess(name, url string) *v1alphacontroller.RestStrategy {
-	testAuthBasic := rest.AuthConfig{
-		AuthStrategy: rest.Basic,
+	testAuthBasic := seeder.AuthConfig{
+		AuthStrategy: seeder.Basic,
 		Username:     "foo",
 		Password:     "bar",
 	}
-	testSeedBasic := rest.Action{
+	testSeedBasic := seeder.Action{
 		Strategy:          "PUT",
 		Endpoint:          url,
-		GetEndpointSuffix: rest.String("/get"),
-		PutEndpointSuffix: rest.String("/put"),
+		GetEndpointSuffix: seeder.String("/get"),
+		PutEndpointSuffix: seeder.String("/put"),
 		AuthMapRef:        "test1",
 		HttpHeaders:       &map[string]string{},
-		RuntimeVars:       &map[string]string{},
-		Variables:         rest.KvMapVarsAny{},
+		RuntimeVars:       map[string]string{},
+		Variables:         seeder.KvMapVarsAny{},
 	}
 	return &v1alphacontroller.RestStrategy{
 		TypeMeta: metav1.TypeMeta{APIVersion: v1alphacontroller.SchemeGroupVersion.String()},

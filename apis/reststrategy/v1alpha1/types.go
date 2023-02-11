@@ -1,7 +1,7 @@
 package v1alpha1
 
 import (
-	"github.com/dnitsch/reststrategy/seeder/pkg/rest"
+	"github.com/dnitsch/reststrategy/seeder"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -14,15 +14,16 @@ type RestStrategy struct {
 	Spec              StrategySpec   `json:"spec,omitempty"`
 	Status            StrategyStatus `json:"status"`
 }
+
 // https://control-plane:8080/apis/dnitsch.net/v1alpha/reststrategies/
 type AuthConfig struct {
 	Name string `json:"name"`
-	rest.AuthConfig
+	seeder.AuthConfig
 }
 
 type SeederConfig struct {
 	Name string `json:"name"`
-	rest.Action
+	seeder.Action
 }
 
 type StrategySpec struct {

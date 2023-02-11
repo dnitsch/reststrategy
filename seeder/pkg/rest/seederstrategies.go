@@ -145,6 +145,16 @@ func (r *SeederImpl) GetPutPost(ctx context.Context, action *Action) error {
 		}
 	}
 
+	// // if FindByJsonPathExpr is provided we will try to extract it from response
+	// // otherwise assume a known was supplied to the put endpoint
+	// if action.FindByJsonPathExpr != "" && string(resp) == "" {
+	// 	found, err := r.FindPathByExpression(resp, action.FindByJsonPathExpr)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	action.foundId = found
+	// }
+
 	if string(resp) == "" {
 		r.log.Info("item not found. posting")
 		return r.post(ctx, action)

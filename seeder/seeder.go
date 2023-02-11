@@ -2,7 +2,9 @@ package seeder
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/dnitsch/reststrategy/seeder/pkg/rest"
 	log "github.com/dnitsch/simplelog"
@@ -39,7 +41,7 @@ func New(log log.Loggeriface) *StrategyRestSeeder {
 	r.WithClient(&http.Client{})
 
 	return &StrategyRestSeeder{
-		rest: r, // &rest.SeederImpl{client: &http.Client{}},
+		rest: r,
 		Strategy: map[StrategyType]StrategyFunc{
 			PUT:              PutStrategyFunc,
 			PUT_POST:         PutPostStrategyFunc,
@@ -62,7 +64,7 @@ func (s *StrategyRestSeeder) WithRestClient(rc rest.Client) *StrategyRestSeeder 
 
 // WithAuth adds the AuthLogic to the entire seeder
 // NOTE: might make more sense to have a per RestAction authTemplate (might make it very inefficient)
-func (s *StrategyRestSeeder) WithAuth(ra *rest.AuthMap) *StrategyRestSeeder {
+func (s *StrategyRestSeeder) WithAuth(ra rest.AuthMap) *StrategyRestSeeder {
 	s.rest = s.rest.WithAuth(ra)
 	return s
 }
@@ -78,7 +80,7 @@ func (s *StrategyRestSeeder) WithActions(actions map[string]rest.Action) *Strate
 }
 
 // Execute the built actions list
-func (s *StrategyRestSeeder) Execute(ctx context.Context) []error {
+func (s *StrategyRestSeeder) Execute(ctx context.Context) error {
 	var errs []error
 	// assign each action to method
 	s.log.Debugf("actions: %v", s.actions)
@@ -95,7 +97,14 @@ func (s *StrategyRestSeeder) Execute(ctx context.Context) []error {
 		}
 		s.log.Infof("unknown strategy")
 	}
-	return errs
+	if len(errs) > 0 {
+		finalErr := []string{}
+		for _, e := range errs {
+			finalErr = append(finalErr, e.Error())
+		}
+		return fmt.Errorf(strings.Join(finalErr, "\n"))
+	}
+	return nil
 }
 
 // PutStrategyFunc calls a PUT endpoint fails if an error occurs

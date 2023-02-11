@@ -190,9 +190,9 @@ type staticToken struct {
 
 type actionAuthMap map[string]auth
 
-func NewAuth(am *AuthMap) *actionAuthMap {
+func NewAuth(am AuthMap) *actionAuthMap {
 	ac := actionAuthMap{}
-	for k, v := range *am {
+	for k, v := range am {
 		a := auth{}
 		a.authStrategy = v.AuthStrategy
 		switch strategy := v.AuthStrategy; strategy {

@@ -53,3 +53,35 @@ func TestCustomToken(t *testing.T) {
 		})
 	}
 }
+
+func TestClientCredentials(t *testing.T) {
+	ttests := map[string]struct {
+		am rest.AuthMap
+	}{
+		"clientcreds": {
+			am: map[string]rest.AuthConfig{
+				"client": {
+					AuthStrategy: rest.OAuth,
+					Username:     "foo",
+					Password:     "bar",
+					OAuth: &rest.ConfigOAuth{
+						ServerUrl:               "http://test.bar",
+						Scopes:                  []string{"profile"},
+						EndpointParams:          map[string][]string{"foo": {"bar", "bax"}},
+						OAuthSendParamsInHeader: false,
+						ResourceOwnerUser:       nil,
+						ResourceOwnerPassword:   nil,
+					},
+				},
+			},
+		},
+	}
+	for name, tt := range ttests {
+		t.Run(name, func(t *testing.T) {
+			got := rest.NewAuth(tt.am)
+			if got == nil {
+				t.Errorf(testutils.TestPhraseWithContext, "auth map", "not nil", "<nil>")
+			}
+		})
+	}
+}

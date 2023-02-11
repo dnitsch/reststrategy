@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/a8m/envsubst"
 
@@ -22,19 +23,25 @@ type Client interface {
 	// http.RoundTripper
 }
 
-type runtimeVars map[string]any
+type RuntimeVars struct {
+	mu   sync.RWMutex
+	vars map[string]any
+}
 
 type SeederImpl struct {
 	log         log.Loggeriface
 	client      Client
 	auth        *actionAuthMap
-	runtimeVars runtimeVars
+	runtimeVars RuntimeVars
 }
 
 func NewSeederImpl(log log.Loggeriface) *SeederImpl {
+	rv := make(map[string]any)
 	return &SeederImpl{
-		runtimeVars: runtimeVars{},
-		log:         log,
+		runtimeVars: RuntimeVars{
+			vars: rv,
+		},
+		log: log,
 	}
 }
 
@@ -44,9 +51,25 @@ func (r *SeederImpl) WithClient(c Client) *SeederImpl {
 }
 
 // WithAuth assigns auth options used by AuthMapRef within the actions
-func (r *SeederImpl) WithAuth(a *AuthMap) *SeederImpl {
+func (r *SeederImpl) WithAuth(a AuthMap) *SeederImpl {
 	r.auth = NewAuth(a)
 	return r
+}
+
+func (r *SeederImpl) SetRuntimeVar(key string, val any) {
+	r.runtimeVars.mu.Lock()
+	r.runtimeVars.vars[key] = val
+	r.runtimeVars.mu.Unlock()
+}
+
+func (r *SeederImpl) RuntimeVars() map[string]any {
+	rv := make(map[string]any)
+	r.runtimeVars.mu.RLock()
+	for k, v := range r.runtimeVars.vars {
+		rv[k] = v
+	}
+	r.runtimeVars.mu.RUnlock()
+	return rv
 }
 
 // +k8s:deepcopy-gen=true
@@ -64,11 +87,6 @@ type Seeders map[string]Action
 
 // +k8s:deepcopy-gen=false
 type KvMapVarsAny map[string]any
-
-// KvMapVarsAny
-// type KvMapIntOrString interface {
-// 	int | string
-// }
 
 func (in *KvMapVarsAny) DeepCopyInto(out *KvMapVarsAny) {
 	if in == nil {
@@ -110,7 +128,7 @@ type Action struct {
 	FindByJsonPathExpr   string             `yaml:"findByJsonPathExpr,omitempty" json:"findByJsonPathExpr,omitempty"`
 	PayloadTemplate      string             `yaml:"payloadTemplate" json:"payloadTemplate"`
 	PatchPayloadTemplate string             `yaml:"patchPayloadTemplate,omitempty" json:"patchPayloadTemplate,omitempty"`
-	RuntimeVars          *map[string]string `yaml:"runtimeVars,omitempty" json:"runtimeVars,omitempty"`
+	RuntimeVars          map[string]string  `yaml:"runtimeVars,omitempty" json:"runtimeVars,omitempty"`
 	AuthMapRef           string             `yaml:"authMapRef" json:"authMapRef"`
 	HttpHeaders          *map[string]string `yaml:"httpHeaders,omitempty" json:"httpHeaders,omitempty"`
 	Variables            KvMapVarsAny       `yaml:"variables" json:"variables"`
@@ -195,7 +213,7 @@ func (r *SeederImpl) do(req *http.Request, action *Action) ([]byte, error) {
 	}
 	// every successful response should be passed through
 	// setRunTimeVar to ensure we grab anything highlighted by users
-	r.setRuntimeVar(respBody, action)
+	r.findRuntimeVars(respBody, action)
 	return respBody, nil
 }
 
@@ -339,8 +357,8 @@ func findPathByExpression(resp []byte, pathExpression string, log log.Loggerifac
 		return "", nil
 	}
 
-	unescStr, e := strconv.Unquote(fmt.Sprintf("%v", string(resp)))
-	if e != nil {
+	unescStr, err := strconv.Unquote(fmt.Sprintf("%v", string(resp)))
+	if err != nil {
 		log.Debug("using original string")
 		unescStr = string(resp)
 	}
@@ -381,7 +399,7 @@ func (r *SeederImpl) TemplatePayload(payload string, vars KvMapVarsAny) string {
 	}
 
 	// extend existing to allow for runtimeVars replacement
-	for k, v := range r.runtimeVars {
+	for k, v := range r.RuntimeVars() {
 		vars[k] = v
 	}
 	tmpl, err := templatePayload(payload, vars)
@@ -404,13 +422,16 @@ func templatePayload(payload string, vars KvMapVarsAny) (string, error) {
 	return envsubst.StringRestrictedNoDigit(payload, false, false, true)
 }
 
-// setRunTimeVars
-func (r *SeederImpl) setRuntimeVar(createUpdateResponse []byte, action *Action) {
+// findRuntimeVars checks the response for any runtime variables
+// supplied by caller in the initial template
+func (r *SeederImpl) findRuntimeVars(createUpdateResponse []byte, action *Action) {
 	if action.RuntimeVars == nil {
 		return
 	}
-	// runtimeVars
-	for k, v := range *action.RuntimeVars {
+	// checks runtimeVars in the action
+	// assigns any values found to the SeederImpl
+	// makes it available for all subsequent actions
+	for k, v := range action.RuntimeVars {
 		found, err := r.FindPathByExpression(createUpdateResponse, v)
 		if err != nil {
 			r.log.Errorf("error finding pathexpr in runtime var")
@@ -418,7 +439,7 @@ func (r *SeederImpl) setRuntimeVar(createUpdateResponse []byte, action *Action) 
 			r.log.Debugf("continuing...")
 		}
 		if found != "" {
-			r.runtimeVars[k] = found
+			r.SetRuntimeVar(k, found)
 		}
 	}
 }

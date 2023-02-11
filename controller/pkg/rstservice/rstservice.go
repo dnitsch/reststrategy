@@ -36,12 +36,12 @@ func (rst *Seeder) sortActions(seeders []v1alpha1.SeederConfig) map[string]rest.
 	return m
 }
 
-func (rst *Seeder) sortAuth(auth []v1alpha1.AuthConfig) *rest.AuthMap {
+func (rst *Seeder) sortAuth(auth []v1alpha1.AuthConfig) rest.AuthMap {
 	m := rest.AuthMap{}
 	for _, v := range auth {
 		m[v.Name] = v.AuthConfig
 	}
-	return &m
+	return m
 }
 
 // create

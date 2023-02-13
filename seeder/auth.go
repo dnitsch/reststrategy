@@ -1,4 +1,4 @@
-package rest
+package seeder
 
 import (
 	"bytes"
@@ -58,9 +58,9 @@ type CustomToken struct {
 	// is posted in the body as json post
 	SendInHeader bool `yaml:"inHeader" json:"inHeader"`
 	// JSONPath expression to use to get the token from response
-	// 
+	//
 	// e.g. "$.token"
-	// 
+	//
 	// empty will take the entire response as the token - raw response must be string
 	ResponseKey string `yaml:"responseKey" json:"responseKey" `
 	// if omitted `Authorization` will be used
@@ -149,29 +149,37 @@ func (cfa *CustomFlowAuth) WithAuthMap(v KvMapVarsAny) *CustomFlowAuth {
 	return cfa
 }
 
-// WithHeaderKey overwrites the detault `Authorization“
+// WithHeaderKey overwrites the detault `Authorization`
 func (cfa *CustomFlowAuth) WithHeaderKey(v string) *CustomFlowAuth {
-	cfa.headerKey = v
+	if v != "" {
+		cfa.headerKey = v
+	}
 	return cfa
 }
 
 // WithTokenPrefix overwrites the detault `Bearer`
 func (cfa *CustomFlowAuth) WithTokenPrefix(v string) *CustomFlowAuth {
-	cfa.tokenPrefix = v
+	if v != "" {
+		cfa.tokenPrefix = v
+	}
 	return cfa
 }
 
 // WithSendInHeader sends custom request in the header
 //
 //	as opposed to a in url encoded form in body POST
-func (cfa *CustomFlowAuth) WithSendInHeader() *CustomFlowAuth {
-	cfa.sendInHeader = true
+func (cfa *CustomFlowAuth) WithSendInHeader(v bool) *CustomFlowAuth {
+	if v {
+		cfa.sendInHeader = v
+	}
 	return cfa
 }
 
 // WithResponseKey overwrites the default "$.access_token"
 func (cfa *CustomFlowAuth) WithResponseKey(v string) *CustomFlowAuth {
-	cfa.responseKey = v
+	if v != "" {
+		cfa.responseKey = v
+	}
 	return cfa
 }
 
@@ -182,77 +190,77 @@ type staticToken struct {
 
 type actionAuthMap map[string]auth
 
-func NewAuth(am *AuthMap) *actionAuthMap {
+func NewAuth(am AuthMap) *actionAuthMap {
 	ac := actionAuthMap{}
-	for k, v := range *am {
+	for k, v := range am {
 		a := auth{}
 		a.authStrategy = v.AuthStrategy
 		switch strategy := v.AuthStrategy; strategy {
 		case OAuth:
-			c := &clientcredentials.Config{
-				ClientID:       v.Username,
-				ClientSecret:   v.Password,
-				TokenURL:       v.OAuth.ServerUrl,
-				Scopes:         v.OAuth.Scopes,
-				EndpointParams: v.OAuth.EndpointParams,
-				AuthStyle:      oauth2.AuthStyleInParams,
-			}
-			if v.OAuth.OAuthSendParamsInHeader {
-				c.AuthStyle = oauth2.AuthStyleInHeader
-			}
-			a.oAuthConfig = c
+			a.oAuthConfig = NewClientCredentialsGrant(v)
 			ac[k] = a
 		case OAuthPassword:
-			c := &passwordGrantConfig{
-				oauthPassCredsConfig: &oauth2.Config{
-					ClientID:     v.Username,
-					ClientSecret: v.Password,
-					Scopes:       v.OAuth.Scopes,
-					Endpoint: oauth2.Endpoint{
-						AuthURL:  v.OAuth.ServerUrl,
-						TokenURL: v.OAuth.ServerUrl,
-					},
-				},
-			}
-			if v.OAuth.ResourceOwnerUser != nil {
-				c.resourceOwnerUser = *v.OAuth.ResourceOwnerUser
-				// panic("grant type password credentials requires a resources owner username")
-			}
-
-			if v.OAuth.ResourceOwnerPassword != nil {
-				c.resourceOwnerPass = *v.OAuth.ResourceOwnerPassword
-				// panic("grant type password credentials requires a resources owner username")
-			}
-			a.passwordGrantConfig = c
+			a.passwordGrantConfig = NewPasswordCredentialsGrant(v)
 			ac[k] = a
 		case Basic:
 			a.basicAuth = &basicAuth{username: v.Username, password: v.Password}
 			ac[k] = a
 		case CustomToToken:
-			a.customToToken = NewCustomFlowAuth().WithAuthMap(v.CustomToken.CustomAuthMap).WithAuthUrl(v.CustomToken.AuthUrl)
-
-			if v.CustomToken.HeaderKey != "" {
-				a.customToToken.WithHeaderKey(v.CustomToken.HeaderKey)
-			}
-			if v.CustomToken.TokenPrefix != "" {
-				a.customToToken.WithTokenPrefix(v.CustomToken.TokenPrefix)
-			}
-			if v.CustomToken.SendInHeader {
-				a.customToToken.WithSendInHeader()
-			}
-			if v.CustomToken.ResponseKey != "" {
-				a.customToToken.WithResponseKey(v.CustomToken.ResponseKey)
-			}
+			a.customToToken = NewCustomFlowAuth().WithAuthMap(v.CustomToken.CustomAuthMap).
+				WithAuthUrl(v.CustomToken.AuthUrl).
+				WithHeaderKey(v.CustomToken.HeaderKey).
+				WithResponseKey(v.CustomToken.ResponseKey).
+				WithTokenPrefix(v.CustomToken.TokenPrefix).
+				WithSendInHeader(v.CustomToken.SendInHeader)
 			ac[k] = a
 		case StaticToken:
 			a.staticToken = &staticToken{headerKey: v.Username, staticToken: v.Password}
 			ac[k] = a
 		default:
-			a.basicAuth = &basicAuth{username: v.Username, password: v.Password}
-			ac[k] = a
+			// will log strategy runtime error if not found
+			ac[k] = auth{}
 		}
 	}
 	return &ac
+}
+
+func NewPasswordCredentialsGrant(v AuthConfig) *passwordGrantConfig {
+	pg := &passwordGrantConfig{
+		oauthPassCredsConfig: &oauth2.Config{
+			ClientID:     v.Username,
+			ClientSecret: v.Password,
+			Scopes:       v.OAuth.Scopes,
+			Endpoint: oauth2.Endpoint{
+				AuthURL:  v.OAuth.ServerUrl,
+				TokenURL: v.OAuth.ServerUrl,
+			},
+		},
+	}
+	if v.OAuth.ResourceOwnerUser != nil {
+		pg.resourceOwnerUser = *v.OAuth.ResourceOwnerUser
+		// panic("grant type password credentials requires a resources owner username")
+	}
+
+	if v.OAuth.ResourceOwnerPassword != nil {
+		pg.resourceOwnerPass = *v.OAuth.ResourceOwnerPassword
+		// panic("grant type password credentials requires a resources owner username")
+	}
+	return pg
+}
+
+func NewClientCredentialsGrant(v AuthConfig) *clientcredentials.Config {
+	c := &clientcredentials.Config{
+		ClientID:       v.Username,
+		ClientSecret:   v.Password,
+		TokenURL:       v.OAuth.ServerUrl,
+		Scopes:         v.OAuth.Scopes,
+		EndpointParams: v.OAuth.EndpointParams,
+		AuthStyle:      oauth2.AuthStyleInParams,
+	}
+	if v.OAuth.OAuthSendParamsInHeader {
+		c.AuthStyle = oauth2.AuthStyleInHeader
+	}
+	return c
 }
 
 type CustomTokenResponse struct {
@@ -275,7 +283,12 @@ func (c *CustomFlowAuth) Token(ctx context.Context, client Client, log log.Logge
 	if token == "" {
 		return CustomTokenResponse{}, fmt.Errorf("unable to retrieve and parse custom token from: %v, by pathx: %s", st, c.responseKey)
 	}
-	// TODO: currently disabled caching of custom tokens
+	// currently disabled caching of custom tokens
+	// enable retry flow by attaching a retry function
+	// in the absence of formal flow to do this
+	// an attempt can be made inside the first failed try on any rest call
+	// and a retry can be triggered to update the token on 401/403 response
+	// however it will have to assume that a token provider returns correct responses
 	// if c.currentToken == "" {
 	c.currentToken = token
 	// }

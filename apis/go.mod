@@ -10,7 +10,7 @@ require (
 )
 
 require (
-	github.com/a8m/envsubst v1.3.0 // indirect
+	github.com/a8m/envsubst v1.3.1-0.20221106143949-dffd7176fbc4 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dnitsch/simplelog v1.5.1 // indirect
 	github.com/emicklei/go-restful/v3 v3.10.1 // indirect
@@ -24,9 +24,9 @@ require (
 	github.com/google/gnostic v0.6.9 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
-	github.com/google/uuid v1.3.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
+	github.com/kr/pretty v0.3.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
@@ -60,4 +60,4 @@ require (
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
-replace github.com/dnitsch/reststrategy => ../
+replace github.com/dnitsch/reststrategy/seeder => ../seeder

@@ -17,7 +17,7 @@ import (
 	listers "github.com/dnitsch/reststrategy/apis/reststrategy/generated/listers/reststrategy/v1alpha1"
 	"github.com/dnitsch/reststrategy/apis/reststrategy/v1alpha1"
 	"github.com/dnitsch/reststrategy/controller/pkg/rstservice"
-	"github.com/dnitsch/reststrategy/seeder/pkg/rest"
+	"github.com/dnitsch/reststrategy/seeder"
 
 	log "github.com/dnitsch/simplelog"
 	corev1 "k8s.io/api/core/v1"
@@ -64,8 +64,8 @@ type ConfigManagerRetrieve interface {
 
 // custom configmanager stuff
 type ControllerConfigManager struct {
-	retrieve ConfigManagerRetrieve
-	config   generator.GenVarsConfig
+	Retrieve ConfigManagerRetrieve
+	Config   generator.GenVarsConfig
 }
 
 // Controller is the controller implementation for RestStrategy resources
@@ -90,7 +90,7 @@ type Controller struct {
 	// logger - init with Standard
 	log log.Loggeriface
 	// service struct that will perform the business logic
-	restClient rest.Client
+	restClient seeder.Client
 	// resyncPeriod in hours
 	resyncServicePeriod int
 	// configManager
@@ -144,7 +144,7 @@ func (c *Controller) WithLogger(l log.Loggeriface) *Controller {
 }
 
 // WithService assigns a service instance
-func (c *Controller) WithRestClient(rc rest.Client) *Controller {
+func (c *Controller) WithRestClient(rc seeder.Client) *Controller {
 	c.restClient = rc
 	return c
 }
@@ -284,7 +284,7 @@ func (c *Controller) syncHandler(key string) error {
 	// begin potentially move to a helper
 	// use custom token separator inline with future releases
 	// config := generator.NewConfig().WithTokenSeparator("://")
-	rspec, err := configmanager.RetrieveMarshalledJson(&reststrategyCopy.Spec, c.confmgr.retrieve, c.confmgr.config)
+	rspec, err := configmanager.RetrieveMarshalledJson(&reststrategyCopy.Spec, c.confmgr.Retrieve, c.confmgr.Config)
 	// end potentially move to a helper
 
 	if err != nil {
@@ -293,12 +293,10 @@ func (c *Controller) syncHandler(key string) error {
 		return nil
 	}
 
-	ec := rstsrv.Execute(*rspec)
-
-	if len(ec) > 0 {
-		c.log.Errorf("%v", ec)
-		c.updateStatus(reststrategyCopy, fmt.Sprintf("%v", ec), true)
-		c.recorder.Event(reststrategy, corev1.EventTypeWarning, ErrSync, fmt.Sprintf("%v", ec))
+	if err := rstsrv.Execute(*rspec); err != nil {
+		c.log.Errorf("%v", err)
+		c.updateStatus(reststrategyCopy, fmt.Sprintf("%v", err), true)
+		c.recorder.Event(reststrategy, corev1.EventTypeWarning, ErrSync, fmt.Sprintf("%v", err))
 		return nil
 	}
 

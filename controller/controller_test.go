@@ -20,12 +20,13 @@ import (
 
 	"github.com/dnitsch/configmanager/pkg/generator"
 	"github.com/dnitsch/reststrategy/controller/internal/testutils"
-	"github.com/dnitsch/reststrategy/seeder/pkg/rest"
+
 	log "github.com/dnitsch/simplelog"
 
 	"github.com/dnitsch/reststrategy/apis/reststrategy/generated/clientset/versioned/fake"
 	informers "github.com/dnitsch/reststrategy/apis/reststrategy/generated/informers/externalversions"
 	v1alphacontroller "github.com/dnitsch/reststrategy/apis/reststrategy/v1alpha1"
+	"github.com/dnitsch/reststrategy/seeder"
 )
 
 var (
@@ -77,20 +78,20 @@ func newFixture(t *testing.T) *fixture {
 }
 
 func newRestStrategySuccess(name, url string) *v1alphacontroller.RestStrategy {
-	testAuthBasic := rest.AuthConfig{
-		AuthStrategy: rest.Basic,
+	testAuthBasic := seeder.AuthConfig{
+		AuthStrategy: seeder.Basic,
 		Username:     "foo",
 		Password:     "bar",
 	}
-	testSeedBasic := rest.Action{
+	testSeedBasic := seeder.Action{
 		Strategy:          "PUT",
 		Endpoint:          url,
-		GetEndpointSuffix: rest.String("/get"),
-		PutEndpointSuffix: rest.String("/put"),
+		GetEndpointSuffix: seeder.String("/get"),
+		PutEndpointSuffix: seeder.String("/put"),
 		AuthMapRef:        "test1",
 		HttpHeaders:       &map[string]string{},
-		RuntimeVars:       &map[string]string{},
-		Variables:         rest.KvMapVarsAny{},
+		RuntimeVars:       map[string]string{},
+		Variables:         seeder.KvMapVarsAny{},
 	}
 	return &v1alphacontroller.RestStrategy{
 		TypeMeta: metav1.TypeMeta{APIVersion: v1alphacontroller.SchemeGroupVersion.String()},
@@ -126,23 +127,15 @@ func (f *fixture) newController() (*Controller, informers.SharedInformerFactory,
 	c := NewController(f.kubeclient, f.client,
 		i.Reststrategy().V1alpha1().RestStrategies(), 8)
 	c.WithLogger(log.New(&bytes.Buffer{}, log.DebugLvl)).WithRestClient(&http.Client{})
-
-	//&tClient{})
+	// .WithConfigManager(fcfmng)
 
 	c.reststrategysSynced = alwaysReady
 
 	c.recorder = &record.FakeRecorder{}
 
-	// scheme := runtime.NewScheme()
-	// _ = v1alphacontroller.AddToScheme(scheme)
-
 	for _, f := range f.testLister {
 		i.Reststrategy().V1alpha1().RestStrategies().Informer().GetIndexer().Add(f)
 	}
-	// conf := generator.NewConfig().WithKeySeparator("://")
-	// c.WithConfigManager(ControllerConfigManager{retrieve: fakeConfMgr(func(input string, config generator.GenVarsConfig) (string, error) {
-	// 	return `{}`, nil
-	// }), config: *conf})
 
 	return c, i, k8sI
 }
@@ -278,13 +271,6 @@ func filterInformerActions(actions []core.Action) []core.Action {
 }
 
 func (f *fixture) expectUpdateStatusAction(rst *v1alphacontroller.RestStrategy) {
-	// f.kubeactions = append(f.kubeactions, core.NewCreateAction(
-	// 	schema.GroupVersionResource{Resource: "crd"},
-	// 	rst.Namespace,
-	// 	rst))
-	// listAction := core.NewListAction(
-	// 	schema.GroupVersionResource{Resource: resource, Group: "dnitsch.net", Version: version},
-	// 	schema.GroupVersionKind{Kind: kind}, rst.Namespace, metav1.ListOptions{})
 	updateAction := core.NewUpdateSubresourceAction(schema.GroupVersionResource{Resource: resource}, "status", rst.Namespace, rst)
 	f.actions = append(f.actions, []core.Action{updateAction}...)
 }
@@ -323,29 +309,38 @@ func TestCreatesCrdRestStrategy(t *testing.T) {
 	f.run(getKey(reststrategy, t))
 }
 
-// func TestDoNothing(t *testing.T) {
+// func TestRun(t *testing.T) {
+// 	ts := httptest.NewServer(setupServer(t, []testFuncs{{"/put", func(w http.ResponseWriter, r *http.Request) {
+
+// 		if r.Header.Get("Authorization") == "" {
+// 			t.Errorf(testutils.TestPhraseWContext, "basic auth", r.Header.Get("Authorization"), "not empty")
+// 		}
+// 		if r.Method != "PUT" {
+// 			t.Errorf(testutils.TestPhraseWContext, "method incorrect", r.Method, "get")
+// 		}
+// 		w.Header().Set("Content-Type", "application/json")
+// 		w.Write([]byte(`{"id":3,"name":"fubar","a":"b","c":"d"}`))
+// 	}}}))
+// 	defer ts.Close()
 // 	f := newFixture(t)
-// 	oapp := newRestStrategySuccess("app-abc")
+// 	reststrategy := newRestStrategySuccess("test", ts.URL)
+// 	f.testLister = append(f.testLister, reststrategy)
+// 	f.objects = append(f.objects, reststrategy)
 
-// 	f.testLister = append(f.testLister, oapp)
-// 	f.objects = append(f.objects, oapp)
-// 	// append(f.kubeclient.Resources, )
-// 	f.expectUpdateOAappStatusAction(oapp)
-// 	// f.run(getKey(oapp, t))
-// 	if false {
-// 		t.Errorf("Skipped tests for now")
+// 	f.expectUpdateStatusAction(reststrategy)
+// 	c, i, k8sI := f.newController()
+
+// 	cStopCh := make(chan struct{})
+// 	iStopCh := make(chan struct{})
+// 	defer close(cStopCh)
+// 	defer close(iStopCh)
+// 	i.Start(iStopCh)
+// 	k8sI.Start(iStopCh)
+// 	if err := c.Run(2, cStopCh); err != nil {
+// 		t.Error("run failed")
 // 	}
-// }
-
-// func TestNotControlledByUs(t *testing.T) {
-// 	f := newFixture(t)
-// 	oapp := newRestStrategySuccess("test")
-
-// 	f.testLister = append(f.testLister, oapp)
-// 	f.objects = append(f.objects, oapp)
-
-// 	// f.runExpectError(getKey(oapp, t))
-// 	if false {
-// 		t.Errorf("Skipped tests for now")
-// 	}
+// 	actions := filterInformerActions(f.client.Actions())
+// 	fmt.Println(actions)
+// 	k8sActions := filterInformerActions(f.kubeclient.Actions())
+// 	fmt.Println(k8sActions)
 // }

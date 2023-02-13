@@ -1,4 +1,4 @@
-package rest
+package seeder
 
 // Bool returns a pointer value for the bool value passed in.
 func Bool(v bool) *bool {

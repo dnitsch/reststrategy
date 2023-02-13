@@ -43,19 +43,3 @@ func (rst *Seeder) sortAuth(auth []v1alpha1.AuthConfig) seeder.AuthMap {
 	}
 	return m
 }
-
-// create
-
-// UpdateResource business implementation of whether to update the resource or not
-func UpdateResource(new, old *v1alpha1.RestStrategy, doResync bool) bool {
-	//
-	return doResync || versionsDiffer(new, old)
-}
-
-// versionsDiffer returns true if new version is not in sync
-func versionsDiffer(newDef, oldDef *v1alpha1.RestStrategy) bool {
-	// check if there is a new version
-	// be wary of CRDs applied via the SDK/pure API
-	// may not correctly reflect Generation and ResourceVersion fields
-	return oldDef.ObjectMeta.ResourceVersion != newDef.ObjectMeta.ResourceVersion && oldDef.ObjectMeta.Generation != newDef.ObjectMeta.Generation
-}

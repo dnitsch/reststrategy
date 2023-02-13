@@ -64,8 +64,8 @@ type ConfigManagerRetrieve interface {
 
 // custom configmanager stuff
 type ControllerConfigManager struct {
-	retrieve ConfigManagerRetrieve
-	config   generator.GenVarsConfig
+	Retrieve ConfigManagerRetrieve
+	Config   generator.GenVarsConfig
 }
 
 // Controller is the controller implementation for RestStrategy resources
@@ -284,7 +284,7 @@ func (c *Controller) syncHandler(key string) error {
 	// begin potentially move to a helper
 	// use custom token separator inline with future releases
 	// config := generator.NewConfig().WithTokenSeparator("://")
-	rspec, err := configmanager.RetrieveMarshalledJson(&reststrategyCopy.Spec, c.confmgr.retrieve, c.confmgr.config)
+	rspec, err := configmanager.RetrieveMarshalledJson(&reststrategyCopy.Spec, c.confmgr.Retrieve, c.confmgr.Config)
 	// end potentially move to a helper
 
 	if err != nil {

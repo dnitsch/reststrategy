@@ -67,13 +67,13 @@ func Test_findByPathExpression(t *testing.T) {
 			got, err := r.FindPathByExpression(tt.payload, tt.pathExpression)
 			if err != nil {
 				if err.Error() != tt.expect {
-					t.Errorf(testutils.TestPhrase, err, tt.expect)
+					t.Errorf(TestPhrase, err, tt.expect)
 				}
 				return
 			}
 
 			if got != tt.expect {
-				t.Errorf(testutils.TestPhrase, got, tt.expect)
+				t.Errorf(TestPhrase, got, tt.expect)
 			}
 
 		})
@@ -109,7 +109,7 @@ func Test_templatePayload(t *testing.T) {
 
 			got := tt.rest.TemplatePayload(tt.payload, tt.variables)
 			if got != tt.expect {
-				t.Errorf(testutils.TestPhrase, got, tt.expect)
+				t.Errorf(TestPhrase, got, tt.expect)
 			}
 		})
 	}

@@ -44,7 +44,7 @@ basic1:
 
 Strategy is a setting against which to perform one or more rest calls to ensure an idempotent update.
 
-The top level `seed` can contain multiple blo
+The top level `seed` can contain multiple blocks of the below type - `RestAction`
 
 ```yaml
 # the name of the Action is the property itself 
@@ -64,10 +64,6 @@ find-put-post-not-found-id:
   runtimeVars:
     someId: "$.array[?(@.name=='fubar')].id"
 ```
-
-      runtimeVariables:
-        trustedcertificategroups_id: "$.id"
-        highavailabilityprofiles_id: "$.id"
 
 Each Strategy option is defined below, and can be extended.
 
@@ -230,10 +226,12 @@ action2:
       someId: "$.array[?(@.name=='fubar')].id"
 ```
 
-### Contribution
+## Contribution
 
 ...
+
 Todo fill me out
-...
-standard go styling and contribution guide lines
 
+...
+
+standard go styling and contribution guide lines

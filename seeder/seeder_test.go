@@ -103,7 +103,7 @@ func TestExecute(t *testing.T) {
 					w.Header().Set("Content-Type", "application/json; charset=utf-8")
 					w.Write([]byte(`{"name":"fubar","id":"1234"}`))
 				})
-				mux.HandleFunc("/token", testutils.TokenHandleFunc(t))
+				mux.HandleFunc("/token", TokenHandleFunc(t))
 				return mux
 			},
 			expect: func(url string) error {
@@ -197,7 +197,7 @@ func TestExecute(t *testing.T) {
 					w.Header().Set("Content-Type", "application/json; charset=utf-8")
 					w.Write([]byte(`{"name":"fubar","id":"1234"}`))
 				})
-				mux.HandleFunc("/token", testutils.OAuthPasswordHandleFunc(t))
+				mux.HandleFunc("/token", OAuthPasswordHandleFunc(t))
 				return mux
 			},
 			expect: func(url string) error {

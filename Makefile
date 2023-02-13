@@ -2,7 +2,7 @@ OWNER := dnitsch
 NAME := reststrategy
 GIT_TAG := "0.9.0"
 VERSION := "v$(GIT_TAG)"
-REVISION := $(shell git rev-parse --short HEAD)
+REVISION := "aaaa1111-always-overwrite-in-CI"
 
 build_seeder: 
 	echo "build seeder first as it contains nested types for APIs" 

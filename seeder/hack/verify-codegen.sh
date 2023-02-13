@@ -20,9 +20,9 @@ set -o pipefail
 
 SCRIPT_ROOT=$(dirname "${BASH_SOURCE[0]}")/..
 
-DIFFROOT="${SCRIPT_ROOT}/pkg"
-TMP_DIFFROOT="${SCRIPT_ROOT}/_tmp/pkg"
-_tmp="${SCRIPT_ROOT}/_tmp"
+DIFFROOT="${SCRIPT_ROOT}/zz_generated.deepcopy.go"
+TMP_DIFFROOT="${SCRIPT_ROOT}/../_tmp/seeder"
+_tmp="${SCRIPT_ROOT}/../_tmp"
 
 cleanup() {
   rm -rf "${_tmp}"
@@ -32,7 +32,8 @@ trap "cleanup" EXIT SIGINT
 cleanup
 
 mkdir -p "${TMP_DIFFROOT}"
-cp -a "${DIFFROOT}"/* "${TMP_DIFFROOT}"
+echo "doing a copy into temp"
+cp -a "${DIFFROOT}" "${TMP_DIFFROOT}"
 
 "${SCRIPT_ROOT}/hack/update-codegen.sh"
 echo "diffing ${DIFFROOT} against freshly generated codegen"

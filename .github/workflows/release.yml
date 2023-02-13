@@ -82,7 +82,10 @@ jobs:
         with:
           fetch-depth: 0
       - name: generate binaries
-        run: | 
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git config user.email ${{ github.actor }}-ci@gha.org
+          git config user.name ${{ github.actor }}
           make GIT_TAG=$SEMVER REVISION=${{ github.sha }} PAT=${{ secrets.GITHUB_TOKEN }} build_ci
       - name: release library
         run: |

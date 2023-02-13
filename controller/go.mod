@@ -3,8 +3,8 @@ module github.com/dnitsch/reststrategy/controller
 go 1.19
 
 require (
-	github.com/dnitsch/reststrategy/apis v0.9.1-0.20230201144759-a386d28e051e
-	github.com/dnitsch/reststrategy/seeder v0.9.1-0.20230201144759-a386d28e051e
+	github.com/dnitsch/reststrategy/apis v0.9.2-0.20230213152010-dac2bf42c37f
+	github.com/dnitsch/reststrategy/seeder v0.9.2-0.20230213152010-dac2bf42c37f
 	// need to ensure that these packages are
 	// aligned to server version
 	k8s.io/api v0.26.1
@@ -18,8 +18,8 @@ require (
 replace (
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.2.0 => github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.1.0
 	github.com/AzureAD/microsoft-authentication-library-for-go => github.com/AzureAD/microsoft-authentication-library-for-go v0.7.0
-	github.com/dnitsch/reststrategy/apis => ../apis
-	github.com/dnitsch/reststrategy/seeder => ../seeder
+// github.com/dnitsch/reststrategy/apis => ../apis
+// github.com/dnitsch/reststrategy/seeder => ../seeder
 )
 
 require (

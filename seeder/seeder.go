@@ -145,14 +145,15 @@ func FindDeletePostStrategyFunc(ctx context.Context, action *Action, rest *Seede
 	return rest.FindDeletePost(ctx, action)
 }
 
-// FindPostStrategyFunc strategy calls a GET endpoint and if item ***FOUND it does NOT do a POST***
+// FindPostStrategyFunc strategy calls a GET endpoint and expects a list of items to match against a
+// FilterPathExpre and if item ***FOUND*** it does _NOT_ do a ***POST***
 // this strategy should be used sparingly and only in cases where the service REST implementation
 // does not support an update of existing item.
 func FindPostStrategyFunc(ctx context.Context, action *Action, rest *SeederImpl) error {
 	return rest.FindPost(ctx, action)
 }
 
-// FindPostStrategyFunc strategy calls a GET endpoint and if item ***FOUND it does NOT do a POST***
+// GetPostStrategyFunc strategy calls a GET endpoint by an ID and if item ***FOUND*** it does _NOT_ do a ***POST***
 // this strategy should be used sparingly and only in cases where the service REST implementation
 // does not support an update of existing item.
 func GetPostStrategyFunc(ctx context.Context, action *Action, rest *SeederImpl) error {

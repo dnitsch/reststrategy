@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/dnitsch/reststrategy/seeder"
-	"github.com/dnitsch/reststrategy/seeder/internal/testutils"
 	log "github.com/dnitsch/simplelog"
 )
 
@@ -104,7 +103,7 @@ func TestExecuteGetPutPost(t *testing.T) {
 					w.Header().Set("Content-Type", "application/json; charset=utf-8")
 					w.Write([]byte(`{"name":"fubar","id":"1234"}`))
 				})
-				mux.HandleFunc("/token", testutils.TokenHandleFunc(t))
+				mux.HandleFunc("/token", TokenHandleFunc(t))
 				return mux
 			},
 			expect: func(url string) string {
@@ -231,7 +230,7 @@ func TestExecuteFindPutPost(t *testing.T) {
 					w.Header().Set("Content-Type", "application/json; charset=utf-8")
 					w.Write([]byte(`{"name":"fubar","id":"1234"}`))
 				})
-				mux.HandleFunc("/token", testutils.OAuthPasswordHandleFunc(t))
+				mux.HandleFunc("/token", OAuthPasswordHandleFunc(t))
 				return mux
 			},
 			expect: func(url string) string {

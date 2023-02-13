@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/dnitsch/reststrategy/seeder"
-	"github.com/dnitsch/reststrategy/seeder/internal/testutils"
 	log "github.com/dnitsch/simplelog"
 )
 
@@ -45,10 +44,10 @@ func TestCustomToken(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got, err := tt.customAuth(t).Token(context.TODO(), tt.client(t), log.New(&bytes.Buffer{}, log.DebugLvl))
 			if err != nil {
-				t.Errorf(testutils.TestPhrase, got, tt.expect)
+				t.Errorf(TestPhrase, got, tt.expect)
 			}
 			if got.TokenValue != tt.expect.TokenValue {
-				t.Errorf(testutils.TestPhraseWithContext, "custom token not returned properly", got.TokenValue, tt.expect.TokenValue)
+				t.Errorf(TestPhraseWithContext, "custom token not returned properly", got.TokenValue, tt.expect.TokenValue)
 			}
 		})
 	}
@@ -80,7 +79,7 @@ func TestClientCredentials(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got := seeder.NewAuth(tt.am)
 			if got == nil {
-				t.Errorf(testutils.TestPhraseWithContext, "auth map", "not nil", "<nil>")
+				t.Errorf(TestPhraseWithContext, "auth map", "not nil", "<nil>")
 			}
 		})
 	}

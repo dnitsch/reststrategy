@@ -15,7 +15,6 @@ type RestStrategy struct {
 	Status            StrategyStatus `json:"status"`
 }
 
-// https://control-plane:8080/apis/dnitsch.net/v1alpha/reststrategies/
 type AuthConfig struct {
 	Name string `json:"name"`
 	seeder.AuthConfig

@@ -1,4 +1,4 @@
-package k8sutils
+package k8s_test
 
 import (
 	"os"
@@ -6,13 +6,18 @@ import (
 
 	"github.com/dnitsch/reststrategy/apis/reststrategy/generated/clientset/versioned"
 	"github.com/dnitsch/reststrategy/apis/reststrategy/generated/clientset/versioned/fake"
-	"github.com/dnitsch/reststrategy/controller/internal/testutils"
+	"github.com/dnitsch/reststrategy/controller/internal/k8s"
 )
 
 type args struct {
 	onboardClient versioned.Interface
 	namespace     string
 }
+
+const (
+	TestPhrase         string = "got: %v want: %v"
+	TestPhraseWContext string = "failed %s => got: %v want: %v"
+)
 
 func TestInitialiseSharedInformerFactory_withNamespace(t *testing.T) {
 
@@ -63,43 +68,13 @@ func TestInitialiseSharedInformerFactory_withNamespace(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.envFunc()
 
-			got, _ := initialiseSharedInformerFactory(tt.args.onboardClient, tt.args.namespace, 60)
+			got, _ := k8s.InitialiseSharedInformerFactory(tt.args.onboardClient, tt.args.namespace, 60)
 			if got.Reststrategy().V1alpha1() == nil {
 				t.Errorf("InitialiseSharedInformerFactory() got = %v, want not <nil>", got)
 			}
 		})
 	}
 }
-
-// func TestInitialiseSharedInformerFactory_withoutNamespace(t *testing.T) {
-
-// 	tests := []struct {
-// 		name string
-// 		args args
-// 		want error
-// 	}{
-// 		{
-// 			name: "Initialise with empty namespace argument and no environment variable set",
-// 			args: args{
-// 				onboardClient: &fake.Clientset{},
-// 				namespace:     "",
-// 			},
-// 			want: errors.New("either --namespace arg must be provided or POD_NAMESPACE env variable must be present"),
-// 		},
-// 	}
-
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			_, err := InitialiseSharedInformerFactory(tt.args.onboardClient, tt.args.namespace, 60)
-// 			if err == nil {
-// 				t.Errorf("Expected InitialiseSharedInformerFactory() to return Error")
-// 			}
-// 			if err.Error() != tt.want.Error() {
-// 				t.Errorf("expected error to be: %v", tt.want.Error())
-// 			}
-// 		})
-// 	}
-// }
 
 func Test_GetNs(t *testing.T) {
 	tests := []struct {
@@ -128,9 +103,9 @@ func Test_GetNs(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.envFunc()
-			ns := getNamespace(tt.ns)
+			ns := k8s.GetNamespace(tt.ns)
 			if ns != tt.want {
-				t.Errorf(testutils.TestPhrase, tt.want, ns)
+				t.Errorf(TestPhrase, tt.want, ns)
 			}
 		})
 	}

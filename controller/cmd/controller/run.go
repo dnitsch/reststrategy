@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/dnitsch/reststrategy/controller/internal/k8sutils"
+	"github.com/dnitsch/reststrategy/controller/internal/k8s"
 	"github.com/dnitsch/reststrategy/controller/pkg/signals"
 	log "github.com/dnitsch/simplelog"
 	"github.com/spf13/cobra"
@@ -46,7 +46,7 @@ func controllerRun(cmd *cobra.Command, args []string) error {
 	logger := log.New(os.Stderr, log.ParseLevel(logLevel))
 
 	// great case for Viper here
-	config := k8sutils.Config{
+	config := k8s.Config{
 		Kubeconfig:      kubeconfig,
 		MasterURL:       masterURL,
 		ControllerCount: controllerCount,
@@ -56,5 +56,5 @@ func controllerRun(cmd *cobra.Command, args []string) error {
 	}
 	// set up signals so we handle the first shutdown signal gracefully
 	stopCh := signals.SetupSignalHandler()
-	return k8sutils.Run(config, logger, stopCh)
+	return k8s.Run(config, logger, stopCh)
 }

@@ -376,7 +376,7 @@ func TestExecuteFindPutPost(t *testing.T) {
 					w.Header().Set("Content-Type", "application/json; charset=utf-8")
 					w.Write([]byte(`{"name":"fubar","id":"1234"}`))
 				})
-				mux.HandleFunc("/token", testutils.TokenHandleFunc(t))
+				mux.HandleFunc("/token", TokenHandleFunc(t))
 				return mux
 			},
 			expect: func(url string) string {
@@ -465,7 +465,7 @@ func TestExecuteFindPutPost(t *testing.T) {
 					w.Header().Set("Content-Type", "application/json; charset=utf-8")
 					w.Write([]byte(`{"name":"fubar","id":"1234"}`))
 				})
-				mux.HandleFunc("/token", testutils.TokenHandleFunc(t))
+				mux.HandleFunc("/token", TokenHandleFunc(t))
 				return mux
 			},
 			expect: func(url string) string {
@@ -644,7 +644,7 @@ func TestExecuteGetPost(t *testing.T) {
 					w.Header().Set("Content-Type", "application/json; charset=utf-8")
 					w.Write([]byte(`{"name":"fubar","id":"1234"}`))
 				})
-				mux.HandleFunc("/token", testutils.TokenHandleFunc(t))
+				mux.HandleFunc("/token", TokenHandleFunc(t))
 				return mux
 			},
 			expect: func(url string) string {
@@ -733,7 +733,7 @@ func TestExecuteGetPost(t *testing.T) {
 					w.Header().Set("Content-Type", "application/json; charset=utf-8")
 					w.Write([]byte(`{"name":"fubar","id":"1234"}`))
 				})
-				mux.HandleFunc("/token", testutils.TokenHandleFunc(t))
+				mux.HandleFunc("/token", TokenHandleFunc(t))
 				return mux
 			},
 			expect: func(url string) string {
@@ -841,7 +841,7 @@ func TestExecutePutPost(t *testing.T) {
 					w.Header().Set("Content-Type", "application/json; charset=utf-8")
 					w.Write([]byte(`{"name":"fubar","id":"1234"}`))
 				})
-				mux.HandleFunc("/token", testutils.TokenHandleFunc(t))
+				mux.HandleFunc("/token", TokenHandleFunc(t))
 				return mux
 			},
 			expect: func(url string) string {
@@ -930,7 +930,7 @@ func TestExecutePutPost(t *testing.T) {
 					w.Header().Set("Content-Type", "application/json; charset=utf-8")
 					w.Write([]byte(`{"name":"fubar","id":"1234"}`))
 				})
-				mux.HandleFunc("/token", testutils.TokenHandleFunc(t))
+				mux.HandleFunc("/token", TokenHandleFunc(t))
 				return mux
 			},
 			expect: func(url string) string {
@@ -1052,7 +1052,7 @@ func TestExecuteFindPatchPost(t *testing.T) {
 					w.Header().Set("Content-Type", "application/json; charset=utf-8")
 					w.Write([]byte(`{"name":"fubar","id":"1234"}`))
 				})
-				mux.HandleFunc("/token", testutils.TokenHandleFunc(t))
+				mux.HandleFunc("/token", TokenHandleFunc(t))
 				return mux
 			},
 			expect: func(url string) string {
@@ -1170,7 +1170,7 @@ func TestExecuteFindDeletePost(t *testing.T) {
 					w.Header().Set("Content-Type", "application/json; charset=utf-8")
 					w.Write([]byte(`{"name":"fubar","id":"1234"}`))
 				})
-				mux.HandleFunc("/token", testutils.TokenHandleFunc(t))
+				mux.HandleFunc("/token", TokenHandleFunc(t))
 				return mux
 			},
 			expect: func(url string) string {

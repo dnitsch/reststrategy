@@ -17,6 +17,7 @@ type mockClient func(req *http.Request) (*http.Response, error)
 func (m mockClient) Do(req *http.Request) (*http.Response, error) {
 	return m(req)
 }
+
 func TestCustomToken(t *testing.T) {
 	ttests := map[string]struct {
 		customAuth func(t *testing.T) *seeder.CustomFlowAuth

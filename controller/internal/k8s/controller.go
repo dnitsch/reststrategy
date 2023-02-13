@@ -2,7 +2,7 @@
 influenced by k8s.io samplecontroller
 */
 
-package controller
+package k8s
 
 import (
 	"context"
@@ -110,7 +110,9 @@ func NewController(
 	// Add reststrategy-controller types to the default Kubernetes Scheme so Events can be
 	// logged for reststrategy-controller types.
 	utilruntime.Must(reststrategyscheme.AddToScheme(scheme.Scheme))
+
 	fmt.Print("Creating event broadcaster")
+
 	eventBroadcaster := record.NewBroadcaster()
 	eventBroadcaster.StartStructuredLogging(0)
 	eventBroadcaster.StartRecordingToSink(&typedcorev1.EventSinkImpl{Interface: kubeclientset.CoreV1().Events("")})

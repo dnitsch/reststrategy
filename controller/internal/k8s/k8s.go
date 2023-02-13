@@ -1,4 +1,4 @@
-package k8sutils
+package k8s
 
 import (
 	"errors"
@@ -9,7 +9,7 @@ import (
 
 	clientset "github.com/dnitsch/reststrategy/apis/reststrategy/generated/clientset/versioned"
 	controllerinformers "github.com/dnitsch/reststrategy/apis/reststrategy/generated/informers/externalversions"
-	"github.com/dnitsch/reststrategy/controller"
+
 	log "github.com/dnitsch/simplelog"
 	kubeinformers "k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
@@ -53,13 +53,13 @@ func Run(config Config, log log.Loggeriface, stopCh <-chan struct{}) error {
 	// current runs etc..
 	kubeInformerFactory := kubeinformers.NewSharedInformerFactory(kubeClient, time.Minute*time.Duration(CACHE_RESYNC_INTERVAL))
 
-	reststrategyInformerFactory, err := initialiseSharedInformerFactory(reststrategyClient, config.Namespace, 60)
+	reststrategyInformerFactory, err := InitialiseSharedInformerFactory(reststrategyClient, config.Namespace, 60)
 	if err != nil {
 		fmt.Print(fmt.Errorf("error building reststrategyInformerFactory: %s", err.Error()))
 		os.Exit(1)
 	}
 
-	controller := controller.NewController(kubeClient, reststrategyClient,
+	controller := NewController(kubeClient, reststrategyClient,
 		reststrategyInformerFactory.Reststrategy().V1alpha1().RestStrategies(), config.Rsyncperiod)
 
 	rc := &http.Client{}
@@ -77,16 +77,16 @@ func Run(config Config, log log.Loggeriface, stopCh <-chan struct{}) error {
 
 }
 
-func initialiseSharedInformerFactory(reststrategyClient clientset.Interface, namespace string, resyncCustom time.Duration) (controllerinformers.SharedInformerFactory, error) {
+func InitialiseSharedInformerFactory(reststrategyClient clientset.Interface, namespace string, resyncCustom time.Duration) (controllerinformers.SharedInformerFactory, error) {
 
-	if ns := getNamespace(namespace); ns != "" {
+	if ns := GetNamespace(namespace); ns != "" {
 		options := controllerinformers.WithNamespace(namespace)
 		return controllerinformers.NewSharedInformerFactoryWithOptions(reststrategyClient, time.Second*resyncCustom, options), nil
 	}
 	return nil, errors.New("either --namespace arg must be provided or POD_NAMESPACE env variable must be present")
 }
 
-func getNamespace(namespace string) string {
+func GetNamespace(namespace string) string {
 	ns := ""
 	if len(namespace) > 0 {
 		ns = namespace

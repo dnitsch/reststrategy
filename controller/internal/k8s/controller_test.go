@@ -1,4 +1,9 @@
-package controller
+/*
+	currently this is tested as "private"
+
+*/
+
+package k8s
 
 import (
 	"bytes"
@@ -19,7 +24,6 @@ import (
 	"k8s.io/client-go/tools/record"
 
 	"github.com/dnitsch/configmanager/pkg/generator"
-	"github.com/dnitsch/reststrategy/controller/internal/testutils"
 
 	log "github.com/dnitsch/simplelog"
 
@@ -27,6 +31,11 @@ import (
 	informers "github.com/dnitsch/reststrategy/apis/reststrategy/generated/informers/externalversions"
 	v1alphacontroller "github.com/dnitsch/reststrategy/apis/reststrategy/v1alpha1"
 	"github.com/dnitsch/reststrategy/seeder"
+)
+
+const (
+	TestPhrase         string = "got: %v want: %v"
+	TestPhraseWContext string = "failed %s => got: %v want: %v"
 )
 
 var (
@@ -289,10 +298,10 @@ func TestCreatesCrdRestStrategy(t *testing.T) {
 	ts := httptest.NewServer(setupServer(t, []testFuncs{{"/put", func(w http.ResponseWriter, r *http.Request) {
 
 		if r.Header.Get("Authorization") == "" {
-			t.Errorf(testutils.TestPhraseWContext, "basic auth", r.Header.Get("Authorization"), "not empty")
+			t.Errorf(TestPhraseWContext, "basic auth", r.Header.Get("Authorization"), "not empty")
 		}
 		if r.Method != "PUT" {
-			t.Errorf(testutils.TestPhraseWContext, "method incorrect", r.Method, "get")
+			t.Errorf(TestPhraseWContext, "method incorrect", r.Method, "get")
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte(`{"id":3,"name":"fubar","a":"b","c":"d"}`))

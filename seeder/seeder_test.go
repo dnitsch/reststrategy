@@ -23,7 +23,7 @@ func TestExecute(t *testing.T) {
 	tests := map[string]struct {
 		handler    func(t *testing.T) http.Handler
 		authConfig func(url string) seeder.AuthMap
-		expect     func(url string) error
+		expect     func(url string) string
 		seeders    func(url string) seeder.Seeders
 	}{
 		"OAuth Client Creds GET/PUT/POST rest success": {
@@ -107,8 +107,8 @@ func TestExecute(t *testing.T) {
 				mux.HandleFunc("/token", testutils.TokenHandleFunc(t))
 				return mux
 			},
-			expect: func(url string) error {
-				return nil
+			expect: func(url string) string {
+				return ""
 				// 	//fmt.Errorf(`status: 400
 				// name: find-put-post-bad-request
 				// message: {}
@@ -116,7 +116,7 @@ func TestExecute(t *testing.T) {
 				// isRetryAble: true`, strings.TrimPrefix(url, "http://"))
 			},
 		},
-		"OAuth PAsswordCredentials FIND/PUT/POST success": {
+		"OAuth PasswordCredentials FIND/PUT/POST success": {
 			authConfig: func(url string) seeder.AuthMap {
 				return seeder.AuthMap{
 					"oauth2-passwd": {
@@ -201,8 +201,8 @@ func TestExecute(t *testing.T) {
 				mux.HandleFunc("/token", testutils.OAuthPasswordHandleFunc(t))
 				return mux
 			},
-			expect: func(url string) error {
-				return nil
+			expect: func(url string) string {
+				return ""
 			},
 		},
 		"BasicAuth Get/Post success": {
@@ -272,8 +272,172 @@ func TestExecute(t *testing.T) {
 				})
 				return mux
 			},
-			expect: func(url string) error {
-				return nil
+			expect: func(url string) string {
+				return ""
+			},
+		},
+		"OAuth Client Creds PUT/POST rest success": {
+			authConfig: func(url string) seeder.AuthMap {
+				return seeder.AuthMap{
+					"oauth2-test": {
+						AuthStrategy: seeder.OAuth,
+						Username:     "randClientIdOrUsernameForBasicAuth",
+						Password:     "randClientSecretOrPassExpr",
+						OAuth: &seeder.ConfigOAuth{
+							OAuthSendParamsInHeader: false,
+							ServerUrl:               fmt.Sprintf("%s/token", url),
+							Scopes:                  []string{"foo", "bar"},
+							EndpointParams:          map[string][]string{"params": {"baz", "boom"}},
+						},
+					},
+				}
+			},
+			seeders: func(url string) seeder.Seeders {
+				return seeder.Seeders{
+					"put-post-found": {
+						Strategy:           string(seeder.PUT_POST),
+						Order:              seeder.Int(0),
+						Endpoint:           url,
+						PostEndpointSuffix: seeder.String("/post"),
+						PutEndpointSuffix:  seeder.String("/put/1234"),
+						PayloadTemplate:    `{"value": "$foo"}`,
+						Variables:          map[string]any{"foo": "bar"},
+						AuthMapRef:         "oauth2-test",
+					},
+					"put-post-not-found": {
+						Strategy:           string(seeder.PUT_POST),
+						Order:              seeder.Int(0),
+						Endpoint:           url,
+						PostEndpointSuffix: seeder.String("/post/new"),
+						PutEndpointSuffix:  seeder.String("/put/not-found"),
+						PayloadTemplate:    `{"value": "$foo"}`,
+						Variables:          map[string]any{"foo": "bar"},
+						AuthMapRef:         "oauth2-test",
+					},
+				}
+			},
+			handler: func(t *testing.T) http.Handler {
+				mux := http.NewServeMux()
+				mux.HandleFunc("/put/1234", func(w http.ResponseWriter, r *http.Request) {
+					b, _ := io.ReadAll(r.Body)
+					if string(b) != `{"value": "bar"}` {
+						t.Errorf(`got: %v expected body to match the templated payload: {"value": "bar"}`, string(b))
+					}
+					w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
+					w.Write([]byte(`{"name":"fubar","id":"1234"}`))
+				})
+				mux.HandleFunc("/post", func(w http.ResponseWriter, r *http.Request) {
+					b, _ := io.ReadAll(r.Body)
+					t.Errorf("post should never be called but was called with: %v", string(b))
+					w.Header().Set("Content-Type", "application/json; charset=utf-8")
+				})
+				mux.HandleFunc("/put/not-found", func(w http.ResponseWriter, r *http.Request) {
+					w.Header().Set("Content-Type", "application/json; charset=utf-8")
+					w.WriteHeader(404)
+				})
+				mux.HandleFunc("/post/new", func(w http.ResponseWriter, r *http.Request) {
+					b, _ := io.ReadAll(r.Body)
+					if string(b) != `{"value": "bar"}` {
+						t.Errorf(`got: %v expected body to match the templated payload: {"value": "bar"}`, string(b))
+					}
+					w.Header().Set("Content-Type", "application/json; charset=utf-8")
+					w.Write([]byte(`{"name":"fubar","id":"1234"}`))
+				})
+				mux.HandleFunc("/token", testutils.TokenHandleFunc(t))
+				return mux
+			},
+			expect: func(url string) string {
+				return ""
+			},
+		},
+		"OAuth Client Creds FIND/PATCH/POST rest success": {
+			authConfig: func(url string) seeder.AuthMap {
+				return seeder.AuthMap{
+					"oauth2-test": {
+						AuthStrategy: seeder.OAuth,
+						Username:     "randClientIdOrUsernameForBasicAuth",
+						Password:     "randClientSecretOrPassExpr",
+						OAuth: &seeder.ConfigOAuth{
+							OAuthSendParamsInHeader: false,
+							ServerUrl:               fmt.Sprintf("%s/token", url),
+							Scopes:                  []string{"foo", "bar"},
+							EndpointParams:          map[string][]string{"params": {"baz", "boom"}},
+						},
+					},
+				}
+			},
+			seeders: func(url string) seeder.Seeders {
+				return seeder.Seeders{
+					"patch-post-found": {
+						Strategy:             string(seeder.FIND_PATCH_POST),
+						Order:                seeder.Int(0),
+						Endpoint:             url,
+						GetEndpointSuffix:    seeder.String("/get/all"),
+						PatchEndpointSuffix:  seeder.String("/patch"),
+						PostEndpointSuffix:   seeder.String("/post"),
+						PayloadTemplate:      `{"value": "$foo"}`,
+						PatchPayloadTemplate: `{"value": "$newFoo"}`,
+						FindByJsonPathExpr:   "$.[?(@.name=='fubar')].id",
+						Variables:            map[string]any{"foo": "bar", "newFoo": "newBar"},
+						AuthMapRef:           "oauth2-test",
+					},
+					"patch-post-not-found": {
+						Strategy:             string(seeder.FIND_PATCH_POST),
+						Order:                seeder.Int(0),
+						Endpoint:             url,
+						GetEndpointSuffix:    seeder.String("/get/not-found"),
+						PatchEndpointSuffix:  seeder.String("/patch/not-found"),
+						PostEndpointSuffix:   seeder.String("/post/new"),
+						PayloadTemplate:      `{"value": "$foo"}`,
+						PatchPayloadTemplate: `{"value": "$newFoo"}`,
+						FindByJsonPathExpr:   "$.[?(@.name=='fubar')].id",
+						Variables:            map[string]any{"foo": "bar", "newFoo": "newBar"},
+						AuthMapRef:           "oauth2-test",
+					},
+				}
+			},
+			handler: func(t *testing.T) http.Handler {
+				mux := http.NewServeMux()
+				mux.HandleFunc("/get/not-found", func(w http.ResponseWriter, r *http.Request) {
+					w.Header().Set("Content-Type", "application/json; charset=utf-8")
+					w.Write([]byte(`[]`))
+				})
+				mux.HandleFunc("/get/all", func(w http.ResponseWriter, r *http.Request) {
+					w.Header().Set("Content-Type", "application/json; charset=utf-8")
+					w.Write([]byte(`[{"name":"fubar","id":"1234"}]`))
+				})
+				mux.HandleFunc("/patch/1234", func(w http.ResponseWriter, r *http.Request) {
+					b, _ := io.ReadAll(r.Body)
+					if string(b) != `{"value": "newBar"}` {
+						t.Errorf(`got: %v expected body to match the templated payload: {"value": "newBar"}`, string(b))
+					}
+					w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
+					w.Write([]byte(`{"name":"fubar","id":"1234"}`))
+				})
+				mux.HandleFunc("/post", func(w http.ResponseWriter, r *http.Request) {
+					b, _ := io.ReadAll(r.Body)
+					t.Errorf("post should never be called but was called with: %v", string(b))
+					w.Header().Set("Content-Type", "application/json; charset=utf-8")
+				})
+				mux.HandleFunc("/patch/not-found", func(w http.ResponseWriter, r *http.Request) {
+					b, _ := io.ReadAll(r.Body)
+					t.Errorf("put should never be called but was called with: %v", string(b))
+				})
+				mux.HandleFunc("/post/new", func(w http.ResponseWriter, r *http.Request) {
+					b, _ := io.ReadAll(r.Body)
+					if string(b) != `{"value": "bar"}` {
+						t.Errorf(`got: %v expected body to match the templated payload: {"value": "bar"}`, string(b))
+					}
+					w.Header().Set("Content-Type", "application/json; charset=utf-8")
+					w.Write([]byte(`{"name":"fubar","id":"1234"}`))
+				})
+				mux.HandleFunc("/token", testutils.TokenHandleFunc(t))
+				return mux
+			},
+			expect: func(url string) string {
+				return ""
 			},
 		},
 	}
@@ -289,8 +453,8 @@ func TestExecute(t *testing.T) {
 			err := srs.Execute(context.Background())
 
 			if err != nil {
-				if err.Error() != tt.expect(ts.URL).Error() {
-					t.Errorf("expected different error got: %v\n\nwant: %v", err.Error(), tt.expect(ts.URL).Error())
+				if err.Error() != tt.expect(ts.URL) {
+					t.Errorf("expected different error got: %v\n\nwant: %v", err.Error(), tt.expect(ts.URL))
 				}
 			}
 		})

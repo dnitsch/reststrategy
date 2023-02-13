@@ -283,7 +283,7 @@ func (r *SeederImpl) post(ctx context.Context, action *Action) error {
 
 func (r *SeederImpl) patch(ctx context.Context, action *Action) error {
 	endpoint := action.Endpoint
-	if action.PutEndpointSuffix != nil {
+	if action.PatchEndpointSuffix != nil {
 		endpoint = fmt.Sprintf("%s%s", endpoint, *action.PatchEndpointSuffix)
 	}
 	if action.foundId != "" {

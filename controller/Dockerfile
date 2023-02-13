@@ -11,7 +11,8 @@ COPY ./ ./
 
 RUN go mod vendor
 
-RUN go build -ldflags="-s -w -X \"github.com/dnitsch/reststrategy/controller/cmd/controller.Version=${VERSION}\" -X \"github.com/dnitsch/reststrategy/controller/cmd/controller.Revision=${REVISION}\" -extldflags -static" \
+RUN go CGO_ENABLED=0 build -mod=readonly \
+-ldflags="-s -w -X \"github.com/dnitsch/reststrategy/controller/cmd/controller.Version=${VERSION}\" -X \"github.com/dnitsch/reststrategy/controller/cmd/controller.Revision=${REVISION}\" -extldflags -static" \
 -o dist/controller ./cmd
 
 RUN chmod +x ./dist/controller

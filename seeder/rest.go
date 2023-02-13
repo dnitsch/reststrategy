@@ -107,8 +107,10 @@ func (in *KvMapVarsAny) DeepCopy() *KvMapVarsAny {
 }
 
 // +k8s:deepcopy-gen=true
+//
 // Action defines the single action to make agains an endpoint
 // and selecting a strategy
+//
 // Endpoint is the base url to make the requests against
 // GetEndpointSuffix can be used to specify a direct ID or query params
 // PostEndpointSuffix

@@ -1,5 +1,15 @@
 # Rest Strategy
 
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=dnitsch_reststrategy&metric=bugs)](https://sonarcloud.io/summary/new_code?id=dnitsch_reststrategy)
+[![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=dnitsch_reststrategy&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=dnitsch_reststrategy)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=dnitsch_reststrategy&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=dnitsch_reststrategy)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=dnitsch_reststrategy&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=dnitsch_reststrategy)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=dnitsch_reststrategy&metric=coverage)](https://sonarcloud.io/summary/new_code?id=dnitsch_reststrategy)
+
+__Seeder__: [![Go Report Card](https://goreportcard.com/badge/github.com/dnitsch/reststrategy/seeder)](https://goreportcard.com/report/github.com/dnitsch/reststrategy/seeder)
+
+__Controller__: [![Go Report Card](https://goreportcard.com/badge/github.com/dnitsch/reststrategy/controller)](https://goreportcard.com/report/github.com/dnitsch/reststrategy/controller)
+
 Rest Strategy is a collection of packages to enable idempotent seeding of data against REST endpoints.
 
 This repo uses workspaces and is made up of following modules/components.

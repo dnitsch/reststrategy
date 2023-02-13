@@ -1,5 +1,5 @@
 // +go:build !ignore
-package testutils
+package seeder_test
 
 import (
 	"fmt"

@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/dnitsch/reststrategy/seeder"
-	"github.com/dnitsch/reststrategy/seeder/internal/testutils"
 	log "github.com/dnitsch/simplelog"
 )
 

@@ -116,6 +116,123 @@ func TestExecuteGetPutPost(t *testing.T) {
 				// isRetryAble: true`, strings.TrimPrefix(url, "http://"))
 			},
 		},
+		"OAuth2 GET/PUT/POST GET 500 error": {
+			authConfig: func(url string) seeder.AuthMap {
+				return seeder.AuthMap{
+					"oauth2-test": {
+						AuthStrategy: seeder.OAuth,
+						Username:     "randClientIdOrUsernameForBasicAuth",
+						Password:     "randClientSecretOrPassExpr",
+						OAuth: &seeder.ConfigOAuth{
+							OAuthSendParamsInHeader: false,
+							ServerUrl:               fmt.Sprintf("%s/token", url),
+							Scopes:                  []string{"foo", "bar"},
+							EndpointParams:          map[string][]string{"params": {"baz", "boom"}},
+						},
+					},
+				}
+			},
+			seeders: func(url string) seeder.Seeders {
+				return seeder.Seeders{
+					"get-put-post-get-error": {
+						Strategy:           string(seeder.GET_PUT_POST),
+						Order:              seeder.Int(0),
+						Endpoint:           url,
+						GetEndpointSuffix:  seeder.String("/get/all"),
+						PutEndpointSuffix:  seeder.String("/put"),
+						PostEndpointSuffix: seeder.String("/post"),
+						PayloadTemplate:    `{"value": "$foo"}`,
+						FindByJsonPathExpr: "$.[?(@.name=='fubar')].id",
+						Variables:          map[string]any{"foo": "bar"},
+						AuthMapRef:         "oauth2-passwd",
+					},
+				}
+			},
+			handler: func(t *testing.T) http.Handler {
+				mux := http.NewServeMux()
+				mux.HandleFunc("/get/all", func(w http.ResponseWriter, r *http.Request) {
+					w.Header().Set("Content-Type", "application/json; charset=utf-8")
+					w.WriteHeader(500)
+				})
+				mux.HandleFunc("/post", func(w http.ResponseWriter, r *http.Request) {
+					b, _ := io.ReadAll(r.Body)
+					t.Errorf("post should never be called but was called with: %v", string(b))
+					w.Header().Set("Content-Type", "application/json; charset=utf-8")
+				})
+				mux.HandleFunc("/put/1234", func(w http.ResponseWriter, r *http.Request) {
+					b, _ := io.ReadAll(r.Body)
+					if string(b) != `{"value": "newBar"}` {
+						t.Errorf(`got: %v expected body to match the templated payload: {"value": "newBar"}`, string(b))
+					}
+					w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
+					w.Write([]byte(`{"name":"fubar","id":"1234"}`))
+				})
+				mux.HandleFunc("/token", TokenHandleFunc(t))
+				return mux
+			},
+			expect: func(url string) string {
+				return "status: 500"
+			},
+		},
+		"OAuth2 GET/PUT/POST GET empty response": {
+			authConfig: func(url string) seeder.AuthMap {
+				return seeder.AuthMap{
+					"oauth2-test": {
+						AuthStrategy: seeder.OAuth,
+						Username:     "randClientIdOrUsernameForBasicAuth",
+						Password:     "randClientSecretOrPassExpr",
+						OAuth: &seeder.ConfigOAuth{
+							OAuthSendParamsInHeader: false,
+							ServerUrl:               fmt.Sprintf("%s/token", url),
+							Scopes:                  []string{"foo", "bar"},
+							EndpointParams:          map[string][]string{"params": {"baz", "boom"}},
+						},
+					},
+				}
+			},
+			seeders: func(url string) seeder.Seeders {
+				return seeder.Seeders{
+					"get-put-post-get-error": {
+						Strategy:           string(seeder.GET_PUT_POST),
+						Order:              seeder.Int(0),
+						Endpoint:           url,
+						GetEndpointSuffix:  seeder.String("/get/all"),
+						PutEndpointSuffix:  seeder.String("/put"),
+						PostEndpointSuffix: seeder.String("/post/new"),
+						PayloadTemplate:    `{"value": "$foo"}`,
+						FindByJsonPathExpr: "$.[?(@.name=='fubar')].id",
+						Variables:          map[string]any{"foo": "bar"},
+						AuthMapRef:         "oauth2-passwd",
+					},
+				}
+			},
+			handler: func(t *testing.T) http.Handler {
+				mux := http.NewServeMux()
+				mux.HandleFunc("/get/all", func(w http.ResponseWriter, r *http.Request) {
+					w.Header().Set("Content-Type", "application/json; charset=utf-8")
+					w.Write([]byte(``))
+				})
+				mux.HandleFunc("/post", func(w http.ResponseWriter, r *http.Request) {
+					b, _ := io.ReadAll(r.Body)
+					t.Errorf("post should never be called but was called with: %v", string(b))
+					w.Header().Set("Content-Type", "application/json; charset=utf-8")
+				})
+				mux.HandleFunc("/post/new", func(w http.ResponseWriter, r *http.Request) {
+					b, _ := io.ReadAll(r.Body)
+					if string(b) != `{"value": "bar"}` {
+						t.Errorf(`got: %v expected body to match the templated payload: {"value": "bar"}`, string(b))
+					}
+					w.Header().Set("Content-Type", "application/json; charset=utf-8")
+					w.Write([]byte(`{"name":"fubar","id":"1234"}`))
+				})
+				mux.HandleFunc("/token", TokenHandleFunc(t))
+				return mux
+			},
+			expect: func(url string) string {
+				return "unexpected end of file"
+			},
+		},
 	}
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -129,7 +246,7 @@ func TestExecuteGetPutPost(t *testing.T) {
 			err := srs.Execute(context.Background())
 
 			if err != nil {
-				if err.Error() != tt.expect(ts.URL) {
+				if !strings.HasPrefix(err.Error(), tt.expect(ts.URL)) {
 					t.Errorf("expected different error got: %v\n\nwant: %v", err.Error(), tt.expect(ts.URL))
 				}
 			}
@@ -766,6 +883,55 @@ func TestExecutePutPost(t *testing.T) {
 				mux.HandleFunc("/post", func(w http.ResponseWriter, r *http.Request) {
 					w.WriteHeader(500)
 				})
+				return mux
+			},
+			expect: func(url string) string {
+				return "status: 500"
+			},
+		},
+		"OAuth2 PUT/POST GET 500 error": {
+			authConfig: func(url string) seeder.AuthMap {
+				return seeder.AuthMap{
+					"oauth2-test": {
+						AuthStrategy: seeder.OAuth,
+						Username:     "randClientIdOrUsernameForBasicAuth",
+						Password:     "randClientSecretOrPassExpr",
+						OAuth: &seeder.ConfigOAuth{
+							OAuthSendParamsInHeader: false,
+							ServerUrl:               fmt.Sprintf("%s/token", url),
+							Scopes:                  []string{"foo", "bar"},
+							EndpointParams:          map[string][]string{"params": {"baz", "boom"}},
+						},
+					},
+				}
+			},
+			seeders: func(url string) seeder.Seeders {
+				return seeder.Seeders{
+					"put-post-get-error": {
+						Strategy:           string(seeder.PUT_POST),
+						Order:              seeder.Int(0),
+						Endpoint:           url,
+						PutEndpointSuffix:  seeder.String("/put/1234"),
+						PostEndpointSuffix: seeder.String("/post"),
+						PayloadTemplate:    `{"value": "$foo"}`,
+						FindByJsonPathExpr: "$.[?(@.name=='fubar')].id",
+						Variables:          map[string]any{"foo": "bar"},
+						AuthMapRef:         "oauth2-passwd",
+					},
+				}
+			},
+			handler: func(t *testing.T) http.Handler {
+				mux := http.NewServeMux()
+				mux.HandleFunc("/put/1234", func(w http.ResponseWriter, r *http.Request) {
+					w.Header().Set("Content-Type", "application/json; charset=utf-8")
+					w.WriteHeader(500)
+				})
+				mux.HandleFunc("/post", func(w http.ResponseWriter, r *http.Request) {
+					b, _ := io.ReadAll(r.Body)
+					t.Errorf("post should never be called but was called with: %v", string(b))
+					w.Header().Set("Content-Type", "application/json; charset=utf-8")
+				})
+				mux.HandleFunc("/token", TokenHandleFunc(t))
 				return mux
 			},
 			expect: func(url string) string {

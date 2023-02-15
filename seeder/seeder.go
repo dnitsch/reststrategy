@@ -94,7 +94,7 @@ func (s *StrategyRestSeeder) Execute(ctx context.Context) error {
 			}
 			continue
 		}
-		s.log.Infof("unknown strategy")
+		errs = append(errs, fmt.Errorf("unknown strategy: %s is not recognized", action.Strategy))
 	}
 	if len(errs) > 0 {
 		finalErr := []string{}

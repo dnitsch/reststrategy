@@ -3,6 +3,7 @@ package seeder_test
 import (
 	"bytes"
 	"context"
+	"flag"
 	"fmt"
 	"io"
 	"net/http"
@@ -286,7 +287,7 @@ func TestExecuteFindPutPost(t *testing.T) {
 			},
 			seeders: func(url string) seeder.Seeders {
 				return seeder.Seeders{
-					"find-put-post-found": {
+					"find-put-post-found-runtime-vars-found": {
 						Strategy:           string(seeder.FIND_PUT_POST),
 						Order:              seeder.Int(0),
 						Endpoint:           url,
@@ -295,6 +296,7 @@ func TestExecuteFindPutPost(t *testing.T) {
 						PutEndpointSuffix:  seeder.String("/put"),
 						PayloadTemplate:    `{"value": "$foo"}`,
 						FindByJsonPathExpr: "$.[?(@.name=='fubar')].id",
+						RuntimeVars: 		map[string]string{"runFoo": "$.[?(@.name=='fubar')].id"},
 						Variables:          map[string]any{"foo": "bar"},
 						AuthMapRef:         "oauth2-passwd",
 					},
@@ -305,7 +307,6 @@ func TestExecuteFindPutPost(t *testing.T) {
 						GetEndpointSuffix:  seeder.String("/get/not-found"),
 						PostEndpointSuffix: seeder.String("/post/new"),
 						PutEndpointSuffix:  seeder.String("/put/not-found"),
-						FindByJsonPathExpr: "$.[?(@.name=='fubar')].id",
 						PayloadTemplate:    `{"value": "$foo"}`,
 						Variables:          map[string]any{"foo": "bar"},
 						AuthMapRef:         "oauth2-passwd",
@@ -527,7 +528,7 @@ func TestExecuteGetPost(t *testing.T) {
 			},
 			seeders: func(url string) seeder.Seeders {
 				return seeder.Seeders{
-					"get-post-found": {
+					"get-post-found-set": {
 						Strategy:           string(seeder.GET_POST),
 						Order:              seeder.Int(0),
 						Endpoint:           url,
@@ -535,16 +536,18 @@ func TestExecuteGetPost(t *testing.T) {
 						PostEndpointSuffix: seeder.String("/post"),
 						PayloadTemplate:    `{"value": "$foo"}`,
 						FindByJsonPathExpr: "$.[?(@.name=='fubar')].id",
+						RuntimeVars: 		map[string]string{"runFoo": "runBar"},
 						Variables:          map[string]any{"foo": "bar"},
 						AuthMapRef:         "basic",
 					},
-					"get-post-not-found": {
+					"get-post-not-found-not-set-runtime-vars": {
 						Strategy:           string(seeder.GET_POST),
 						Order:              seeder.Int(0),
 						Endpoint:           url,
 						GetEndpointSuffix:  seeder.String("/get/not-found"),
 						PostEndpointSuffix: seeder.String("/post/new"),
 						FindByJsonPathExpr: "$.[?(@.name=='fubar')].id",
+						RuntimeVars: 		map[string]string{"runFoo": "runBar"},
 						PayloadTemplate:    `{"value": "$foo"}`,
 						Variables:          map[string]any{"foo": "bar"},
 						AuthMapRef:         "basic",
@@ -763,6 +766,7 @@ func TestExecuteGetPost(t *testing.T) {
 }
 
 func TestExecutePutPost(t *testing.T) {
+	flag.Set("test.timeout", "2m30s")
 
 	logW := &bytes.Buffer{}
 
@@ -788,6 +792,9 @@ func TestExecutePutPost(t *testing.T) {
 							EndpointParams:          map[string][]string{"params": {"baz", "boom"}},
 						},
 					},
+					"no-auth": {
+						AuthStrategy: seeder.NoAuth,
+					},
 				}
 			},
 			seeders: func(url string) seeder.Seeders {
@@ -812,6 +819,26 @@ func TestExecutePutPost(t *testing.T) {
 						Variables:          map[string]any{"foo": "bar"},
 						AuthMapRef:         "oauth2-test",
 					},
+					"put-post-error-network": {
+						Strategy:           string(seeder.PUT_POST),
+						Order:              seeder.Int(0),
+						Endpoint:           "http://unknown.domain.foo:34567",
+						PostEndpointSuffix: seeder.String("/post/new"),
+						PutEndpointSuffix:  seeder.String("/put/not-found"),
+						PayloadTemplate:    `{"value": "$foo"}`,
+						Variables:          map[string]any{"foo": "bar"},
+						AuthMapRef:         "no-auth",
+					},
+					"put-post-tls-error": {
+						Strategy:           string(seeder.PUT_POST),
+						Order:              seeder.Int(0),
+						Endpoint:           "https://unknown.domain.foo:34567",
+						PostEndpointSuffix: seeder.String("/post/new"),
+						PutEndpointSuffix:  seeder.String("/put/not-found"),
+						PayloadTemplate:    `{"value": "$foo"}`,
+						Variables:          map[string]any{"foo": "bar"},
+						AuthMapRef:         "no-auth",
+					},
 				}
 			},
 			handler: func(t *testing.T) http.Handler {
@@ -822,7 +849,6 @@ func TestExecutePutPost(t *testing.T) {
 						t.Errorf(`got: %v expected body to match the templated payload: {"value": "bar"}`, string(b))
 					}
 					w.Header().Set("Content-Type", "application/json; charset=utf-8")
-
 					w.Write([]byte(`{"name":"fubar","id":"1234"}`))
 				})
 				mux.HandleFunc("/post", func(w http.ResponseWriter, r *http.Request) {
@@ -846,7 +872,7 @@ func TestExecutePutPost(t *testing.T) {
 				return mux
 			},
 			expect: func(url string) string {
-				return ""
+				return "status: 999"
 			},
 		},
 		"BasicAuth PUT/POST 500 error": {
@@ -948,10 +974,13 @@ func TestExecutePutPost(t *testing.T) {
 
 			srs.WithActions(tt.seeders(ts.URL)).WithAuth(tt.authConfig(ts.URL))
 
-			err := srs.Execute(context.Background())
+			want := tt.expect(ts.URL)
 
-			if err != nil {
-				if !strings.HasPrefix(err.Error(), tt.expect(ts.URL)) {
+			if err := srs.Execute(context.Background()); err != nil {
+				if want == "" {
+					t.Fatalf("unexpected error occurred: %s", err.Error())
+				}
+				if !strings.HasPrefix(err.Error(), want) {
 					t.Errorf("expected different error got: %v\n\nwant: %v", err.Error(), tt.expect(ts.URL))
 				}
 			}
@@ -1451,7 +1480,6 @@ func TestExecuteFindDeletePost(t *testing.T) {
 						t.Errorf(`got: %v expected body to match the templated payload: {"value": "newBar"}`, string(b))
 					}
 					w.Header().Set("Content-Type", "application/json; charset=utf-8")
-
 					w.Write([]byte(`{"name":"fubar","id":"1234"}`))
 				})
 				mux.HandleFunc("/token", TokenHandleFunc(t))
@@ -1590,6 +1618,7 @@ func TestExecutePut(t *testing.T) {
 				mux.HandleFunc("/put/not-found", func(w http.ResponseWriter, r *http.Request) {
 					w.Header().Set("Content-Type", "application/json; charset=utf-8")
 					w.WriteHeader(404)
+					w.WriteHeader(404)
 				})
 				mux.HandleFunc("/token", OAuthPasswordHandleFunc(t))
 				return mux
@@ -1636,7 +1665,6 @@ func TestExecutePut(t *testing.T) {
 						t.Errorf(`got: %v expected body to match the templated payload: {"value": "bar"}`, string(b))
 					}
 					w.Header().Set("Content-Type", "application/json; charset=utf-8")
-
 					w.Write([]byte(`{"name":"fubar","id":"1234"}`))
 				})
 				mux.HandleFunc("/put/not-found", func(w http.ResponseWriter, r *http.Request) {
@@ -1742,11 +1770,13 @@ func TestExecuteFindPost(t *testing.T) {
 					t.Errorf("post should never be called but was called with: %v", string(b))
 					w.Header().Set("Content-Type", "application/json; charset=utf-8")
 				})
+
 				mux.HandleFunc("/post/new", func(w http.ResponseWriter, r *http.Request) {
 					b, _ := io.ReadAll(r.Body)
 					if string(b) != `{"value": "bar"}` {
 						t.Errorf(`got: %v expected body to match the templated payload: {"value": "bar"}`, string(b))
 					}
+					
 					w.Header().Set("Content-Type", "application/json; charset=utf-8")
 					w.Write([]byte(`{"name":"fubar","id":"1234"}`))
 				})

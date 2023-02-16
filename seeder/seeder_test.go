@@ -3,6 +3,7 @@ package seeder_test
 import (
 	"bytes"
 	"context"
+	"flag"
 	"fmt"
 	"io"
 	"net/http"
@@ -437,7 +438,7 @@ func TestExecuteFindPutPost(t *testing.T) {
 						Order:              seeder.Int(0),
 						Endpoint:           url,
 						GetEndpointSuffix:  seeder.String("/get/all"),
-						PutEndpointSuffix: seeder.String("/put/1234"),
+						PutEndpointSuffix:  seeder.String("/put/1234"),
 						PayloadTemplate:    `{"value": "$foo"}`,
 						FindByJsonPathExpr: "$.[?(@.name=='fubar')].id",
 						Variables:          map[string]any{"foo": "bar"},
@@ -472,7 +473,6 @@ func TestExecuteFindPutPost(t *testing.T) {
 						t.Errorf(`got: %v expected body to match the templated payload: {"value": "bar"}`, string(b))
 					}
 					w.Header().Set("Content-Type", "application/json; charset=utf-8")
-
 					w.Write([]byte(`{"name":"fubar","id":"1234"}`))
 				})
 				mux.HandleFunc("/token", TokenHandleFunc(t))
@@ -763,6 +763,7 @@ func TestExecuteGetPost(t *testing.T) {
 }
 
 func TestExecutePutPost(t *testing.T) {
+	flag.Set("test.timeout", "2m30s")
 
 	logW := &bytes.Buffer{}
 
@@ -806,6 +807,26 @@ func TestExecutePutPost(t *testing.T) {
 						Strategy:           string(seeder.PUT_POST),
 						Order:              seeder.Int(0),
 						Endpoint:           url,
+						PostEndpointSuffix: seeder.String("/post/new"),
+						PutEndpointSuffix:  seeder.String("/put/not-found"),
+						PayloadTemplate:    `{"value": "$foo"}`,
+						Variables:          map[string]any{"foo": "bar"},
+						AuthMapRef:         "oauth2-test",
+					},
+					"put-post-error-network": {
+						Strategy:           string(seeder.PUT_POST),
+						Order:              seeder.Int(0),
+						Endpoint:           "http://unknown.domain.foo:34567",
+						PostEndpointSuffix: seeder.String("/post/new"),
+						PutEndpointSuffix:  seeder.String("/put/not-found"),
+						PayloadTemplate:    `{"value": "$foo"}`,
+						Variables:          map[string]any{"foo": "bar"},
+						AuthMapRef:         "oauth2-test",
+					},
+					"put-post-tls-error": {
+						Strategy:           string(seeder.PUT_POST),
+						Order:              seeder.Int(0),
+						Endpoint:           "https://unknown.domain.foo:34567",
 						PostEndpointSuffix: seeder.String("/post/new"),
 						PutEndpointSuffix:  seeder.String("/put/not-found"),
 						PayloadTemplate:    `{"value": "$foo"}`,
@@ -867,7 +888,7 @@ func TestExecutePutPost(t *testing.T) {
 						Endpoint:           url,
 						GetEndpointSuffix:  seeder.String("/get/1234"),
 						PostEndpointSuffix: seeder.String("/post"),
-						PutEndpointSuffix: seeder.String("/put"),
+						PutEndpointSuffix:  seeder.String("/put"),
 						PayloadTemplate:    `{"value": "$foo"}`,
 						FindByJsonPathExpr: "$.[?(@.name=='fubar')].id",
 						Variables:          map[string]any{"foo": "bar"},
@@ -940,6 +961,7 @@ func TestExecutePutPost(t *testing.T) {
 		},
 	}
 	for name, tt := range tests {
+		t.Parallel()
 		t.Run(name, func(t *testing.T) {
 			srs := seeder.New(&logger).WithRestClient(&http.Client{})
 
@@ -948,11 +970,14 @@ func TestExecutePutPost(t *testing.T) {
 
 			srs.WithActions(tt.seeders(ts.URL)).WithAuth(tt.authConfig(ts.URL))
 
-			err := srs.Execute(context.Background())
+			want := tt.expect(ts.URL)
 
-			if err != nil {
-				if !strings.HasPrefix(err.Error(), tt.expect(ts.URL)) {
-					t.Errorf("expected different error got: %v\n\nwant: %v", err.Error(), tt.expect(ts.URL))
+			if err := srs.Execute(context.Background()); err != nil {
+				if want == "" {
+					t.Errorf("unexpected error occured: %v", err)
+				}
+				if !strings.HasPrefix(fmt.Sprintf("%v", err), want) {
+					t.Errorf("expected different error got: %v\n\nwant: %v", err, tt.expect(ts.URL))
 				}
 			}
 		})
@@ -1079,16 +1104,16 @@ func TestExecuteFindPatchPost(t *testing.T) {
 			seeders: func(url string) seeder.Seeders {
 				return seeder.Seeders{
 					"find-patch-post-get-error": {
-						Strategy:           string(seeder.FIND_PATCH_POST),
-						Order:              seeder.Int(0),
-						Endpoint:           url,
-						GetEndpointSuffix:  seeder.String("/get/all"),
-						PatchEndpointSuffix:  seeder.String("/patch"),
-						PostEndpointSuffix: seeder.String("/post"),
-						PayloadTemplate:    `{"value": "$foo"}`,
-						FindByJsonPathExpr: "$.[?(@.name=='fubar')].id",
-						Variables:          map[string]any{"foo": "bar"},
-						AuthMapRef:         "oauth2-passwd",
+						Strategy:            string(seeder.FIND_PATCH_POST),
+						Order:               seeder.Int(0),
+						Endpoint:            url,
+						GetEndpointSuffix:   seeder.String("/get/all"),
+						PatchEndpointSuffix: seeder.String("/patch"),
+						PostEndpointSuffix:  seeder.String("/post"),
+						PayloadTemplate:     `{"value": "$foo"}`,
+						FindByJsonPathExpr:  "$.[?(@.name=='fubar')].id",
+						Variables:           map[string]any{"foo": "bar"},
+						AuthMapRef:          "oauth2-passwd",
 					},
 				}
 			},
@@ -1138,16 +1163,16 @@ func TestExecuteFindPatchPost(t *testing.T) {
 			seeders: func(url string) seeder.Seeders {
 				return seeder.Seeders{
 					"find-patch-post-get-error": {
-						Strategy:           string(seeder.FIND_PATCH_POST),
-						Order:              seeder.Int(0),
-						Endpoint:           url,
-						GetEndpointSuffix:  seeder.String("/get/all"),
-						PatchEndpointSuffix:  seeder.String("/patch"),
-						PostEndpointSuffix: seeder.String("/post"),
-						PayloadTemplate:    `{"value": "$foo"}`,
-						FindByJsonPathExpr: "$.[?(@.name=='fubar')].id",
-						Variables:          map[string]any{"foo": "bar"},
-						AuthMapRef:         "oauth2-passwd",
+						Strategy:            string(seeder.FIND_PATCH_POST),
+						Order:               seeder.Int(0),
+						Endpoint:            url,
+						GetEndpointSuffix:   seeder.String("/get/all"),
+						PatchEndpointSuffix: seeder.String("/patch"),
+						PostEndpointSuffix:  seeder.String("/post"),
+						PayloadTemplate:     `{"value": "$foo"}`,
+						FindByJsonPathExpr:  "$.[?(@.name=='fubar')].id",
+						Variables:           map[string]any{"foo": "bar"},
+						AuthMapRef:          "oauth2-passwd",
 					},
 				}
 			},
@@ -1362,16 +1387,16 @@ func TestExecuteFindDeletePost(t *testing.T) {
 			seeders: func(url string) seeder.Seeders {
 				return seeder.Seeders{
 					"find-delete-post-get-error": {
-						Strategy:           string(seeder.FIND_DELETE_POST),
-						Order:              seeder.Int(0),
-						Endpoint:           url,
-						GetEndpointSuffix:  seeder.String("/get/all"),
-						DeleteEndpointSuffix:  seeder.String("/delete"),
-						PostEndpointSuffix: seeder.String("/post"),
-						PayloadTemplate:    `{"value": "$foo"}`,
-						FindByJsonPathExpr: "$.[?(@.name=='fubar')].id",
-						Variables:          map[string]any{"foo": "bar"},
-						AuthMapRef:         "oauth2-passwd",
+						Strategy:             string(seeder.FIND_DELETE_POST),
+						Order:                seeder.Int(0),
+						Endpoint:             url,
+						GetEndpointSuffix:    seeder.String("/get/all"),
+						DeleteEndpointSuffix: seeder.String("/delete"),
+						PostEndpointSuffix:   seeder.String("/post"),
+						PayloadTemplate:      `{"value": "$foo"}`,
+						FindByJsonPathExpr:   "$.[?(@.name=='fubar')].id",
+						Variables:            map[string]any{"foo": "bar"},
+						AuthMapRef:           "oauth2-passwd",
 					},
 				}
 			},
@@ -1421,16 +1446,16 @@ func TestExecuteFindDeletePost(t *testing.T) {
 			seeders: func(url string) seeder.Seeders {
 				return seeder.Seeders{
 					"find-delete-post-get-error": {
-						Strategy:           string(seeder.FIND_DELETE_POST),
-						Order:              seeder.Int(0),
-						Endpoint:           url,
-						GetEndpointSuffix:  seeder.String("/get/all"),
-						DeleteEndpointSuffix:  seeder.String("/delete"),
-						PostEndpointSuffix: seeder.String("/post"),
-						PayloadTemplate:    `{"value": "$foo"}`,
-						FindByJsonPathExpr: "$.[?(@.name=='fubar')].id",
-						Variables:          map[string]any{"foo": "bar"},
-						AuthMapRef:         "oauth2-passwd",
+						Strategy:             string(seeder.FIND_DELETE_POST),
+						Order:                seeder.Int(0),
+						Endpoint:             url,
+						GetEndpointSuffix:    seeder.String("/get/all"),
+						DeleteEndpointSuffix: seeder.String("/delete"),
+						PostEndpointSuffix:   seeder.String("/post"),
+						PayloadTemplate:      `{"value": "$foo"}`,
+						FindByJsonPathExpr:   "$.[?(@.name=='fubar')].id",
+						Variables:            map[string]any{"foo": "bar"},
+						AuthMapRef:           "oauth2-passwd",
 					},
 				}
 			},
@@ -1480,16 +1505,16 @@ func TestExecuteFindDeletePost(t *testing.T) {
 			seeders: func(url string) seeder.Seeders {
 				return seeder.Seeders{
 					"find-delete-post-get-error": {
-						Strategy:           string(seeder.FIND_DELETE_POST),
-						Order:              seeder.Int(0),
-						Endpoint:           url,
-						GetEndpointSuffix:  seeder.String("/get/all"),
-						DeleteEndpointSuffix:  seeder.String("/delete"),
-						PostEndpointSuffix: seeder.String("/post"),
-						PayloadTemplate:    `{"value": "$foo"}`,
-						FindByJsonPathExpr: "$.[?(@.name=='fubar')].id",
-						Variables:          map[string]any{"foo": "bar"},
-						AuthMapRef:         "oauth2-passwd",
+						Strategy:             string(seeder.FIND_DELETE_POST),
+						Order:                seeder.Int(0),
+						Endpoint:             url,
+						GetEndpointSuffix:    seeder.String("/get/all"),
+						DeleteEndpointSuffix: seeder.String("/delete"),
+						PostEndpointSuffix:   seeder.String("/post"),
+						PayloadTemplate:      `{"value": "$foo"}`,
+						FindByJsonPathExpr:   "$.[?(@.name=='fubar')].id",
+						Variables:            map[string]any{"foo": "bar"},
+						AuthMapRef:           "oauth2-passwd",
 					},
 				}
 			},

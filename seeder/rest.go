@@ -182,7 +182,7 @@ func (r *SeederImpl) do(req *http.Request, action *Action) ([]byte, error) {
 
 	r.log.Debugf("restPayload diagnostic: %+v", diag)
 
-	resp, err := r.client.Do(r.doAuth(req, action))
+	resp, err := r.client.Do(r.setAuthHeader(req, action))
 	if err != nil {
 		r.log.Debugf("failed to make network call: %v", err)
 		diag.WithStatus(999) // networkError
@@ -219,7 +219,7 @@ func (r *SeederImpl) do(req *http.Request, action *Action) ([]byte, error) {
 	return respBody, nil
 }
 
-func (r *SeederImpl) doAuth(req *http.Request, action *Action) *http.Request {
+func (r *SeederImpl) setAuthHeader(req *http.Request, action *Action) *http.Request {
 	enrichedReq := req
 	am := *r.auth
 	switch cam := am[action.AuthMapRef]; cam.authStrategy {
@@ -246,6 +246,8 @@ func (r *SeederImpl) doAuth(req *http.Request, action *Action) *http.Request {
 		enrichedReq.Header.Set(token.HeaderKey, fmt.Sprintf("%s %s", token.TokenPrefix, token.TokenValue))
 	case StaticToken:
 		enrichedReq.Header.Set(cam.staticToken.headerKey, cam.staticToken.staticToken)
+	case NoAuth:
+		r.log.Debug("unprotected endpoint not applying any enrichment")
 	}
 	return enrichedReq
 }

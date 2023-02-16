@@ -20,6 +20,7 @@ import (
 type AuthType string
 
 const (
+	NoAuth        AuthType = "NoAuth"
 	Basic         AuthType = "BasicAuth"
 	OAuth         AuthType = "OAuthClientCredentials"
 	OAuthPassword AuthType = "OAuthPassCredentials"
@@ -218,7 +219,9 @@ func NewAuth(am AuthMap) *actionAuthMap {
 			ac[k] = a
 		default:
 			// will log strategy runtime error if not found
-			ac[k] = auth{}
+			ac[k] = auth{
+				authStrategy: NoAuth,
+			}
 		}
 	}
 	return &ac

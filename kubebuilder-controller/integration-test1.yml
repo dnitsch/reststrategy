@@ -1,0 +1,100 @@
+apiVersion: seeder.dnitsch.net/v1alpha1
+kind: RestStrategy
+metadata:
+  name: test-int-local
+  namespace: test-local-ns
+spec:
+  auth:
+    - name: customTest1
+      type: CustomToToken
+      custom:
+        authUrl: http://127.0.0.1:8090/api/admins/auth-via-email
+        credential:
+          email: test@example.com
+          password: AWSPARAMSTR:///int-test/pocketbase/admin-pwd
+        responseKey: $.token
+        headerKey: Authorization
+        tokenPrefix: Admin
+  seed:
+    - name: create-pocketbase-admin2
+      endpoint: http://127.0.0.1:8090/api/admins
+      strategy: FIND/PATCH/POST
+      getEndpointSuffix: "?page=1&perPage=100&sort=-created&filter="
+      findByJsonPathExpr: "$.items[?(@.email=='test2@example.com')].id"
+      authMapRef: customTest1
+      payloadTemplate: |
+        {"email": "test2@example.com",
+          "password": "${password}","passwordConfirm": "${password}",
+          "avatar": 7
+        }
+      # if a user does exist ensure password is set to below
+      patchPayloadTemplate: |
+        {
+          "password": "${password}",
+          "passwordConfirm": "${password}"
+        }
+      variables:
+        password: AWSPARAMSTR:///int-test/pocketbase/admin-pwd
+      runtimeVars:
+        admin1AvatarId: "$.avatar"
+  # - name: create-pocketbase-admin3
+  #   action: 
+  #     # /api/admins
+  #     endpoint: http://127.0.0.1:8090/api/admins
+  #     strategy: FIND/PATCH/POST
+  #     getEndpointSuffix: "?page=1&perPage=100&sort=-created&filter="
+  #     # postEndpointSuffix: /post
+  #     findByJsonPathExpr: "$.items[?(@.email=='test3@example.com')].id"
+  #     authMapRef: customTest1
+  #     payloadTemplate: |
+  #       {"email": "test3@example.com",
+  #         "password": "${password}",
+  #         "passwordConfirm": "${password}",
+  #         "avatar": 4
+  #       }
+  #     patchPayloadTemplate: |
+  #       {
+  #         "password": "${password}",
+  #         "passwordConfirm": "${password}",
+  #         "avatar": ${admin1AvatarId}
+  #       }
+  #     variables:
+  #       password: AWSPARAMSTR:///int-test/pocketbase/admin-pwd
+  # - name: create-pocketbase-test-collection
+  #   # /api/admins
+  #   action: 
+  #     endpoint: http://127.0.0.1:8090/api/collections
+  #     strategy: FIND/PATCH/POST
+  #     getEndpointSuffix: "?page=1&perPage=100&sort=-created&filter="
+  #     # postEndpointSuffix: /post
+  #     findByJsonPathExpr: "$.items[?(@.name=='test')].id"
+  #     authMapRef: customTest1
+  #     payloadTemplate: |
+  #       {"id":"","created":"","updated":"","name":"test","system":false,"listRule":null,"viewRule":null,"createRule":null,"updateRule":null,"deleteRule":null,
+  #       "schema":[
+  #       {"id":"","name":"custom1","type":"text","system":false,"required":false,"unique":false,"options":{"pattern":"^\\w+$"},"originalName":"field","toDelete":false},
+  #       {"id":"","name":"customJson","type":"json","system":false,"required":false,"unique":false,"options":{},"originalName":"field","toDelete":false}
+  #       ],"originalName":""}
+  #     patchPayloadTemplate: |
+  #       {"id":"${testCollectionPatchId}",
+  #       "schema":[
+  #         {"id":"yd15nwug","name":"custom1","type":"text","system":false,"required":false,"unique":false,"options":{"min":null,"max":null,"pattern":"^\\w+$"},"originalName":"custom1","toDelete":false},
+  #         {"id":"ipcsxpqy","name":"customJson","type":"json","system":false,"required":false,"unique":false,"options":{},"originalName":"customJson","toDelete":false},
+  #         {"id":"","name":"fieldNumber","type":"number","system":false,"required":false,"unique":false,"options":{"max":1111111,"min":-1111111},"originalName":"field","toDelete":false}
+  #       ],
+  #       "originalName":"test"}
+  #     runtimeVars:
+  #       testCollectionPatchId: $.items[?(@.name=='test')].id
+  # - name: create-pocketbase-user-for-qa-tes1
+  #   action:
+  #     endpoint: http://127.0.0.1:8090/api/users
+  #     strategy: FIND/PATCH/POST
+  #     getEndpointSuffix: "?page=1&perPage=100&sort=-created&filter="
+  #     findByJsonPathExpr: "$.items[?(@.email=='qa-guy@example.com')].id"
+  #     authMapRef: customTest1
+  #     payloadTemplate: |
+  #       {"email":"qa-guy@example.com","password":"Password123_alwaysChange","passwordConfirm":"Password123_alwaysChange"}
+  #     patchPayloadTemplate: |
+  #       {"password":"${newPass}","passwordConfirm":"${newPass}"}
+  #     variables:
+  #       newPass: AWSPARAMSTR:///int-test/pocketbase/admin-pwd

@@ -1,0 +1,193 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.11.1
+  creationTimestamp: null
+  name: reststrategies.seeder.dnitsch.net
+spec:
+  group: seeder.dnitsch.net
+  names:
+    kind: RestStrategy
+    listKind: RestStrategyList
+    plural: reststrategies
+    singular: reststrategy
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              auth:
+                items:
+                  description: Auth holds the auth strategy for all Seeders
+                  properties:
+                    custom:
+                      description: CustomToken stores the required data to call and
+                        process custom auth Endpoints returning a token. the token
+                        will need to be extracted from the response it will then need
+                        adding to subsequent requests in the header under specified
+                        key and in specified format
+                      properties:
+                        authUrl:
+                          description: Url to use to POST the customRequest
+                          type: string
+                        credential:
+                          description: "holds the K/V credential pair. e.g. \n email:
+                            some@one.com password: pass123 id: 12312345 \n will post
+                            this body or send in header params that payload"
+                          x-kubernetes-preserve-unknown-fields: true
+                        headerKey:
+                          description: if omitted `Authorization` will be used Could
+                            be X-API-Token etc..
+                          type: string
+                        inHeader:
+                          description: whether to send the values in the header as
+                            params defaults to false and CustomAuthMap is posted in
+                            the body as json post
+                          type: boolean
+                        responseKey:
+                          description: "JSONPath expression to use to get the token
+                            from response \n e.g. \"$.token\" \n empty will take the
+                            entire response as the token - raw response must be string"
+                          type: string
+                        tokenPrefix:
+                          description: 'Token prefix - if omitted Bearer will be used
+                            e.g. Admin ==> `Authorization: "Admin [TOKEN]"`'
+                          type: string
+                      required:
+                      - authUrl
+                      - credential
+                      - headerKey
+                      - responseKey
+                      - tokenPrefix
+                      type: object
+                    name:
+                      type: string
+                    oauth:
+                      properties:
+                        endpointParams:
+                          additionalProperties:
+                            items:
+                              type: string
+                            type: array
+                          type: object
+                          x-kubernetes-preserve-unknown-fields: true
+                        oAuthSendParamsInHeader:
+                          type: boolean
+                        resourceOwnerPass:
+                          type: string
+                        resourceOwnerUser:
+                          description: for grant_type=password use these for the addition
+                            RO auth
+                          type: string
+                        scopes:
+                          items:
+                            type: string
+                          type: array
+                        serverUrl:
+                          type: string
+                      required:
+                      - endpointParams
+                      - oAuthSendParamsInHeader
+                      - scopes
+                      - serverUrl
+                      type: object
+                    password:
+                      type: string
+                    type:
+                      description: AuthType specifies the type of authentication to
+                        perform currently only a single authType per instance is allowed
+                      type: string
+                    username:
+                      type: string
+                  required:
+                  - name
+                  - password
+                  - type
+                  - username
+                  type: object
+                type: array
+              seed:
+                items:
+                  description: "Action defines the single action to make agains an
+                    endpoint and selecting a strategy \n Endpoint is the base url
+                    to make the requests against GetEndpointSuffix can be used to
+                    specify a direct ID or query params PostEndpointSuffix"
+                  properties:
+                    authMapRef:
+                      type: string
+                    deleteEndpointSuffix:
+                      type: string
+                    endpoint:
+                      type: string
+                    findByJsonPathExpr:
+                      type: string
+                    getEndpointSuffix:
+                      type: string
+                    httpHeaders:
+                      additionalProperties:
+                        type: string
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+                    name:
+                      type: string
+                    order:
+                      type: integer
+                    patchEndpointSuffix:
+                      type: string
+                    patchPayloadTemplate:
+                      type: string
+                    payloadTemplate:
+                      type: string
+                    postEndpointSuffix:
+                      type: string
+                    putEndpointSuffix:
+                      type: string
+                    runtimeVars:
+                      additionalProperties:
+                        type: string
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+                    strategy:
+                      type: string
+                    variables:
+                      x-kubernetes-preserve-unknown-fields: true
+                  required:
+                  - authMapRef
+                  - endpoint
+                  - name
+                  - payloadTemplate
+                  - strategy
+                  type: object
+                type: array
+            required:
+            - auth
+            - seed
+            type: object
+          status:
+            description: StrategyStatus is the status for a RestStrategy resource
+            properties:
+              message:
+                type: string
+            required:
+            - message
+            type: object
+        type: object
+    served: true
+    storage: true

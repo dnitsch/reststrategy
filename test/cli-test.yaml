@@ -41,8 +41,7 @@ seed:
     authMapRef: customTest1
     payloadTemplate: |
       {"email": "test2@example.com",
-        "password": "${password}","passwordConfirm": "${password}",
-        "avatar": 8
+        "password": "${password}","passwordConfirm": "${password}","avatar": 8
       }
     patchPayloadTemplate: |
       {

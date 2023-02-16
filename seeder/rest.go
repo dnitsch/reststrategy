@@ -23,7 +23,8 @@ type Client interface {
 	// http.RoundTripper
 }
 
-type RuntimeVars struct {
+// Runtime vars captured by JSON path expression from the response
+type CapturedRuntimeVars struct {
 	mu   sync.RWMutex
 	vars map[string]any
 }
@@ -32,13 +33,13 @@ type SeederImpl struct {
 	log         log.Loggeriface
 	client      Client
 	auth        *actionAuthMap
-	runtimeVars RuntimeVars
+	runtimeVars CapturedRuntimeVars
 }
 
 func NewSeederImpl(log log.Loggeriface) *SeederImpl {
 	rv := make(map[string]any)
 	return &SeederImpl{
-		runtimeVars: RuntimeVars{
+		runtimeVars: CapturedRuntimeVars{
 			vars: rv,
 		},
 		log: log,
@@ -114,6 +115,7 @@ func (in *KvMapVarsAny) DeepCopy() *KvMapVarsAny {
 // Endpoint is the base url to make the requests against
 // GetEndpointSuffix can be used to specify a direct ID or query params
 // PostEndpointSuffix
+// RuntimeVars should include a Json Path Expression eg. myRuntimeVar: "$.bar"
 type Action struct {
 	name                 string             `yaml:"-" json:"-"`
 	templatedPayload     string             `yaml:"-" json:"-"`
@@ -182,7 +184,7 @@ func (r *SeederImpl) do(req *http.Request, action *Action) ([]byte, error) {
 
 	r.log.Debugf("restPayload diagnostic: %+v", diag)
 
-	resp, err := r.client.Do(r.doAuth(req, action))
+	resp, err := r.client.Do(r.setAuthHeader(req, action))
 	if err != nil {
 		r.log.Debugf("failed to make network call: %v", err)
 		diag.WithStatus(999) // networkError
@@ -219,34 +221,37 @@ func (r *SeederImpl) do(req *http.Request, action *Action) ([]byte, error) {
 	return respBody, nil
 }
 
-func (r *SeederImpl) doAuth(req *http.Request, action *Action) *http.Request {
+func (r *SeederImpl) setAuthHeader(req *http.Request, action *Action) *http.Request {
 	enrichedReq := req
 	am := *r.auth
 	switch cam := am[action.AuthMapRef]; cam.authStrategy {
-	case Basic:
-		enrichedReq.SetBasicAuth(cam.basicAuth.username, cam.basicAuth.password)
-	case OAuth:
-		token, err := cam.oAuthConfig.Token(enrichedReq.Context())
-		if err != nil {
-			r.log.Errorf("failed to obtain token: %v", err)
+		case Basic:
+			enrichedReq.SetBasicAuth(cam.basicAuth.username, cam.basicAuth.password)
+		case OAuth:
+			token, err := cam.oAuthConfig.Token(enrichedReq.Context())
+			if err != nil {
+				r.log.Errorf("failed to obtain token: %v", err)
+			}
+			enrichedReq.Header.Set("Authorization", fmt.Sprintf("%s %s", token.TokenType, token.AccessToken))
+		case OAuthPassword:
+			token, err := cam.passwordGrantConfig.oauthPassCredsConfig.PasswordCredentialsToken(enrichedReq.Context(), cam.passwordGrantConfig.resourceOwnerUser,
+				cam.passwordGrantConfig.resourceOwnerPass)
+			if err != nil {
+				r.log.Errorf("failed to obtain token: %v", err)
+			}
+			enrichedReq.Header.Set("Authorization", fmt.Sprintf("%s %s", token.TokenType, token.AccessToken))
+		case CustomToToken:
+			token, err := cam.customToToken.Token(enrichedReq.Context(), r.client, r.log)
+			if err != nil {
+				r.log.Errorf("failed to obtain custom token: %v", err)
+			}
+			enrichedReq.Header.Set(token.HeaderKey, fmt.Sprintf("%s %s", token.TokenPrefix, token.TokenValue))
+		case StaticToken:
+			enrichedReq.Header.Set(cam.staticToken.headerKey, cam.staticToken.staticToken)
+		case NoAuth:
+			r.log.Debug("unprotected endpoint not applying any enrichment")
 		}
-		enrichedReq.Header.Set("Authorization", fmt.Sprintf("%s %s", token.TokenType, token.AccessToken))
-	case OAuthPassword:
-		token, err := cam.passwordGrantConfig.oauthPassCredsConfig.PasswordCredentialsToken(enrichedReq.Context(), cam.passwordGrantConfig.resourceOwnerUser,
-			cam.passwordGrantConfig.resourceOwnerPass)
-		if err != nil {
-			r.log.Errorf("failed to obtain token: %v", err)
-		}
-		enrichedReq.Header.Set("Authorization", fmt.Sprintf("%s %s", token.TokenType, token.AccessToken))
-	case CustomToToken:
-		token, err := cam.customToToken.Token(enrichedReq.Context(), r.client, r.log)
-		if err != nil {
-			r.log.Errorf("failed to obtain custom token: %v", err)
-		}
-		enrichedReq.Header.Set(token.HeaderKey, fmt.Sprintf("%s %s", token.TokenPrefix, token.TokenValue))
-	case StaticToken:
-		enrichedReq.Header.Set(cam.staticToken.headerKey, cam.staticToken.staticToken)
-	}
+
 	return enrichedReq
 }
 

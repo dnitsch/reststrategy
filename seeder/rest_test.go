@@ -10,6 +10,7 @@ import (
 )
 
 func Test_findByPathExpression(t *testing.T) {
+	
 	tests := map[string]struct {
 		payload        []byte
 		pathExpression string

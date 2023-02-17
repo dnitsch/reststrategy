@@ -23,7 +23,8 @@ type Client interface {
 	// http.RoundTripper
 }
 
-type RuntimeVars struct {
+// Runtime vars captured by JSON path expression from the response
+type CapturedRuntimeVars struct {
 	mu   sync.RWMutex
 	vars map[string]any
 }
@@ -32,13 +33,13 @@ type SeederImpl struct {
 	log         log.Loggeriface
 	client      Client
 	auth        *actionAuthMap
-	runtimeVars RuntimeVars
+	runtimeVars CapturedRuntimeVars
 }
 
 func NewSeederImpl(log log.Loggeriface) *SeederImpl {
 	rv := make(map[string]any)
 	return &SeederImpl{
-		runtimeVars: RuntimeVars{
+		runtimeVars: CapturedRuntimeVars{
 			vars: rv,
 		},
 		log: log,
@@ -124,6 +125,7 @@ func (in *KvMapVarsAny) DeepCopy() *KvMapVarsAny {
 // Endpoint is the base url to make the requests against
 // GetEndpointSuffix can be used to specify a direct ID or query params
 // PostEndpointSuffix
+// RuntimeVars should include a Json Path Expression eg. myRuntimeVar: "$.bar"
 type Action struct {
 	name                 string       `yaml:"-" json:"-"`
 	templatedPayload     string       `yaml:"-" json:"-"`
@@ -279,6 +281,8 @@ func (r *SeederImpl) get(ctx context.Context, action *Action) ([]byte, error) {
 
 	if err != nil {
 		r.log.Debugf("failed to build request: %v", err)
+		r.log.Error(err)
+		return nil, err
 	}
 
 	return r.do(req, action)

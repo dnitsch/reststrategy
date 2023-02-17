@@ -190,7 +190,7 @@ func TestIntegration(t *testing.T) {
 	// ENABLE once tested
 	// ==>
 	deleteCluster := startCluster(t)
-	defer deleteCluster()
+	// defer deleteCluster()
 	// <===
 	// ENABLE once tested
 	kubeclient, cfg, err := kubeClientSetup(t)

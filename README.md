@@ -80,3 +80,13 @@ The templating function is provided already with a replaced value: `P4s$w0rd123!
 This is a bit of experiment with controller structures and workspaces to see if some re-usable patterns can be gleamed and used in some code generation scaffolding.
 
 At the very least a copy and paste into a new workspace of existing structure and Make tasks -> deleting following `seeder`, `controller/pkg/rstservice`, removing k8sutils should leave you with a fairly re-useable controller pkg which can be exchanged with other top level types coming from custom/new `apis` module.
+
+## Controller generation
+
+Using [kubebuilder](https://book.kubebuilder.io/quick-start.html) can be found in this dir [kubebuilder-controller](./kubebuilder-controller/README.md).
+
+`kubebuilder init --domain dnitsch.net --repo github.com/dnitsch/reststrategy/controller`
+
+`kubebuilder create api --plugins=base.go.kubebuilder.io/v3 --group seeder --version v1alpha1 --kind RestStrategy  --controller --namespaced --plural reststrategies --resource --force`
+
+`make manifests`

@@ -1,4 +1,4 @@
-module github.com/dnitsch/reststrategy/controller
+module github.com/dnitsch/reststrategy/kubebuilder-controller
 
 go 1.19
 

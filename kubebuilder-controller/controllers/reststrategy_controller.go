@@ -18,19 +18,27 @@ package controllers
 
 import (
 	"context"
+	"fmt"
+	"net/http"
+	"time"
 
+	"github.com/dnitsch/reststrategy/kubebuilder-controller/api/v1alpha1"
+	seederv1alpha1 "github.com/dnitsch/reststrategy/kubebuilder-controller/api/v1alpha1"
+	"github.com/dnitsch/reststrategy/seeder"
+	log "github.com/dnitsch/simplelog"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/log"
-
-	seederv1alpha1 "github.com/dnitsch/reststrategy/controller/api/v1alpha1"
 )
 
 // RestStrategyReconciler reconciles a RestStrategy object
 type RestStrategyReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme       *runtime.Scheme
+	Logger       log.Loggeriface
+	IsNamespaced bool
+	Namespace    string
+	ResyncPeriod int64
 }
 
 //+kubebuilder:rbac:groups=seeder.dnitsch.net,resources=reststrategies,verbs=get;list;watch;create;update;patch;delete
@@ -47,11 +55,23 @@ type RestStrategyReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.14.1/pkg/reconcile
 func (r *RestStrategyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
 
-	// TODO(user): your logic here
+	spec := v1alpha1.RestStrategy{}
+	if err := r.Get(ctx, req.NamespacedName, &spec); err != nil {
+		fmt.Println(err)
+	}
 
-	return ctrl.Result{}, nil
+	// restseeder
+	restClient := &http.Client{}
+
+	srs := seeder.New(r.Logger).WithRestClient(restClient)
+	srs.WithActionsList(spec.Spec.Seeders).WithAuthFromList(spec.Spec.AuthConfig)
+	if err := srs.Execute(context.Background()); err != nil {
+		// update status as failed
+		// requeue for 5mins
+		return ctrl.Result{RequeueAfter: time.Duration(10) * time.Minute}, err
+	}
+	return ctrl.Result{RequeueAfter: time.Duration(r.ResyncPeriod) * time.Minute}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

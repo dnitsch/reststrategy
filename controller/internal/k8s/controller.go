@@ -17,6 +17,7 @@ import (
 	listers "github.com/dnitsch/reststrategy/apis/reststrategy/generated/listers/reststrategy/v1alpha1"
 	"github.com/dnitsch/reststrategy/apis/reststrategy/v1alpha1"
 	"github.com/dnitsch/reststrategy/controller/pkg/rstservice"
+
 	"github.com/dnitsch/reststrategy/seeder"
 
 	log "github.com/dnitsch/simplelog"

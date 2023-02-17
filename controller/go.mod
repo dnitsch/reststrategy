@@ -11,13 +11,13 @@ require (
 	k8s.io/apimachinery v0.26.1
 	k8s.io/client-go v0.26.1
 	// end k8s packages
-	sigs.k8s.io/yaml v1.3.0 // indirect
+	sigs.k8s.io/yaml v1.3.0
 )
 
 // hack replace due to MS tests
 replace (
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.2.0 => github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.1.0
-	github.com/AzureAD/microsoft-authentication-library-for-go => github.com/AzureAD/microsoft-authentication-library-for-go v0.7.0
+	github.com/AzureAD/microsoft-authentication-library-for-go v0.8.0 => github.com/AzureAD/microsoft-authentication-library-for-go v0.7.0
 // github.com/dnitsch/reststrategy/apis => ../apis
 // github.com/dnitsch/reststrategy/seeder => ../seeder
 )

@@ -53,6 +53,7 @@ spec:
                             this body or send in header params that payload"
                           x-kubernetes-preserve-unknown-fields: true
                         headerKey:
+                          default: Authorization
                           description: if omitted `Authorization` will be used Could
                             be X-API-Token etc..
                           type: string
@@ -62,11 +63,13 @@ spec:
                             the body as json post
                           type: boolean
                         responseKey:
+                          default: $.access_token
                           description: "JSONPath expression to use to get the token
                             from response \n e.g. \"$.token\" \n empty will take the
                             entire response as the token - raw response must be string"
                           type: string
                         tokenPrefix:
+                          default: Bearer
                           description: 'Token prefix - if omitted Bearer will be used
                             e.g. Admin ==> `Authorization: "Admin [TOKEN]"`'
                           type: string
@@ -109,12 +112,26 @@ spec:
                       - serverUrl
                       type: object
                     password:
+                      description: "Password will be used as client secret in the
+                        oauth flows and in basic flow as well as the StaticToken value
+                        in the header. \n Can be provided in a configmanager https://github.com/dnitsch/configmanager#config-tokens
+                        format"
                       type: string
                     type:
-                      description: AuthType specifies the type of authentication to
-                        perform currently only a single authType per instance is allowed
+                      description: AuthStrategyType must be specified and conform
+                        to the type's enum
+                      enum:
+                      - NoAuth
+                      - BasicAuth
+                      - OAuthClientCredentials
+                      - OAuthPassCredentials
+                      - CustomToToken
+                      - StaticToken
                       type: string
                     username:
+                      description: Username must be specified with all AuthTypes will
+                        be ignored for CustomToken an empty string can be provided
+                        in that case
                       type: string
                   required:
                   - name

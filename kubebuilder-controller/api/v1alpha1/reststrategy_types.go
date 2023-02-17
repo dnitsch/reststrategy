@@ -34,23 +34,15 @@ type RestStrategy struct {
 	Status            StrategyStatus `json:"status,omitempty"`
 }
 
-// type Name struct {
-// 	Name string `json:"name"`
+// type AuthConfig struct {
+// 	Name              string
+// 	seeder.AuthConfig `json:",inline"`
 // }
 
-type AuthConfig struct {
-	Name              string
-	seeder.AuthConfig `json:",inline"`
-}
-
-// 	Name string            `json:"name"`
-// 	Auth seeder.AuthConfig `json:"auth"`
+// type SeederConfig struct {
+// 	Name          string `json:"name"`
+// 	seeder.Action `json:",inline"`
 // }
-
-type SeederConfig struct {
-	Name          string `json:"name"`
-	seeder.Action `json:",inline"`
-}
 
 type StrategySpec struct {
 	AuthConfig []seeder.AuthConfig `json:"auth"`

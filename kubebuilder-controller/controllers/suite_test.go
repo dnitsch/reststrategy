@@ -30,7 +30,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	seederv1alpha1 "github.com/dnitsch/reststrategy/controller/api/v1alpha1"
+	seederv1alpha1 "github.com/dnitsch/reststrategy/kubebuilder-controller/api/v1alpha1"
 	//+kubebuilder:scaffold:imports
 )
 

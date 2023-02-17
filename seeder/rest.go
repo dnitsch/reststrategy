@@ -56,6 +56,12 @@ func (r *SeederImpl) WithAuth(a AuthMap) *SeederImpl {
 	return r
 }
 
+// WithAuth assigns auth options used by AuthMapRef within the actions
+func (r *SeederImpl) WithAuthList(a []AuthConfig) *SeederImpl {
+	r.auth = NewAuthFromList(a)
+	return r
+}
+
 func (r *SeederImpl) SetRuntimeVar(key string, val any) {
 	r.runtimeVars.mu.Lock()
 	r.runtimeVars.vars[key] = val
@@ -72,6 +78,7 @@ func (r *SeederImpl) RuntimeVars() map[string]any {
 	return rv
 }
 
+// +kubebuilder:object:generate=true
 // +k8s:deepcopy-gen=true
 // StrategyConfig defines top level Spec
 type StrategyConfig struct {
@@ -80,12 +87,14 @@ type StrategyConfig struct {
 }
 
 // +k8s:deepcopy-gen=true
+// +kubebuilder:object:generate=true
 type Seeders map[string]Action
 
+// +kubebuilder:object:generate=false
+// +k8s:deepcopy-gen=false
+//
 // NOTE: currently need to generate the below functions manually
 // To allow for both integer or string in x-kubernetes unknown fields
-
-// +k8s:deepcopy-gen=false
 type KvMapVarsAny map[string]any
 
 func (in *KvMapVarsAny) DeepCopyInto(out *KvMapVarsAny) {
@@ -107,6 +116,7 @@ func (in *KvMapVarsAny) DeepCopy() *KvMapVarsAny {
 }
 
 // +k8s:deepcopy-gen=true
+// +kubebuilder:object:generate=true
 //
 // Action defines the single action to make agains an endpoint
 // and selecting a strategy
@@ -115,25 +125,31 @@ func (in *KvMapVarsAny) DeepCopy() *KvMapVarsAny {
 // GetEndpointSuffix can be used to specify a direct ID or query params
 // PostEndpointSuffix
 type Action struct {
-	name                 string             `yaml:"-" json:"-"`
-	templatedPayload     string             `yaml:"-" json:"-"`
-	foundId              string             `yaml:"-" json:"-"`
-	header               *http.Header       `yaml:"-" json:"-"`
-	Strategy             string             `yaml:"strategy" json:"strategy"`
-	Order                *int               `yaml:"order,omitempty" json:"order,omitempty"`
-	Endpoint             string             `yaml:"endpoint" json:"endpoint"`
-	GetEndpointSuffix    *string            `yaml:"getEndpointSuffix,omitempty" json:"getEndpointSuffix,omitempty"`
-	PostEndpointSuffix   *string            `yaml:"postEndpointSuffix,omitempty" json:"postEndpointSuffix,omitempty"`
-	PatchEndpointSuffix  *string            `yaml:"patchEndpointSuffix,omitempty" json:"patchEndpointSuffix,omitempty"`
-	PutEndpointSuffix    *string            `yaml:"putEndpointSuffix,omitempty" json:"putEndpointSuffix,omitempty"`
-	DeleteEndpointSuffix *string            `yaml:"deleteEndpointSuffix,omitempty" json:"deleteEndpointSuffix,omitempty"`
-	FindByJsonPathExpr   string             `yaml:"findByJsonPathExpr,omitempty" json:"findByJsonPathExpr,omitempty"`
-	PayloadTemplate      string             `yaml:"payloadTemplate" json:"payloadTemplate"`
-	PatchPayloadTemplate string             `yaml:"patchPayloadTemplate,omitempty" json:"patchPayloadTemplate,omitempty"`
-	RuntimeVars          map[string]string  `yaml:"runtimeVars,omitempty" json:"runtimeVars,omitempty"`
-	AuthMapRef           string             `yaml:"authMapRef" json:"authMapRef"`
-	HttpHeaders          *map[string]string `yaml:"httpHeaders,omitempty" json:"httpHeaders,omitempty"`
-	Variables            KvMapVarsAny       `yaml:"variables" json:"variables"`
+	name                 string       `yaml:"-" json:"-"`
+	templatedPayload     string       `yaml:"-" json:"-"`
+	foundId              string       `yaml:"-" json:"-"`
+	header               *http.Header `yaml:"-" json:"-"`
+	Name                 string       `yaml:"name" json:"name"`
+	Strategy             string       `yaml:"strategy" json:"strategy"`
+	Order                *int         `yaml:"order,omitempty" json:"order,omitempty"`
+	Endpoint             string       `yaml:"endpoint" json:"endpoint"`
+	GetEndpointSuffix    *string      `yaml:"getEndpointSuffix,omitempty" json:"getEndpointSuffix,omitempty"`
+	PostEndpointSuffix   *string      `yaml:"postEndpointSuffix,omitempty" json:"postEndpointSuffix,omitempty"`
+	PatchEndpointSuffix  *string      `yaml:"patchEndpointSuffix,omitempty" json:"patchEndpointSuffix,omitempty"`
+	PutEndpointSuffix    *string      `yaml:"putEndpointSuffix,omitempty" json:"putEndpointSuffix,omitempty"`
+	DeleteEndpointSuffix *string      `yaml:"deleteEndpointSuffix,omitempty" json:"deleteEndpointSuffix,omitempty"`
+	FindByJsonPathExpr   string       `yaml:"findByJsonPathExpr,omitempty" json:"findByJsonPathExpr,omitempty"`
+	PayloadTemplate      string       `yaml:"payloadTemplate" json:"payloadTemplate"`
+	PatchPayloadTemplate string       `yaml:"patchPayloadTemplate,omitempty" json:"patchPayloadTemplate,omitempty"`
+	// +kubebuilder:pruning:PreserveUnknownFields
+	RuntimeVars map[string]string `yaml:"runtimeVars,omitempty" json:"runtimeVars,omitempty"`
+	AuthMapRef  string            `yaml:"authMapRef" json:"authMapRef"`
+	// +kubebuilder:pruning:PreserveUnknownFields
+	HttpHeaders *map[string]string `yaml:"httpHeaders,omitempty" json:"httpHeaders,omitempty"`
+	// +kubebuilder:pruning:PreserveUnknownFields
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:validation:Optional
+	Variables KvMapVarsAny `yaml:"variables,omitempty" json:"variables,omitempty"`
 }
 
 // WithHeader allows the overwrite of default Accept and Content-Type headers

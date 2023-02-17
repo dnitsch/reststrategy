@@ -78,6 +78,21 @@ func (s *StrategyRestSeeder) WithActions(actions map[string]Action) *StrategyRes
 	return s
 }
 
+// WithAuthFromList same as WithAuth but accepts a list
+func (s *StrategyRestSeeder) WithAuthFromList(ra []AuthConfig) *StrategyRestSeeder {
+	s.rest = s.rest.WithAuthList(ra)
+	return s
+}
+
+// WithActionsList same as WithActions but accepts a list
+func (s *StrategyRestSeeder) WithActionsList(actions []Action) *StrategyRestSeeder {
+	for _, v := range actions {
+		a := v
+		s.actions = append(s.actions, *a.WithName(v.Name).WithHeader())
+	}
+	return s
+}
+
 // Execute the built actions list
 func (s *StrategyRestSeeder) Execute(ctx context.Context) error {
 	var errs []error

@@ -31,8 +31,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	seederv1alpha1 "github.com/dnitsch/reststrategy/controller/api/v1alpha1"
-	"github.com/dnitsch/reststrategy/controller/controllers"
+	seederv1alpha1 "github.com/dnitsch/reststrategy/kubebuilder-controller/api/v1alpha1"
+	"github.com/dnitsch/reststrategy/kubebuilder-controller/controllers"
+	log "github.com/dnitsch/simplelog"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -83,6 +84,13 @@ func main() {
 		// if you are doing or is intended to do any operation such as perform cleanups
 		// after the manager stops then its usage might be unsafe.
 		// LeaderElectionReleaseOnCancel: true,
+		Namespace: "test-local-ns",
+		// SyncPeriod is left empty by defult in this instance
+		// as the specific use case of periodic resync is better handled by
+		// specifying a RequeueAfter time.Duration. this allows for more
+		// controlled by resource periodic resync and ensure the state on the
+		// remote is periodically synced with the desired state
+		// SyncPeriod: nil
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
@@ -90,8 +98,10 @@ func main() {
 	}
 
 	if err = (&controllers.RestStrategyReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:       mgr.GetClient(),
+		Scheme:       mgr.GetScheme(),
+		ResyncPeriod: 300,
+		Logger:       log.New(os.Stderr, log.DebugLvl),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "RestStrategy")
 		os.Exit(1)

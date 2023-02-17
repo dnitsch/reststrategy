@@ -35,6 +35,7 @@ var (
 
 func init() {
 	runCmd.PersistentFlags().StringVarP(&path, "path", "p", "", `Path to YAML file which has the strategy defined`)
+	// expose configmanager enabled flag here
 	strategyrestseederCmd.AddCommand(runCmd)
 }
 

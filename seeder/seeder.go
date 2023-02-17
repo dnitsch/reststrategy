@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/dnitsch/configmanager"
+	"github.com/dnitsch/configmanager/pkg/generator"
 	log "github.com/dnitsch/simplelog"
 )
 
@@ -25,17 +27,25 @@ const (
 	PUT              StrategyType = "PUT"
 )
 
+type Options struct {
+}
+
 type StrategyRestSeeder struct {
 	Strategy map[StrategyType]StrategyFunc
-	rest     *SeederImpl
-	actions  []Action
-	log      log.Loggeriface
+	// enableConfigManager
+	// private set of configmanagerEnable
+	// or
+	// or Public
+	EnableConfigManager bool
+	rest    *SeederImpl
+	actions []Action
+	log     log.Loggeriface
 }
 
 // New initializes a default StrategySeeder with
 // error log level and os.StdErr as log writer
 // uses standard http.Client as rest client for rest SeederImplementation
-func New(log log.Loggeriface) *StrategyRestSeeder {
+func New(log log.Loggeriface, opts ...Options) *StrategyRestSeeder {
 	r := NewSeederImpl(log)
 	r.WithClient(&http.Client{})
 
@@ -64,6 +74,7 @@ func (s *StrategyRestSeeder) WithRestClient(rc Client) *StrategyRestSeeder {
 // WithAuth adds the AuthLogic to the entire seeder
 // NOTE: might make more sense to have a per RestAction authTemplate (might make it very inefficient)
 func (s *StrategyRestSeeder) WithAuth(ra AuthMap) *StrategyRestSeeder {
+	// run auth through configmanager as well if enabled
 	s.rest = s.rest.WithAuth(ra)
 	return s
 }
@@ -84,8 +95,20 @@ func (s *StrategyRestSeeder) Execute(ctx context.Context) error {
 	// assign each action to method
 	s.log.Debugf("actions: %v", s.actions)
 	// do some ordering if exists
+	// configmanager the entire actions list - if enabled
+	if s.EnableConfigManager {
+		cm := &configmanager.ConfigManager{}
+		rawActions := &s.actions
+		replacedActions, err := configmanager.RetrieveMarshalledJson(rawActions, cm, *generator.NewConfig())
+		if err != nil {
+	
+		}
+
+	}
+
 	// else send to fixed size channel goroutine
-	for _, action := range s.actions {
+	for _, action := range *replacedActions {
+		//
 		if fn, ok := s.Strategy[StrategyType(action.Strategy)]; ok {
 			e := fn(ctx, &action, s.rest)
 			if e != nil {

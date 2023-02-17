@@ -266,6 +266,8 @@ func (r *SeederImpl) get(ctx context.Context, action *Action) ([]byte, error) {
 
 	if err != nil {
 		r.log.Debugf("failed to build request: %v", err)
+		r.log.Error(err)
+		return nil, err
 	}
 
 	return r.do(req, action)

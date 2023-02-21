@@ -11,6 +11,7 @@ require (
 
 require (
 	github.com/fatih/color v1.14.1 // indirect
+	github.com/go-logr/zerologr v1.2.3 // indirect
 	github.com/gobuffalo/flect v0.3.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/onsi/ginkgo/v2 v2.6.1 // indirect
@@ -21,7 +22,7 @@ require (
 require (
 	github.com/a8m/envsubst v1.3.1-0.20221106143949-dffd7176fbc4 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/dnitsch/simplelog v1.5.1 // indirect
+	github.com/dnitsch/simplelog v1.7.0 // indirect
 	github.com/emicklei/go-restful/v3 v3.10.1 // indirect
 	github.com/evanphx/json-patch v5.6.0+incompatible // indirect
 	github.com/go-logr/logr v1.2.3 // indirect

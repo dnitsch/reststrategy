@@ -145,7 +145,8 @@ spec:
                   description: "Action defines the single action to make agains an
                     endpoint and selecting a strategy \n Endpoint is the base url
                     to make the requests against GetEndpointSuffix can be used to
-                    specify a direct ID or query params PostEndpointSuffix"
+                    specify a direct ID or query params PostEndpointSuffix RuntimeVars
+                    should include a Json Path Expression eg. myRuntimeVar: \"$.bar\""
                   properties:
                     authMapRef:
                       type: string

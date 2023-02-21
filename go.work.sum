@@ -205,8 +205,11 @@ github.com/dnitsch/reststrategy/apis v0.0.0-20221013111705-737702f51051/go.mod h
 github.com/dnitsch/reststrategy/apis v0.9.0/go.mod h1:cni8LnkrtN5tu/yFuXaSDeTTYE4Ojljuh/Pz5htW5PE=
 github.com/dnitsch/reststrategy/apis v0.9.1-0.20230201144759-a386d28e051e/go.mod h1:3wS68VSyGlMyvrreqcpIBT2v1kgsFjNsUeEsuWCOc/s=
 github.com/dnitsch/reststrategy/seeder v0.9.0/go.mod h1:5MVCs1mhjHnqz2C0IxaNS87vK+VIgl52a6/kEFcqjYc=
+github.com/dnitsch/simplelog v1.1.0/go.mod h1:scPvWULBlruthxS6seGJkMbc1DM5f44IRZNmaSZCJVU=
 github.com/dnitsch/simplelog v1.3.1 h1:LiIXqsBGo/G6MERjilLVU5uk+PbxDExRLLpkJZAh8XI=
 github.com/dnitsch/simplelog v1.3.1/go.mod h1:scPvWULBlruthxS6seGJkMbc1DM5f44IRZNmaSZCJVU=
+github.com/dnitsch/simplelog v1.7.0 h1:Lg+/KaTZDNfIqzb8B5vrGW5QFBTVBoy27k6IH+nOwfc=
+github.com/dnitsch/simplelog v1.7.0/go.mod h1:+6a7bFEUXelqYb9kxJ1rv+bpmlO6nKh2aKkOVv59wlo=
 github.com/dustin/go-humanize v1.0.0/go.mod h1:HtrtbFcZ19U5GC7JDqmcUSB87Iq5E25KnS6fMYU6eOk=
 github.com/elazarl/goproxy v0.0.0-20180725130230-947c36da3153/go.mod h1:/Zj4wYkgs4iZTTu3o/KG3Itv/qCCa8VVMlb3i9OVuzc=
 github.com/emicklei/go-restful v2.9.5+incompatible h1:spTtZBk5DYEvbxMVutUuTyh1Ao2r4iyvLdACqsl/Ljk=
@@ -223,7 +226,6 @@ github.com/getkin/kin-openapi v0.76.0/go.mod h1:660oXbgy5JFMKreazJaQTw7o+X00qeSy
 github.com/getsentry/raven-go v0.2.0/go.mod h1:KungGk8q33+aIAZUIVWZDr2OfAEBsO49PX4NzFV5kcQ=
 github.com/go-logr/logr v0.1.0/go.mod h1:ixOQHD9gLJUVQQ2ZOR7zLEifBX6tGkNJF4QyIY7sIas=
 github.com/go-logr/stdr v1.2.2/go.mod h1:mMo/vtBO5dYbehREoey6XUKy/eSumjCCveDpRre4VKE=
-github.com/go-logr/zerologr v1.2.3 h1:up5N9vcH9Xck3jJkXzgyOxozT14R47IyDODz8LM1KSs=
 github.com/go-openapi/jsonpointer v0.19.3/go.mod h1:Pl9vOtqEWErmShwVjC8pYs9cog34VGT37dQOVbmoatg=
 github.com/go-openapi/jsonpointer v0.19.5/go.mod h1:Pl9vOtqEWErmShwVjC8pYs9cog34VGT37dQOVbmoatg=
 github.com/go-openapi/jsonreference v0.20.0/go.mod h1:Ag74Ico3lPc+zR+qjn4XBUmXymS4zJbYVCZmcgkasdo=

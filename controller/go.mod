@@ -24,7 +24,7 @@ replace (
 
 require (
 	github.com/dnitsch/configmanager v1.19.0
-	github.com/dnitsch/simplelog v1.5.1
+	github.com/dnitsch/simplelog v1.7.0
 	github.com/spf13/cobra v1.6.1
 )
 
@@ -32,7 +32,10 @@ require (
 	github.com/BurntSushi/toml v1.0.0 // indirect
 	github.com/alessio/shellescape v1.4.1 // indirect
 	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
+	github.com/go-logr/zerologr v1.2.3 // indirect
 	github.com/google/safetext v0.0.0-20220905092116-b49f7bc46da2 // indirect
+	github.com/onsi/ginkgo/v2 v2.6.1 // indirect
+	github.com/onsi/gomega v1.24.2 // indirect
 	github.com/pelletier/go-toml v1.9.4 // indirect
 )
 

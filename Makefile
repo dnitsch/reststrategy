@@ -53,10 +53,14 @@ test_controller:
 	go test ./controller/... -v -mod=readonly -race -coverprofile=controller/.coverage/out | go-junit-report > controller/.coverage/report-junit.xml && \
 	gocov convert controller/.coverage/out | gocov-xml > controller/.coverage/report-cobertura.xml
 
-test: test_prereq test_seeder test_controller
+test_kubebuilder_controller:
+	go test ./kubebuilder-controller/... -v -mod=readonly -race -coverprofile=kubebuilder-controller/.coverage/out | go-junit-report > kubebuilder-controller/.coverage/report-junit.xml && \
+	gocov convert kubebuilder-controller/.coverage/out | gocov-xml > kubebuilder-controller/.coverage/report-cobertura.xml
+
+test: test_prereq test_seeder test_controller test_kubebuilder_controller
 
 test_prereq: 
-	mkdir -p seeder/.coverage controller/.coverage
+	mkdir -p seeder/.coverage controller/.coverage kubebuilder-controller/.coverage
 	go install github.com/jstemmer/go-junit-report/v2@latest && \
 	go install github.com/axw/gocov/gocov@latest && \
 	go install github.com/AlekSi/gocov-xml@latest
@@ -70,3 +74,6 @@ coverage_seeder: test_seeder
 
 coverage_controller: test_controller
 	go tool cover -html=controller/.coverage/out
+
+coverage_kubebuilder_controller: test_kubebuilder_controller
+	go tool cover -html=kubebuilder-controller/.coverage/out

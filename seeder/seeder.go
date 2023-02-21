@@ -64,6 +64,7 @@ func (s *StrategyRestSeeder) WithRestClient(rc Client) *StrategyRestSeeder {
 // WithAuth adds the AuthLogic to the entire seeder
 // NOTE: might make more sense to have a per RestAction authTemplate (might make it very inefficient)
 func (s *StrategyRestSeeder) WithAuth(ra AuthMap) *StrategyRestSeeder {
+	s.auths = ra
 	s.rest = s.rest.WithAuth(ra)
 	return s
 }
@@ -109,7 +110,7 @@ func (s *StrategyRestSeeder) Execute(ctx context.Context) error {
 			}
 			continue
 		}
-		errs = append(errs, fmt.Errorf("unknown strategy: %s is not recognized", action.Strategy))
+		errs = append(errs, fmt.Errorf("unknown strategy: %s is not recognized for: %s", action.Strategy, action.Name))
 	}
 	if len(errs) > 0 {
 		finalErr := []string{}

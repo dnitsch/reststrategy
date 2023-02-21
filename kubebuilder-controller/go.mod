@@ -9,6 +9,17 @@ require (
 	k8s.io/apimachinery v0.26.1
 	k8s.io/client-go v0.26.1
 	sigs.k8s.io/controller-runtime v0.14.1
+	sigs.k8s.io/kind v0.17.0
+)
+
+require (
+	github.com/BurntSushi/toml v1.0.0 // indirect
+	github.com/alessio/shellescape v1.4.1 // indirect
+	github.com/go-logr/zerologr v1.2.3 // indirect
+	github.com/google/safetext v0.0.0-20220905092116-b49f7bc46da2 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/pelletier/go-toml v1.9.4 // indirect
+	github.com/spf13/cobra v1.6.1 // indirect
 )
 
 require (
@@ -16,7 +27,7 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/dnitsch/simplelog v1.5.1 // indirect
+	github.com/dnitsch/simplelog v1.5.1
 	github.com/emicklei/go-restful/v3 v3.10.1 // indirect
 	github.com/evanphx/json-patch v5.6.0+incompatible // indirect
 	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
@@ -78,4 +89,7 @@ require (
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
-replace github.com/dnitsch/reststrategy/seeder => ../seeder
+replace (
+	github.com/dnitsch/reststrategy/seeder => ../seeder
+	github.com/dnitsch/simplelog v1.5.1 => ../../logger
+)

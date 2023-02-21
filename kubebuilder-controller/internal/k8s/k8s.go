@@ -1,31 +1,7 @@
-//go:build!
-/*
-Copyright 2023.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
-/*
-Only used for sample generation
-the k8s pkg starts and runs the controller
-invoked from cobra cmd
-*/
-package main
+package k8s
 
 import (
-	"flag"
 	"os"
-
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -35,48 +11,41 @@ import (
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	seederv1alpha1 "github.com/dnitsch/reststrategy/kubebuilder-controller/api/v1alpha1"
 	"github.com/dnitsch/reststrategy/kubebuilder-controller/controllers"
+	"github.com/go-logr/logr"
+
 	log "github.com/dnitsch/simplelog"
-	//+kubebuilder:scaffold:imports
 )
 
-var (
-	scheme = runtime.NewScheme()
-)
+const CACHE_RESYNC_INTERVAL int = 10
 
-func init() {
-	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-
-	utilruntime.Must(seederv1alpha1.AddToScheme(scheme))
-	//+kubebuilder:scaffold:scheme
+type Config struct {
+	MasterURL            string
+	Kubeconfig           string
+	ControllerCount      int
+	Rsyncperiod          int
+	Namespace            string
+	LogLevel             string
+	ProbeAddr            string
+	MetricsAddr          string
+	EnableLeaderElection bool
 }
 
-func main() {
-	var metricsAddr string
-	var enableLeaderElection bool
-	var probeAddr string
-	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
-	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
-	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
-		"Enable leader election for controller manager. "+
-			"Enabling this will ensure there is only one active controller manager.")
-	opts := zap.Options{
-		Development: true,
-	}
-	opts.BindFlags(flag.CommandLine)
-	flag.Parse()
+func Run(conf Config, logger logr.Logger, scheme *runtime.Scheme) {
+	// removed init 
+	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
+	utilruntime.Must(seederv1alpha1.AddToScheme(scheme))
 
-	ctrl.SetLogger(log.NewLogr(os.Stdout, log.DebugLvl).WithName("RestStrategyController"))
+	ctrl.SetLogger(logger.WithName("RestStrategyController"))
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
-		MetricsBindAddress:     metricsAddr,
+		MetricsBindAddress:     conf.MetricsAddr,
 		Port:                   9443,
-		HealthProbeBindAddress: probeAddr,
-		LeaderElection:         enableLeaderElection,
+		HealthProbeBindAddress: conf.ProbeAddr,
+		LeaderElection:         conf.EnableLeaderElection,
 		LeaderElectionID:       "f1b2a8fa.dnitsch.net",
 		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
 		// when the Manager ends. This requires the binary to immediately end when the
@@ -89,7 +58,7 @@ func main() {
 		// if you are doing or is intended to do any operation such as perform cleanups
 		// after the manager stops then its usage might be unsafe.
 		// LeaderElectionReleaseOnCancel: true,
-		Namespace: "test-local-ns",
+		Namespace: GetNamespace(conf.Namespace),
 		// SyncPeriod is left empty by defult in this instance
 		// as the specific use case of periodic resync is better handled by
 		// specifying a RequeueAfter time.Duration. this allows for more
@@ -105,13 +74,12 @@ func main() {
 	if err = (&controllers.RestStrategyReconciler{
 		Client:       mgr.GetClient(),
 		Scheme:       mgr.GetScheme(),
-		ResyncPeriod: 1,
+		ResyncPeriod: conf.Rsyncperiod,
 		Logger:       log.New(os.Stderr, log.DebugLvl),
 	}).SetupWithManager(mgr); err != nil {
 		ctrl.Log.Error(err, "unable to create controller", "controller", "RestStrategy")
 		os.Exit(1)
 	}
-	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		ctrl.Log.Error(err, "unable to set up health check")
@@ -128,4 +96,17 @@ func main() {
 		ctrl.Log.Error(err, "problem running manager")
 		os.Exit(1)
 	}
+}
+
+func GetNamespace(namespace string) string {
+	ns := ""
+	if len(namespace) > 0 {
+		ns = namespace
+	}
+	if len(ns) < 1 {
+		if podNamespace, exists := os.LookupEnv("POD_NAMESPACE"); exists {
+			ns = podNamespace
+		}
+	}
+	return ns
 }

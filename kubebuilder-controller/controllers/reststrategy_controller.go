@@ -22,7 +22,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/dnitsch/reststrategy/kubebuilder-controller/api/v1alpha1"
 	seederv1alpha1 "github.com/dnitsch/reststrategy/kubebuilder-controller/api/v1alpha1"
 	"github.com/dnitsch/reststrategy/seeder"
 	log "github.com/dnitsch/simplelog"
@@ -38,7 +37,7 @@ type RestStrategyReconciler struct {
 	Logger       log.Loggeriface
 	IsNamespaced bool
 	Namespace    string
-	ResyncPeriod int64
+	ResyncPeriod int
 }
 
 //+kubebuilder:rbac:groups=seeder.dnitsch.net,resources=reststrategies,verbs=get;list;watch;create;update;patch;delete
@@ -56,7 +55,7 @@ type RestStrategyReconciler struct {
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.14.1/pkg/reconcile
 func (r *RestStrategyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 
-	spec := v1alpha1.RestStrategy{}
+	spec := seederv1alpha1.RestStrategy{}
 	if err := r.Get(ctx, req.NamespacedName, &spec); err != nil {
 		fmt.Println(err)
 	}

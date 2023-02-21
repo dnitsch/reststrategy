@@ -21,9 +21,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 //+kubebuilder:object:root=true
 //+kubebuilder:object:generate=true
 
@@ -33,16 +30,6 @@ type RestStrategy struct {
 	Spec              StrategySpec   `json:"spec,omitempty"`
 	Status            StrategyStatus `json:"status,omitempty"`
 }
-
-// type AuthConfig struct {
-// 	Name              string
-// 	seeder.AuthConfig `json:",inline"`
-// }
-
-// type SeederConfig struct {
-// 	Name          string `json:"name"`
-// 	seeder.Action `json:",inline"`
-// }
 
 type StrategySpec struct {
 	AuthConfig []seeder.AuthConfig `json:"auth"`

@@ -17,6 +17,9 @@ import (
 
 var (
 	path   string
+	enableConfigManager bool
+	cmTokenSeparator string
+	cmKeySeparator string
 	runCmd = &cobra.Command{
 		Use:     "run",
 		Aliases: config.SHORT_NAME,
@@ -35,7 +38,9 @@ var (
 
 func init() {
 	runCmd.PersistentFlags().StringVarP(&path, "path", "p", "", `Path to YAML file which has the strategy defined`)
-	// expose configmanager enabled flag here
+	runCmd.PersistentFlags().BoolVarP(&enableConfigManager, "enable-config-manager", "c", false, "Enables config manager to replace placeholders for secret values")
+	runCmd.PersistentFlags().StringVarP(&cmTokenSeparator, "cm-token-separator", "t", "", `Config Manager token separator`)
+	runCmd.PersistentFlags().StringVarP(&cmKeySeparator, "cm-key-separator", "k", "", `Config Manager key separator`)
 	strategyrestseederCmd.AddCommand(runCmd)
 }
 
@@ -51,6 +56,20 @@ func runExecute(cmd *cobra.Command, args []string) error {
 
 	strategy := seeder.StrategyConfig{}
 	s := srs.New(&l).WithRestClient(&http.Client{})
+	cmConfig := generator.NewConfig()
+
+
+	if cmKeySeparator != "" {
+		cmConfig.WithKeySeparator(cmKeySeparator)
+	}
+
+	if cmTokenSeparator != "" {
+		cmConfig.WithTokenSeparator(cmTokenSeparator)
+	}
+
+	if enableConfigManager {
+		s.WithConfigManager(&configmanager.ConfigManager{}).WithConfigManagerOptions(cmConfig)
+	}
 
 	b, e := os.ReadFile(path)
 	if e != nil {

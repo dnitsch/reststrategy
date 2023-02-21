@@ -27,25 +27,23 @@ const (
 	PUT              StrategyType = "PUT"
 )
 
-type Options struct {
+type CMRetrieve interface {
+	RetrieveWithInputReplaced(input string, config generator.GenVarsConfig) (string, error)
 }
 
 type StrategyRestSeeder struct {
-	Strategy map[StrategyType]StrategyFunc
-	// enableConfigManager
-	// private set of configmanagerEnable
-	// or
-	// or Public
-	EnableConfigManager bool
-	rest    *SeederImpl
-	actions []Action
-	log     log.Loggeriface
+	Strategy             map[StrategyType]StrategyFunc
+	configManagerOptions *generator.GenVarsConfig
+	configManager        CMRetrieve
+	rest                 *SeederImpl
+	actions              []Action
+	log                  log.Loggeriface
 }
 
 // New initializes a default StrategySeeder with
 // error log level and os.StdErr as log writer
 // uses standard http.Client as rest client for rest SeederImplementation
-func New(log log.Loggeriface, opts ...Options) *StrategyRestSeeder {
+func New(log log.Loggeriface) *StrategyRestSeeder {
 	r := NewSeederImpl(log)
 	r.WithClient(&http.Client{})
 
@@ -61,6 +59,7 @@ func New(log log.Loggeriface, opts ...Options) *StrategyRestSeeder {
 			FIND_DELETE_POST: FindDeletePostStrategyFunc,
 			FIND_PATCH_POST:  FindPatchPostStrategyFunc,
 		},
+		configManager:        nil,
 		log: log,
 	}
 }
@@ -89,19 +88,32 @@ func (s *StrategyRestSeeder) WithActions(actions map[string]Action) *StrategyRes
 	return s
 }
 
+// WithConfigManagerOptions overwrites the default ConfigManager Options
+func (s *StrategyRestSeeder) WithConfigManagerOptions(configManagerOptions *generator.GenVarsConfig) *StrategyRestSeeder {
+	s.configManagerOptions = configManagerOptions
+	return s
+}
+
+// WithConfigManager overwrites the default ConfigManager
+func (s *StrategyRestSeeder) WithConfigManager(configManager CMRetrieve) *StrategyRestSeeder {
+	s.configManager = configManager
+	return s
+}
+
 // Execute the built actions list
 func (s *StrategyRestSeeder) Execute(ctx context.Context) error {
 	var errs []error
+	replacedActions := &s.actions
 	// assign each action to method
 	s.log.Debugf("actions: %v", s.actions)
 	// do some ordering if exists
 	// configmanager the entire actions list - if enabled
-	if s.EnableConfigManager {
-		cm := &configmanager.ConfigManager{}
+	if s.configManager != nil {
 		rawActions := &s.actions
-		replacedActions, err := configmanager.RetrieveMarshalledJson(rawActions, cm, *generator.NewConfig())
-		if err != nil {
-	
+		var err error
+
+		if replacedActions, err = configmanager.RetrieveMarshalledJson(rawActions, s.configManager, *s.configManagerOptions); err != nil {
+			return fmt.Errorf("Error while replacing secrets placeholders - %v", err)
 		}
 
 	}

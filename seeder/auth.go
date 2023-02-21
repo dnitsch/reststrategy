@@ -20,7 +20,7 @@ import (
 type AuthType string
 
 const (
-	NoAuth		  AuthType = "NoAuth"
+	NoAuth        AuthType = "NoAuth"
 	Basic         AuthType = "BasicAuth"
 	OAuth         AuthType = "OAuthClientCredentials"
 	OAuthPassword AuthType = "OAuthPassCredentials"

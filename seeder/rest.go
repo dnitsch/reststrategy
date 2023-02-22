@@ -225,32 +225,32 @@ func (r *SeederImpl) setAuthHeader(req *http.Request, action *Action) *http.Requ
 	enrichedReq := req
 	am := *r.auth
 	switch cam := am[action.AuthMapRef]; cam.authStrategy {
-		case Basic:
-			enrichedReq.SetBasicAuth(cam.basicAuth.username, cam.basicAuth.password)
-		case OAuth:
-			token, err := cam.oAuthConfig.Token(enrichedReq.Context())
-			if err != nil {
-				r.log.Errorf("failed to obtain token: %v", err)
-			}
-			enrichedReq.Header.Set("Authorization", fmt.Sprintf("%s %s", token.TokenType, token.AccessToken))
-		case OAuthPassword:
-			token, err := cam.passwordGrantConfig.oauthPassCredsConfig.PasswordCredentialsToken(enrichedReq.Context(), cam.passwordGrantConfig.resourceOwnerUser,
-				cam.passwordGrantConfig.resourceOwnerPass)
-			if err != nil {
-				r.log.Errorf("failed to obtain token: %v", err)
-			}
-			enrichedReq.Header.Set("Authorization", fmt.Sprintf("%s %s", token.TokenType, token.AccessToken))
-		case CustomToToken:
-			token, err := cam.customToToken.Token(enrichedReq.Context(), r.client, r.log)
-			if err != nil {
-				r.log.Errorf("failed to obtain custom token: %v", err)
-			}
-			enrichedReq.Header.Set(token.HeaderKey, fmt.Sprintf("%s %s", token.TokenPrefix, token.TokenValue))
-		case StaticToken:
-			enrichedReq.Header.Set(cam.staticToken.headerKey, cam.staticToken.staticToken)
-		case NoAuth:
-			r.log.Debug("unprotected endpoint not applying any enrichment")
+	case Basic:
+		enrichedReq.SetBasicAuth(cam.basicAuth.username, cam.basicAuth.password)
+	case OAuth:
+		token, err := cam.oAuthConfig.Token(enrichedReq.Context())
+		if err != nil {
+			r.log.Errorf("failed to obtain token: %v", err)
 		}
+		enrichedReq.Header.Set("Authorization", fmt.Sprintf("%s %s", token.TokenType, token.AccessToken))
+	case OAuthPassword:
+		token, err := cam.passwordGrantConfig.oauthPassCredsConfig.PasswordCredentialsToken(enrichedReq.Context(), cam.passwordGrantConfig.resourceOwnerUser,
+			cam.passwordGrantConfig.resourceOwnerPass)
+		if err != nil {
+			r.log.Errorf("failed to obtain token: %v", err)
+		}
+		enrichedReq.Header.Set("Authorization", fmt.Sprintf("%s %s", token.TokenType, token.AccessToken))
+	case CustomToToken:
+		token, err := cam.customToToken.Token(enrichedReq.Context(), r.client, r.log)
+		if err != nil {
+			r.log.Errorf("failed to obtain custom token: %v", err)
+		}
+		enrichedReq.Header.Set(token.HeaderKey, fmt.Sprintf("%s %s", token.TokenPrefix, token.TokenValue))
+	case StaticToken:
+		enrichedReq.Header.Set(cam.staticToken.headerKey, cam.staticToken.staticToken)
+	case NoAuth:
+		r.log.Debug("unprotected endpoint not applying any enrichment")
+	}
 
 	return enrichedReq
 }

@@ -101,13 +101,7 @@ func (s *StrategyRestSeeder) WithConfigManager(configManager CMRetrieve) *Strate
 	return s
 }
 
-// Execute the built actions list
-func (s *StrategyRestSeeder) Execute(ctx context.Context) error {
-	var errs []error
-	replacedActions := s.actions
-	// assign each action to method
-	s.log.Debugf("actions: %v", s.actions)
-	// configmanager the auth portion for any tokens
+func (s *StrategyRestSeeder) replaceAuthToken() error {
 	if s.configManager != nil && len(s.authInstructions) > 0 {
 		replacedAuthInstructions, err := configmanager.RetrieveMarshalledJson(&s.authInstructions, s.configManager, *s.configManagerOptions)
 		if err != nil {
@@ -115,6 +109,21 @@ func (s *StrategyRestSeeder) Execute(ctx context.Context) error {
 		}
 		s.rest.WithAuth(*replacedAuthInstructions)
 	}
+
+	return nil
+}
+
+// Execute the built actions list
+func (s *StrategyRestSeeder) Execute(ctx context.Context) error {
+	var errs []error
+	replacedActions := s.actions
+	// assign each action to method
+	s.log.Debugf("actions: %v", s.actions)
+	// configmanager the auth portion for any tokens
+	if err := s.replaceAuthToken(); err != nil {
+		return err
+	}
+	
 	// do some ordering if exists
 	// send to fixed size channel goroutine
 	for _, action := range replacedActions {

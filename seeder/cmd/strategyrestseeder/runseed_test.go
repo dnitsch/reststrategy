@@ -9,19 +9,18 @@ import (
 	"testing"
 
 	"github.com/dnitsch/reststrategy/seeder"
+
 	"gopkg.in/yaml.v2"
 )
 
 func helperTestSeed(conf *seeder.StrategyConfig) string {
-	// originalArg := os.Args[0:1]
-	// os.Args = originalArg
-
 	b, _ := yaml.Marshal(conf)
 	dir, _ := os.MkdirTemp("", "seed-cli-test")
 	file := filepath.Join(dir, "seeder.yml")
 	_ = os.WriteFile(file, b, 0777)
 	return file
 }
+
 func TestMainRunSeed(t *testing.T) {
 	ttests := map[string]struct {
 		// path to file and delete file return
@@ -76,7 +75,6 @@ func TestMainRunSeed(t *testing.T) {
 				file := helperTestSeed(conf)
 				return []string{"run"}, func() {
 					os.Remove(file)
-					os.Args = os.Args[0:1]
 				}
 			},
 			"must include input",
@@ -86,39 +84,35 @@ func TestMainRunSeed(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			cmdArgs, cleanUp := tt.testInput(t, "")
 			defer cleanUp()
-			b := &bytes.Buffer{}
-			e := &bytes.Buffer{}
-			cmd := runCmd
-			// cmd.SetArgs did not work with this set up
-			os.Args = os.Args[0:1]
-			os.Args = append(os.Args, cmdArgs...)
-			cmd.SetOut(b)
-			cmd.SetErr(e)
+			b := new(bytes.Buffer)
+
+			cmd := StrategyRestSeederCmd
+
+			cmd.SetArgs(cmdArgs)
+			cmd.SetErr(b)
 			cmd.Execute()
 			out, err := io.ReadAll(b)
 			if err != nil {
 				t.Fatal(err)
 			}
-			errOut, err := io.ReadAll(e)
-			if err != nil {
-				t.Fatal(err)
+			//
+			if tt.expect == "" && len(out) > 0 {
+				t.Errorf(`%s 
+got: %v
+wanted: ""`, "expected empty buffer", string(out))
 			}
 
-			if len(out) > 0 {
-				if !strings.Contains(string(out), tt.expect) {
-					t.Errorf(`%s 
+			if tt.expect != "" && !strings.Contains(string(out), tt.expect) {
+				t.Errorf(`%s 
 got: %v
 want: %v`, "output comparison failed", string(out), tt.expect)
-				}
-			}
-			if len(errOut) > 0 {
-				if !strings.Contains(string(errOut), tt.expect) {
-					t.Errorf(`%s 
-got: %v
-want: %v`, "error output comparison failed", string(errOut), tt.expect)
-				}
 			}
 
+			cmd = nil
+			path = ""
+			cmKeySeparator = ""
+			cmTokenSeparator = ""
+			verbose = false
 		})
 	}
 }

@@ -23,5 +23,5 @@ var (
 )
 
 func init() {
-	strategyrestseederCmd.AddCommand(versionCmd)
+	StrategyRestSeederCmd.AddCommand(versionCmd)
 }

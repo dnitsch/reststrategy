@@ -239,6 +239,7 @@ func TestExecuteGetPutPost(t *testing.T) {
 			},
 		},
 	}
+	t.Parallel()
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
 			srs := seeder.New(&logger).WithRestClient(&http.Client{})
@@ -483,6 +484,7 @@ func TestExecuteFindPutPost(t *testing.T) {
 			},
 		},
 	}
+	t.Parallel()
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
 			srs := seeder.New(&logger).WithRestClient(&http.Client{})
@@ -589,6 +591,7 @@ func TestExecuteCustomTokenError(t *testing.T) {
 			},
 		},
 	}
+	t.Parallel()
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
 			srs := seeder.New(&logger).WithRestClient(&http.Client{})
@@ -910,6 +913,7 @@ func TestExecuteGetPost(t *testing.T) {
 			},
 		},
 	}
+	t.Parallel()
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
 			srs := seeder.New(&logger).WithRestClient(&http.Client{})
@@ -1130,6 +1134,8 @@ func TestExecutePutPost(t *testing.T) {
 			},
 		},
 	}
+
+	t.Parallel()
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
 			srs := seeder.New(&logger).WithRestClient(&http.Client{})
@@ -1357,6 +1363,7 @@ func TestExecuteFindPatchPost(t *testing.T) {
 			},
 		},
 	}
+	t.Parallel()
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
 			srs := seeder.New(&logger).WithRestClient(&http.Client{})
@@ -1698,6 +1705,7 @@ func TestExecuteFindDeletePost(t *testing.T) {
 			},
 		},
 	}
+	t.Parallel()
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
 			srs := seeder.New(&logger).WithRestClient(&http.Client{})
@@ -1837,6 +1845,7 @@ func TestExecutePut(t *testing.T) {
 			},
 		},
 	}
+	t.Parallel()
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
 			srs := seeder.New(&logger).WithRestClient(&http.Client{})
@@ -2116,6 +2125,7 @@ func TestExecuteFindPost(t *testing.T) {
 			},
 		},
 	}
+	t.Parallel()
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
 			srs := seeder.New(&logger).WithRestClient(&http.Client{})
@@ -2290,6 +2300,7 @@ func TestExecuteWithConfigManager(t *testing.T) {
 			},
 		},
 	}
+	t.Parallel()
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
 			srs := seeder.New(&logger).WithRestClient(&http.Client{})
@@ -2403,6 +2414,7 @@ func TestExecuteWithConfigManagerError(t *testing.T) {
 			},
 		},
 	}
+	t.Parallel()
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
 			srs := seeder.New(&logger).WithRestClient(&http.Client{})
@@ -2481,6 +2493,7 @@ func TestExecuteUnknownStrategy(t *testing.T) {
 			},
 		},
 	}
+	t.Parallel()
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
 			srs := seeder.New(&logger).WithRestClient(&http.Client{})

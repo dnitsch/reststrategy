@@ -28,7 +28,7 @@ var (
 		RunE:    runExecute,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if len(path) < 1 {
-				return fmt.Errorf("must include input")
+				return fmt.Errorf("must include input for path")
 			}
 			return nil
 		},
@@ -40,7 +40,7 @@ func init() {
 	runCmd.PersistentFlags().BoolVarP(&enableConfigManager, "enable-config-manager", "c", false, "Enables config manager to replace placeholders for secret values")
 	runCmd.PersistentFlags().StringVarP(&cmTokenSeparator, "cm-token-separator", "t", "", `Config Manager token separator`)
 	runCmd.PersistentFlags().StringVarP(&cmKeySeparator, "cm-key-separator", "k", "", `Config Manager key separator`)
-	strategyrestseederCmd.AddCommand(runCmd)
+	StrategyRestSeederCmd.AddCommand(runCmd)
 }
 
 func runExecute(cmd *cobra.Command, args []string) error {

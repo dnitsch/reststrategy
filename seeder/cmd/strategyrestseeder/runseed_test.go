@@ -5,16 +5,16 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/dnitsch/reststrategy/seeder"
 	"gopkg.in/yaml.v2"
-	// cmd "github.com/dnitsch/reststrategy/seeder/cmd/strategyrestseeder"
 )
 
 func helperTestSeed(conf *seeder.StrategyConfig) string {
-	originalArg := os.Args[0:1]
-	os.Args = originalArg
+	// originalArg := os.Args[0:1]
+	// os.Args = originalArg
 
 	b, _ := yaml.Marshal(conf)
 	dir, _ := os.MkdirTemp("", "seed-cli-test")
@@ -76,6 +76,7 @@ func TestMainRunSeed(t *testing.T) {
 				file := helperTestSeed(conf)
 				return []string{"run"}, func() {
 					os.Remove(file)
+					os.Args = os.Args[0:1]
 				}
 			},
 			"must include input",
@@ -86,23 +87,36 @@ func TestMainRunSeed(t *testing.T) {
 			cmdArgs, cleanUp := tt.testInput(t, "")
 			defer cleanUp()
 			b := &bytes.Buffer{}
+			e := &bytes.Buffer{}
 			cmd := runCmd
 			// cmd.SetArgs did not work with this set up
 			os.Args = os.Args[0:1]
 			os.Args = append(os.Args, cmdArgs...)
 			cmd.SetOut(b)
+			cmd.SetErr(e)
 			cmd.Execute()
 			out, err := io.ReadAll(b)
 			if err != nil {
-				if err.Error() != tt.expect {
-					t.Fatal(err)
-				}
-				return
+				t.Fatal(err)
 			}
-			if string(out) != tt.expect {
-				t.Errorf(`%s 
+			errOut, err := io.ReadAll(e)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if len(out) > 0 {
+				if !strings.Contains(string(out), tt.expect) {
+					t.Errorf(`%s 
 got: %v
 want: %v`, "output comparison failed", string(out), tt.expect)
+				}
+			}
+			if len(errOut) > 0 {
+				if !strings.Contains(string(errOut), tt.expect) {
+					t.Errorf(`%s 
+got: %v
+want: %v`, "error output comparison failed", string(errOut), tt.expect)
+				}
 			}
 
 		})

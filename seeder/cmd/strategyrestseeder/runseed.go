@@ -7,7 +7,7 @@ import (
 
 	"github.com/dnitsch/configmanager"
 	"github.com/dnitsch/configmanager/pkg/generator"
-	"github.com/dnitsch/reststrategy/seeder"
+
 	srs "github.com/dnitsch/reststrategy/seeder"
 	"github.com/dnitsch/reststrategy/seeder/internal/cmdutils"
 	"github.com/dnitsch/reststrategy/seeder/internal/config"
@@ -51,7 +51,7 @@ func runExecute(cmd *cobra.Command, args []string) error {
 		l = log.New(os.Stderr, log.DebugLvl)
 	}
 
-	strategy := seeder.StrategyConfig{}
+	strategy := srs.StrategyConfig{}
 	s := srs.New(&l).WithRestClient(&http.Client{})
 	cmConfig := generator.NewConfig()
 

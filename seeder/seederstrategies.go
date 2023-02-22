@@ -2,6 +2,7 @@ package seeder
 
 import (
 	"context"
+	"errors"
 )
 
 // GetPost strategy calls a GET endpoint and if item ***FOUND it does NOT do a POST***
@@ -98,8 +99,9 @@ func (r *SeederImpl) FindDeletePost(ctx context.Context, action *Action) error {
 	action.templatedPayload = r.TemplatePayload(action.PayloadTemplate, action.Variables)
 	resp, err := r.get(ctx, action)
 	if err != nil {
-		if d, ok := err.(*Diagnostic); ok {
-			if !d.ProceedFallback {
+		var diag *Diagnostic
+		if errors.As(err, &diag) {
+			if !diag.ProceedFallback {
 				return err
 			}
 			// proceeding with request
@@ -134,8 +136,9 @@ func (r *SeederImpl) GetPutPost(ctx context.Context, action *Action) error {
 	action.templatedPayload = r.TemplatePayload(action.PayloadTemplate, action.Variables)
 	resp, err := r.get(ctx, action)
 	if err != nil {
-		if d, ok := err.(*Diagnostic); ok {
-			if !d.ProceedFallback {
+		var diag *Diagnostic
+		if errors.As(err, &diag) {
+			if !diag.ProceedFallback {
 				return err
 			}
 			// proceeding with request
@@ -176,8 +179,9 @@ func (r *SeederImpl) Put(ctx context.Context, action *Action) error {
 func (r *SeederImpl) PutPost(ctx context.Context, action *Action) error {
 	action.templatedPayload = r.TemplatePayload(action.PayloadTemplate, action.Variables)
 	if err := r.put(ctx, action); err != nil {
-		if d, ok := err.(*Diagnostic); ok {
-			if d.IsFatal || !d.ProceedFallback {
+		var diag *Diagnostic
+		if errors.As(err, &diag) {
+			if diag.IsFatal || !diag.ProceedFallback {
 				return err
 			}
 			r.log.Debug("falling back on POST")

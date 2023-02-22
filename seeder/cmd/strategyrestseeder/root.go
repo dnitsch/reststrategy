@@ -10,7 +10,7 @@ import (
 
 var (
 	verbose               bool
-	strategyrestseederCmd = &cobra.Command{
+	StrategyRestSeederCmd = &cobra.Command{
 		Use:     config.SELF_NAME,
 		Aliases: config.SHORT_NAME,
 		Short:   fmt.Sprintf("%s CLI provides an idempotent rest caller", config.SELF_NAME),
@@ -19,7 +19,7 @@ var (
 )
 
 func Execute() {
-	if err := strategyrestseederCmd.Execute(); err != nil {
+	if err := StrategyRestSeederCmd.Execute(); err != nil {
 		fmt.Errorf("cli error: %v", err)
 		os.Exit(1)
 	}
@@ -27,5 +27,5 @@ func Execute() {
 }
 
 func init() {
-	strategyrestseederCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Verbosity level")
+	StrategyRestSeederCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Verbosity level")
 }

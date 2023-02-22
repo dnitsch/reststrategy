@@ -9,6 +9,7 @@ require (
 	github.com/spf13/cobra v1.6.1
 	github.com/spyzhov/ajson v0.7.2
 	golang.org/x/oauth2 v0.4.0
+	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/apimachinery v0.26.1
 	k8s.io/code-generator v0.26.1
 )
@@ -118,7 +119,6 @@ require (
 	google.golang.org/grpc v1.52.1 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/gengo v0.0.0-20220902162205-c0856e24416d // indirect
 	k8s.io/klog/v2 v2.90.0 // indirect

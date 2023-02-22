@@ -267,6 +267,7 @@ func (r *SeederImpl) setAuthHeader(req *http.Request, action *Action) *http.Requ
 	case NoAuth:
 		r.log.Debug("unprotected endpoint not applying any enrichment")
 	}
+
 	return enrichedReq
 }
 

@@ -13,6 +13,9 @@
 
 # build dir
 dist/
+bin
+testbin/*
+Dockerfile.cross
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out

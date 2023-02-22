@@ -11,6 +11,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/dnitsch/configmanager/pkg/generator"
 	"github.com/dnitsch/reststrategy/seeder"
 	log "github.com/dnitsch/simplelog"
 )
@@ -45,8 +46,8 @@ func TestExecuteGetPutPost(t *testing.T) {
 						AuthStrategy: seeder.CustomToToken,
 						CustomToken: &seeder.CustomToken{
 							CustomAuthMap: map[string]any{"email": "some@one.com", "password": "p4ssword", "grant_type": "client_credentials"},
-							SendInHeader: true,
-							AuthUrl:      fmt.Sprintf("%s/customToken", url),
+							SendInHeader:  true,
+							AuthUrl:       fmt.Sprintf("%s/customToken", url),
 						},
 					},
 				}
@@ -133,8 +134,8 @@ func TestExecuteGetPutPost(t *testing.T) {
 						AuthStrategy: seeder.CustomToToken,
 						CustomToken: &seeder.CustomToken{
 							CustomAuthMap: map[string]any{"email": "some@one.com", "password": "p4ssword", "grant_type": "client_credentials"},
-							SendInHeader: true,
-							AuthUrl:      fmt.Sprintf("%s/customToken", url),
+							SendInHeader:  true,
+							AuthUrl:       fmt.Sprintf("%s/customToken", url),
 						},
 					},
 				}
@@ -189,8 +190,8 @@ func TestExecuteGetPutPost(t *testing.T) {
 						AuthStrategy: seeder.CustomToToken,
 						CustomToken: &seeder.CustomToken{
 							CustomAuthMap: map[string]any{"email": "some@one.com", "password": "p4ssword", "grant_type": "client_credentials"},
-							SendInHeader: true,
-							AuthUrl:      fmt.Sprintf("%s/customToken", url),
+							SendInHeader:  true,
+							AuthUrl:       fmt.Sprintf("%s/customToken", url),
 						},
 					},
 				}
@@ -277,8 +278,8 @@ func TestExecuteFindPutPost(t *testing.T) {
 						AuthStrategy: seeder.CustomToToken,
 						CustomToken: &seeder.CustomToken{
 							CustomAuthMap: map[string]any{"email": "some@one.com", "password": "p4ssword", "grant_type": "client_credentials"},
-							SendInHeader: true,
-							AuthUrl:      fmt.Sprintf("%s/customToken", url),
+							SendInHeader:  true,
+							AuthUrl:       fmt.Sprintf("%s/customToken", url),
 						},
 					},
 				}
@@ -294,7 +295,7 @@ func TestExecuteFindPutPost(t *testing.T) {
 						PutEndpointSuffix:  seeder.String("/put"),
 						PayloadTemplate:    `{"value": "$foo"}`,
 						FindByJsonPathExpr: "$.[?(@.name=='fubar')].id",
-						RuntimeVars: 		map[string]string{"runFoo": "$.[?(@.name=='fubar')].id"},
+						RuntimeVars:        map[string]string{"runFoo": "$.[?(@.name=='fubar')].id"},
 						Variables:          map[string]any{"foo": "bar"},
 						AuthMapRef:         "custom-to-token-test",
 					},
@@ -520,8 +521,8 @@ func TestExecuteCustomTokenError(t *testing.T) {
 						AuthStrategy: seeder.CustomToToken,
 						CustomToken: &seeder.CustomToken{
 							CustomAuthMap: map[string]any{"email": 1, "password": "p4ssword", "grant_type": "password"},
-							SendInHeader: true,
-							AuthUrl:      fmt.Sprintf("%s/customToken", url),
+							SendInHeader:  true,
+							AuthUrl:       fmt.Sprintf("%s/customToken", url),
 						},
 					},
 				}
@@ -537,7 +538,7 @@ func TestExecuteCustomTokenError(t *testing.T) {
 						PutEndpointSuffix:  seeder.String("/put"),
 						PayloadTemplate:    `{"value": "$foo"}`,
 						FindByJsonPathExpr: "$.[?(@.name=='fubar')].id",
-						RuntimeVars: 		map[string]string{"runFoo": "$.[?(@.name=='fubar')].id"},
+						RuntimeVars:        map[string]string{"runFoo": "$.[?(@.name=='fubar')].id"},
 						Variables:          map[string]any{"foo": "bar"},
 						AuthMapRef:         "custom-to-token-test",
 					},
@@ -639,7 +640,7 @@ func TestExecuteGetPost(t *testing.T) {
 						PostEndpointSuffix: seeder.String("/post"),
 						PayloadTemplate:    `{"value": "$foo"}`,
 						FindByJsonPathExpr: "$.[?(@.name=='fubar')].id",
-						RuntimeVars: 		map[string]string{"runFoo": "runBar"},
+						RuntimeVars:        map[string]string{"runFoo": "runBar"},
 						Variables:          map[string]any{"foo": "bar"},
 						AuthMapRef:         "basic",
 					},
@@ -650,7 +651,7 @@ func TestExecuteGetPost(t *testing.T) {
 						GetEndpointSuffix:  seeder.String("/get/not-found"),
 						PostEndpointSuffix: seeder.String("/post/new"),
 						FindByJsonPathExpr: "$.[?(@.name=='fubar')].id",
-						RuntimeVars: 		map[string]string{"runFoo": "runBar"},
+						RuntimeVars:        map[string]string{"runFoo": "runBar"},
 						PayloadTemplate:    `{"value": "$foo"}`,
 						Variables:          map[string]any{"foo": "bar"},
 						AuthMapRef:         "basic",
@@ -1933,7 +1934,7 @@ func TestExecuteFindPost(t *testing.T) {
 					if string(b) != `{"value": "bar"}` {
 						t.Errorf(`got: %v expected body to match the templated payload: {"value": "bar"}`, string(b))
 					}
-					
+
 					w.Header().Set("Content-Type", "application/json; charset=utf-8")
 					w.Write([]byte(`{"name":"fubar","id":"1234"}`))
 				})
@@ -2127,6 +2128,297 @@ func TestExecuteFindPost(t *testing.T) {
 			err := srs.Execute(context.Background())
 
 			if err != nil {
+				if !strings.HasPrefix(err.Error(), tt.expect(ts.URL)) {
+					t.Errorf("expected different error got: %v\n\nwant: %v", err.Error(), tt.expect(ts.URL))
+				}
+			}
+		})
+	}
+}
+
+type CMMock func(input string, config generator.GenVarsConfig) (string, error)
+
+func (c CMMock) RetrieveWithInputReplaced(input string, config generator.GenVarsConfig) (string, error) {
+	return c(input, config)
+}
+
+func TestExecuteWithConfigManager(t *testing.T) {
+
+	logW := &bytes.Buffer{}
+
+	logger := log.New(logW, log.DebugLvl)
+
+	tests := map[string]struct {
+		handler       func(t *testing.T) http.Handler
+		configmanager func(t *testing.T) seeder.CMRetrieve
+		authConfig    func(url string) seeder.AuthMap
+		expect        func(url string) string
+		seeders       func(url string) seeder.Seeders
+	}{
+		"No Auth FIND/POST replace in template": {
+			authConfig: func(url string) seeder.AuthMap {
+				return seeder.AuthMap{}
+			},
+			configmanager: func(t *testing.T) seeder.CMRetrieve {
+				return CMMock(func(input string, config generator.GenVarsConfig) (string, error) {
+					return `{"name":"post-not-found","strategy":"FIND/POST","order":0,"endpoint":"http://127.0.0.1:62324","getEndpointSuffix":"/get/not-found","postEndpointSuffix":"/post/new","findByJsonPathExpr":"$.[?(@.name=='fubar')].id","payloadTemplate":"{\"value\": \"bar\"}","authMapRef":"basic","variables":null}`, nil
+				})
+			},
+			seeders: func(url string) seeder.Seeders {
+				return seeder.Seeders{
+					"post-not-found": {
+						Strategy:           string(seeder.FIND_POST),
+						Order:              seeder.Int(0),
+						Endpoint:           url,
+						GetEndpointSuffix:  seeder.String("/get/not-found"),
+						PostEndpointSuffix: seeder.String("/post/new"),
+						PayloadTemplate:    `{"value": "AWSPARAMSTR:///bar/foo"}`,
+						FindByJsonPathExpr: "$.[?(@.name=='fubar')].id",
+						AuthMapRef:         "basic",
+					},
+				}
+			},
+			handler: func(t *testing.T) http.Handler {
+				mux := http.NewServeMux()
+				mux.HandleFunc("/get/not-found", func(w http.ResponseWriter, r *http.Request) {
+					w.Header().Set("Content-Type", "application/json; charset=utf-8")
+					w.Write([]byte(`[]`))
+				})
+				mux.HandleFunc("/get/all", func(w http.ResponseWriter, r *http.Request) {
+					w.Header().Set("Content-Type", "application/json; charset=utf-8")
+					w.Write([]byte(`[{"name":"fubar","id":"1234"}]`))
+				})
+				mux.HandleFunc("/post", func(w http.ResponseWriter, r *http.Request) {
+					b, _ := io.ReadAll(r.Body)
+					t.Errorf("post should never be called but was called with: %v", string(b))
+					w.Header().Set("Content-Type", "application/json; charset=utf-8")
+				})
+
+				mux.HandleFunc("/post/new", func(w http.ResponseWriter, r *http.Request) {
+					b, _ := io.ReadAll(r.Body)
+					if string(b) != `{"value": "bar"}` {
+						t.Errorf(`got: %v expected body to match the templated payload: {"value": "bar"}`, string(b))
+					}
+					w.Header().Set("Content-Type", "application/json; charset=utf-8")
+					w.Write([]byte(`{"name":"fubar","id":"1234"}`))
+				})
+				return mux
+			},
+			expect: func(url string) string {
+				return ""
+			},
+		},
+		"No Auth FIND/POST replace in vars": {
+			authConfig: func(url string) seeder.AuthMap {
+				return seeder.AuthMap{}
+			},
+			configmanager: func(t *testing.T) seeder.CMRetrieve {
+				return CMMock(func(input string, config generator.GenVarsConfig) (string, error) {
+
+					return `{"name": "post-not-found-replaced-from-vars","strategy":"FIND/POST","order":0,"endpoint":"http://127.0.0.1:62324","getEndpointSuffix":"/get/not-found","postEndpointSuffix":"/post/new","findByJsonPathExpr":"$.[?(@.name=='fubar')].id","payloadTemplate":"{\"value\": \"$foo\"}","authMapRef":"basic","variables":{"foo":"bar"}}`, nil
+				})
+			},
+			seeders: func(url string) seeder.Seeders {
+				return seeder.Seeders{
+					"post-not-found-replaced-from-vars": {
+						Strategy:           string(seeder.FIND_POST),
+						Order:              seeder.Int(0),
+						Endpoint:           url,
+						GetEndpointSuffix:  seeder.String("/get/not-found"),
+						PostEndpointSuffix: seeder.String("/post/new"),
+						PayloadTemplate:    `{"value": "$foo"}`,
+						Variables:          map[string]any{"foo": "AWSPARAMSTR:///bar/foo"},
+						FindByJsonPathExpr: "$.[?(@.name=='fubar')].id",
+						AuthMapRef:         "basic",
+					},
+				}
+			},
+			handler: func(t *testing.T) http.Handler {
+				mux := http.NewServeMux()
+				mux.HandleFunc("/get/not-found", func(w http.ResponseWriter, r *http.Request) {
+					w.Header().Set("Content-Type", "application/json; charset=utf-8")
+					w.Write([]byte(`[]`))
+				})
+				mux.HandleFunc("/get/all", func(w http.ResponseWriter, r *http.Request) {
+					w.Header().Set("Content-Type", "application/json; charset=utf-8")
+					w.Write([]byte(`[{"name":"fubar","id":"1234"}]`))
+				})
+				mux.HandleFunc("/post", func(w http.ResponseWriter, r *http.Request) {
+					b, _ := io.ReadAll(r.Body)
+					t.Errorf("post should never be called but was called with: %v", string(b))
+					w.Header().Set("Content-Type", "application/json; charset=utf-8")
+				})
+
+				mux.HandleFunc("/post/new", func(w http.ResponseWriter, r *http.Request) {
+					b, _ := io.ReadAll(r.Body)
+					if string(b) != `{"value": "bar"}` {
+						t.Errorf(`got: %v expected body to match the templated payload: {"value": "bar"}`, string(b))
+					}
+					w.Header().Set("Content-Type", "application/json; charset=utf-8")
+					w.Write([]byte(`{"name":"fubar","id":"1234"}`))
+				})
+				return mux
+			},
+			expect: func(url string) string {
+				return ""
+			},
+		},
+		"Basic  Auth FIND/POST replace in vars": {
+			authConfig: func(url string) seeder.AuthMap {
+				return seeder.AuthMap{
+					"basic": seeder.AuthConfig{
+						Username:     "foo",
+						Password:     "AWSPARAMSTR:///bar/foo",
+						AuthStrategy: seeder.Basic,
+					},
+				}
+			},
+			configmanager: func(t *testing.T) seeder.CMRetrieve {
+				return CMMock(func(input string, config generator.GenVarsConfig) (string, error) {
+					return `{"basic": {"type":"BasicAuth","username":"foo","password":"bar"}}`, nil
+				})
+			},
+			seeders: func(url string) seeder.Seeders {
+				return seeder.Seeders{}
+			},
+			handler: func(t *testing.T) http.Handler {
+				mux := http.NewServeMux()
+				return mux
+			},
+			expect: func(url string) string {
+				return ""
+			},
+		},
+	}
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			srs := seeder.New(&logger).WithRestClient(&http.Client{})
+
+			ts := httptest.NewServer(tt.handler(t))
+			defer ts.Close()
+
+			srs.WithActions(tt.seeders(ts.URL)).WithAuth(tt.authConfig(ts.URL)).
+				WithConfigManager(tt.configmanager(t)).WithConfigManagerOptions(generator.NewConfig().WithTokenSeparator("://"))
+
+			err := srs.Execute(context.Background())
+
+			if err != nil {
+				if tt.expect(ts.URL) == "" {
+					t.Errorf("did not expect an error to occur saw: %v ", err.Error())
+				}
+				if !strings.HasPrefix(err.Error(), tt.expect(ts.URL)) {
+					t.Errorf("expected different error got: %v\n\nwant: %v", err.Error(), tt.expect(ts.URL))
+				}
+			}
+		})
+	}
+}
+
+func TestExecuteWithConfigManagerError(t *testing.T) {
+
+	logW := &bytes.Buffer{}
+
+	logger := log.New(logW, log.DebugLvl)
+
+	tests := map[string]struct {
+		handler       func(t *testing.T) http.Handler
+		configmanager func(t *testing.T) seeder.CMRetrieve
+		authConfig    func(url string) seeder.AuthMap
+		expect        func(url string) string
+		seeders       func(url string) seeder.Seeders
+	}{
+		"Basic  Auth FIND/POST configmanager error response": {
+			authConfig: func(url string) seeder.AuthMap {
+				return seeder.AuthMap{
+					"basic": seeder.AuthConfig{
+						Username:     "foo",
+						Password:     "AWSPARAMSTR:///bar/foo",
+						AuthStrategy: seeder.Basic,
+					},
+				}
+			},
+			configmanager: func(t *testing.T) seeder.CMRetrieve {
+				return CMMock(func(input string, config generator.GenVarsConfig) (string, error) {
+					return `{"basic": {"type":"BasicAuth","username":"foo","password":"bar"}}`, fmt.Errorf("Error occurred in configmanager")
+				})
+			},
+			seeders: func(url string) seeder.Seeders {
+				return seeder.Seeders{}
+			},
+			handler: func(t *testing.T) http.Handler {
+				mux := http.NewServeMux()
+				return mux
+			},
+			expect: func(url string) string {
+				return "Error while replacing secrets placeholders in authmap - Error occurred in configmanager"
+			},
+		},
+		"No Auth FIND/POST configmanager error": {
+			authConfig: func(url string) seeder.AuthMap {
+				return seeder.AuthMap{}
+			},
+			configmanager: func(t *testing.T) seeder.CMRetrieve {
+				return CMMock(func(input string, config generator.GenVarsConfig) (string, error) {
+					return `{"name":"post-not-found","strategy":"FIND/POST","order":0,"endpoint":"http://127.0.0.1:62324","getEndpointSuffix":"/get/not-found","postEndpointSuffix":"/post/new","findByJsonPathExpr":"$.[?(@.name=='fubar')].id","payloadTemplate":"{\"value\": \"bar\"}","authMapRef":"basic","variables":null}`, fmt.Errorf("Error occurred in configmanager")
+				})
+			},
+			seeders: func(url string) seeder.Seeders {
+				return seeder.Seeders{
+					"post-not-found": {
+						Strategy:           string(seeder.FIND_POST),
+						Order:              seeder.Int(0),
+						Endpoint:           url,
+						GetEndpointSuffix:  seeder.String("/get/not-found"),
+						PostEndpointSuffix: seeder.String("/post/new"),
+						PayloadTemplate:    `{"value": "AWSPARAMSTR:///bar/foo"}`,
+						FindByJsonPathExpr: "$.[?(@.name=='fubar')].id",
+						AuthMapRef:         "basic",
+					},
+				}
+			},
+			handler: func(t *testing.T) http.Handler {
+				mux := http.NewServeMux()
+				mux.HandleFunc("/get/not-found", func(w http.ResponseWriter, r *http.Request) {
+					w.Header().Set("Content-Type", "application/json; charset=utf-8")
+					w.Write([]byte(`[]`))
+				})
+				mux.HandleFunc("/get/all", func(w http.ResponseWriter, r *http.Request) {
+					w.Header().Set("Content-Type", "application/json; charset=utf-8")
+					w.Write([]byte(`[{"name":"fubar","id":"1234"}]`))
+				})
+				mux.HandleFunc("/post", func(w http.ResponseWriter, r *http.Request) {
+					b, _ := io.ReadAll(r.Body)
+					t.Errorf("post should never be called but was called with: %v", string(b))
+					w.Header().Set("Content-Type", "application/json; charset=utf-8")
+				})
+
+				mux.HandleFunc("/post/new", func(w http.ResponseWriter, r *http.Request) {
+					w.Header().Set("Content-Type", "application/json; charset=utf-8")
+					w.Write([]byte(`{"name":"fubar","id":"1234"}`))
+				})
+				return mux
+			},
+			expect: func(url string) string {
+				return "Error while replacing secrets placeholders in actions - Error occurred in configmanager"
+			},
+		},
+	}
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			srs := seeder.New(&logger).WithRestClient(&http.Client{})
+
+			ts := httptest.NewServer(tt.handler(t))
+			defer ts.Close()
+
+			srs.WithActions(tt.seeders(ts.URL)).WithAuth(tt.authConfig(ts.URL)).
+				WithConfigManager(tt.configmanager(t)).WithConfigManagerOptions(generator.NewConfig().WithTokenSeparator("://"))
+
+			err := srs.Execute(context.Background())
+
+			if err != nil {
+				if tt.expect(ts.URL) == "" {
+					t.Errorf("did not expect an error to occur saw: %v ", err.Error())
+				}
 				if !strings.HasPrefix(err.Error(), tt.expect(ts.URL)) {
 					t.Errorf("expected different error got: %v\n\nwant: %v", err.Error(), tt.expect(ts.URL))
 				}

@@ -13,7 +13,9 @@ require (
 	github.com/fatih/color v1.14.1 // indirect
 	github.com/go-logr/zerologr v1.2.3 // indirect
 	github.com/gobuffalo/flect v0.3.0 // indirect
+	github.com/google/uuid v1.3.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/kr/pretty v0.3.0 // indirect
 	github.com/onsi/ginkgo/v2 v2.6.1 // indirect
 	github.com/spf13/cobra v1.6.1 // indirect
 	k8s.io/apiextensions-apiserver v0.26.1 // indirect
@@ -36,7 +38,6 @@ require (
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/kr/pretty v0.3.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
@@ -70,5 +71,3 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
-
-replace github.com/dnitsch/reststrategy/seeder v0.0.0-20221011155009-3126798d4ab4 => ../seeder

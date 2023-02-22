@@ -18,6 +18,7 @@ github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ3
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/dnitsch/reststrategy/seeder v0.0.0-20221011155009-3126798d4ab4 h1:rGu+aDtTqDmF6jBnsBOEoJF+ubjLe2ec6FCDK0940T8=
 github.com/dnitsch/simplelog v1.7.0 h1:Lg+/KaTZDNfIqzb8B5vrGW5QFBTVBoy27k6IH+nOwfc=
 github.com/dnitsch/simplelog v1.7.0/go.mod h1:+6a7bFEUXelqYb9kxJ1rv+bpmlO6nKh2aKkOVv59wlo=
 github.com/docopt/docopt-go v0.0.0-20180111231733-ee0de3bc6815/go.mod h1:WwZ+bS3ebgob9U8Nd0kOddGdZWjyMGR8Wziv+TBNwSE=

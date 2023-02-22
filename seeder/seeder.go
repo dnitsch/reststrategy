@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/dnitsch/configmanager"
+	"github.com/dnitsch/configmanager/pkg/generator"
 	log "github.com/dnitsch/simplelog"
 )
 
@@ -25,11 +27,18 @@ const (
 	PUT              StrategyType = "PUT"
 )
 
+type CMRetrieve interface {
+	RetrieveWithInputReplaced(input string, config generator.GenVarsConfig) (string, error)
+}
+
 type StrategyRestSeeder struct {
-	Strategy map[StrategyType]StrategyFunc
-	rest     *SeederImpl
-	actions  []Action
-	log      log.Loggeriface
+	Strategy             map[StrategyType]StrategyFunc
+	configManagerOptions *generator.GenVarsConfig
+	configManager        CMRetrieve
+	rest                 *SeederImpl
+	actions              []Action
+	authInstructions     AuthMap
+	log                  log.Loggeriface
 }
 
 // New initializes a default StrategySeeder with
@@ -51,7 +60,8 @@ func New(log log.Loggeriface) *StrategyRestSeeder {
 			FIND_DELETE_POST: FindDeletePostStrategyFunc,
 			FIND_PATCH_POST:  FindPatchPostStrategyFunc,
 		},
-		log: log,
+		configManager: nil,
+		log:           log,
 	}
 }
 
@@ -64,6 +74,7 @@ func (s *StrategyRestSeeder) WithRestClient(rc Client) *StrategyRestSeeder {
 // WithAuth adds the AuthLogic to the entire seeder
 // NOTE: might make more sense to have a per RestAction authTemplate (might make it very inefficient)
 func (s *StrategyRestSeeder) WithAuth(ra AuthMap) *StrategyRestSeeder {
+	s.authInstructions = ra
 	s.rest = s.rest.WithAuth(ra)
 	return s
 }
@@ -93,16 +104,44 @@ func (s *StrategyRestSeeder) WithActionsList(actions []Action) *StrategyRestSeed
 	return s
 }
 
+// WithConfigManagerOptions overwrites the default ConfigManager Options
+func (s *StrategyRestSeeder) WithConfigManagerOptions(configManagerOptions *generator.GenVarsConfig) *StrategyRestSeeder {
+	s.configManagerOptions = configManagerOptions
+	return s
+}
+
+// WithConfigManager overwrites the default ConfigManager
+func (s *StrategyRestSeeder) WithConfigManager(configManager CMRetrieve) *StrategyRestSeeder {
+	s.configManager = configManager
+	return s
+}
+
 // Execute the built actions list
 func (s *StrategyRestSeeder) Execute(ctx context.Context) error {
 	var errs []error
+	replacedActions := s.actions
 	// assign each action to method
 	s.log.Debugf("actions: %v", s.actions)
+	// configmanager the auth portion for any tokens
+	if s.configManager != nil && len(s.authInstructions) > 0 {
+		replacedAuthInstructions, err := configmanager.RetrieveMarshalledJson(&s.authInstructions, s.configManager, *s.configManagerOptions)
+		if err != nil {
+			return fmt.Errorf("Error while replacing secrets placeholders in authmap - %v", err)
+		}
+		s.rest.WithAuth(*replacedAuthInstructions)
+	}
 	// do some ordering if exists
-	// else send to fixed size channel goroutine
-	for _, action := range s.actions {
+	// send to fixed size channel goroutine
+	for _, action := range replacedActions {
 		if fn, ok := s.Strategy[StrategyType(action.Strategy)]; ok {
-			e := fn(ctx, &action, s.rest)
+			a := &action
+			// not the most efficient way of doing it
+			if s.configManager != nil {
+				if err := s.configManagerReplaceAction(a); err != nil {
+					errs = append(errs, err)
+				}
+			}
+			e := fn(ctx, a, s.rest)
 			if e != nil {
 				errs = append(errs, e)
 				continue
@@ -118,6 +157,19 @@ func (s *StrategyRestSeeder) Execute(ctx context.Context) error {
 		}
 		return fmt.Errorf(strings.Join(finalErr, "\n"))
 	}
+	return nil
+}
+
+// configManagerReplaceAction replaces all occurences of ConfigManager Tokens
+// inside PayloadTemplates and Variables
+func (s *StrategyRestSeeder) configManagerReplaceAction(action *Action) error {
+	ra, err := configmanager.RetrieveMarshalledJson(action, s.configManager, *s.configManagerOptions)
+	if err != nil {
+		return fmt.Errorf("Error while replacing secrets placeholders in actions - %v", err)
+	}
+	action.PatchPayloadTemplate = ra.PatchPayloadTemplate
+	action.PayloadTemplate = ra.PayloadTemplate
+	action.Variables = ra.Variables
 	return nil
 }
 

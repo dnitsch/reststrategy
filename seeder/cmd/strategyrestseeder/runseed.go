@@ -67,16 +67,5 @@ func runExecute(cmd *cobra.Command, args []string) error {
 		s.WithConfigManager(&configmanager.ConfigManager{}).WithConfigManagerOptions(cmConfig)
 	}
 
-	b, e := os.ReadFile(path)
-	if e != nil {
-		return e
-	}
-
-	cm := &configmanager.ConfigManager{}
-	config := generator.NewConfig().WithTokenSeparator("://")
-	if _, err := configmanager.RetrieveUnmarshalledFromYaml(b, &strategy, cm, *config); err != nil {
-		return err
-	}
-
 	return cmdutils.RunSeed(s, strategy, path, verbose)
 }

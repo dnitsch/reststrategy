@@ -16,18 +16,17 @@ import (
 )
 
 var (
-	path   string
+	path                string
 	enableConfigManager bool
-	cmTokenSeparator string
-	cmKeySeparator string
-	runCmd = &cobra.Command{
+	cmTokenSeparator    string
+	cmKeySeparator      string
+	runCmd              = &cobra.Command{
 		Use:     "run",
 		Aliases: config.SHORT_NAME,
 		Short:   `Executes the provided strategy`,
 		Long:    `Executes the provided strategy against the provided actions and auth references`,
 		RunE:    runExecute,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			// if len(input) < 1 && !getStdIn() {
 			if len(path) < 1 {
 				return fmt.Errorf("must include input")
 			}
@@ -46,18 +45,15 @@ func init() {
 
 func runExecute(cmd *cobra.Command, args []string) error {
 
-	var l log.Logger
+	l := log.New(os.Stderr, log.ErrorLvl)
 
 	if verbose {
 		l = log.New(os.Stderr, log.DebugLvl)
-	} else {
-		l = log.New(os.Stderr, log.ErrorLvl)
 	}
 
 	strategy := seeder.StrategyConfig{}
 	s := srs.New(&l).WithRestClient(&http.Client{})
 	cmConfig := generator.NewConfig()
-
 
 	if cmKeySeparator != "" {
 		cmConfig.WithKeySeparator(cmKeySeparator)

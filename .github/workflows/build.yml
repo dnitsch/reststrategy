@@ -64,7 +64,7 @@ jobs:
           docker ps
           export DOCKER_HOST=/var/run/docker.sock
           echo "DOCKER_HOST: $DOCKER_HOST"
-          echo 'apiVersion: v1
+          mkdir -p  ~/.kube && echo 'apiVersion: v1
           kind: Config
           preferences: {}' > ~/.kube/config
           export KUBECONFIG=~/.kube/config

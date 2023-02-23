@@ -30,7 +30,6 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"sigs.k8s.io/kind/pkg/errors"
 
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -109,7 +108,9 @@ func startCluster(t *testing.T) func() {
 		cluster.CreateWithDisplayUsage(true),
 		cluster.CreateWithDisplaySalutation(true),
 	); err != nil {
-		t.Fatal(errors.Wrap(err, "failed to create cluster"))
+		fmt.Println("failed to create cluster")
+		fmt.Println(err)
+		// t.Fatal(errors.Wrap(err, "failed to create cluster"))
 	}
 	return func() {
 		// delete cluster

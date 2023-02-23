@@ -1133,10 +1133,8 @@ func TestExecutePutPost(t *testing.T) {
 			},
 		},
 	}
-
 	t.Parallel()
 	for name, tt := range tests {
-		t.Parallel()
 		t.Run(name, func(t *testing.T) {
 			srs := seeder.New(&logger).WithRestClient(&http.Client{})
 

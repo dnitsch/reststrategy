@@ -33,11 +33,16 @@ tag:
 release: 
 	OWNER=$(OWNER) NAME=$(NAME) PAT=$(PAT) VERSION=$(VERSION) . hack/release.sh
 
-docker_release:
+docker_build_raw_controller:
 	cd controller && \
-	docker build --build-arg REVISION=$(REVISION) --build-arg VERSION=$(VERSION) -t ghcr.io/dnitsch/reststrategy:$(VERSION) . && \
-	docker push ghcr.io/dnitsch/reststrategy:$(VERSION)
+	docker build --build-arg REVISION=$(REVISION) --build-arg VERSION=$(VERSION) -t ghcr.io/dnitsch/reststrategy:raw-$(VERSION) .
 
+docker_build_kubebuilder_controller:
+	cd kubebuilder-controller && \
+	docker build --build-arg REVISION=$(REVISION) --build-arg VERSION=$(VERSION) -t ghcr.io/dnitsch/reststrategy:kubebuilder-$(VERSION) .
+
+docker_release: docker_build_kubebuilder_controller docker_build_raw_controller
+	docker push ghcr.io/dnitsch/reststrategy:$(VERSION)
 
 # for local development install all dependencies 
 # in workspace
@@ -63,7 +68,8 @@ test_prereq:
 	mkdir -p seeder/.coverage controller/.coverage kubebuilder-controller/.coverage
 	go install github.com/jstemmer/go-junit-report/v2@latest && \
 	go install github.com/axw/gocov/gocov@latest && \
-	go install github.com/AlekSi/gocov-xml@latest
+	go install github.com/AlekSi/gocov-xml@latest && \
+	
 
 coverage: test
 	go tool cover -html=seeder/.coverage/out

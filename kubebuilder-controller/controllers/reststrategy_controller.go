@@ -18,7 +18,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -37,27 +36,21 @@ type RestStrategyReconciler struct {
 	Logger       log.Loggeriface
 	IsNamespaced bool
 	Namespace    string
+	// ResyncPeriod in minutes
+	// the amount of minutes to wait after successful
+	// apply of resource before re-applying again
+	//
 	ResyncPeriod int
+	// FailedResourceResyncPeriod the amount of time
+	// to wait after a failed item was processed
+	FailedResourceResyncPeriod int
 }
 
-//+kubebuilder:rbac:groups=seeder.dnitsch.net,resources=reststrategies,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=seeder.dnitsch.net,resources=reststrategies/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=seeder.dnitsch.net,resources=reststrategies/finalizers,verbs=update
-
-// Reconcile is part of the main kubernetes reconciliation loop which aims to
-// move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the RestStrategy object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
-//
-// For more details, check Reconcile and its Result here:
-// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.14.1/pkg/reconcile
 func (r *RestStrategyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 
 	spec := seederv1alpha1.RestStrategy{}
 	if err := r.Get(ctx, req.NamespacedName, &spec); err != nil {
-		fmt.Println(err)
+		r.Logger.Errorf("failed to get resource: %v", err.Error())
 	}
 
 	// restseeder
@@ -66,10 +59,14 @@ func (r *RestStrategyReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	srs := seeder.New(r.Logger).WithRestClient(restClient)
 	srs.WithActionsList(spec.Spec.Seeders).WithAuthFromList(spec.Spec.AuthConfig)
 	if err := srs.Execute(context.Background()); err != nil {
+		spec.Status.Message = err.Error()
 		// update status as failed
 		// requeue for 5mins
+		_ = r.Status().Update(ctx, &spec)
 		return ctrl.Result{RequeueAfter: time.Duration(10) * time.Minute}, err
 	}
+	spec.Status.Message = "Sucessfully Synced"
+	_ = r.Status().Update(ctx, &spec)
 	return ctrl.Result{RequeueAfter: time.Duration(r.ResyncPeriod) * time.Minute}, nil
 }
 

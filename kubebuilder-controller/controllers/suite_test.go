@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"os"
 	"os/user"
@@ -103,7 +104,7 @@ func startCluster(t *testing.T) func() {
 		defaultClusterName,
 		cluster.CreateWithNodeImage(""),
 		cluster.CreateWithRetain(false),
-		cluster.CreateWithWaitForReady(time.Second*30),
+		cluster.CreateWithWaitForReady(time.Second*60),
 		cluster.CreateWithKubeconfigPath(""),
 		cluster.CreateWithDisplayUsage(true),
 		cluster.CreateWithDisplaySalutation(true),
@@ -140,6 +141,8 @@ func kubeClientSetup(t *testing.T) (*kubernetes.Clientset, *rest.Config, error) 
 // ====
 
 func TestAPIs(t *testing.T) {
+	flag.Set("test.timeout", "30m0s")
+
 	RegisterFailHandler(Fail)
 
 	RunSpecs(t, "Controller Suite")

@@ -41,7 +41,6 @@ jobs:
       SEMVER: ${{ needs.set-version.outputs.semVer }}
       GIT_TAG: ${{ needs.set-version.outputs.semVer }}
       GOVCS: false
-      DOCKER_HOST: /var/run/docker.sock
     steps:
       - uses: actions/checkout@v3
         with:
@@ -55,12 +54,13 @@ jobs:
           curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
       - name: make test 
         run: |
-          echo "DOCKER_HOST: $DOCKER_HOST"
           echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian \
             $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
           apt -y install docker-ce docker-ce-cli containerd.io
           echo $(which docker)
           docker ps
+          export DOCKER_HOST=/var/run/docker.sock
+          echo "DOCKER_HOST: $DOCKER_HOST"
           make REVISION=$GITHUB_SHA test
       - name: Publish Junit style Test Report
         uses: mikepenz/action-junit-report@v3

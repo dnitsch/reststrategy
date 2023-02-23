@@ -53,7 +53,6 @@ import (
 // These tests use Ginkgo (BDD-style Go testing framework). Refer to
 // http://onsi.github.io/ginkgo/ to learn more about Ginkgo.
 
-var cfg *rest.Config
 var k8sClient client.Client
 var testEnv *envtest.Environment
 var deleteCluster func()
@@ -90,7 +89,6 @@ func startCluster(t *testing.T) func() {
 		return func() {}
 	}
 
-	// logger := log.New(&bytes.Buffer{}, log.DebugLvl)
 	clusterProviderOptions := []cluster.ProviderOption{
 		cluster.ProviderWithLogger(cmd.NewLogger()),
 	}
@@ -104,7 +102,7 @@ func startCluster(t *testing.T) func() {
 		cluster.CreateWithNodeImage(""),
 		cluster.CreateWithRetain(false),
 		cluster.CreateWithWaitForReady(time.Second*60),
-		cluster.CreateWithKubeconfigPath(""),
+		// cluster.CreateWithKubeconfigPath(""),
 		cluster.CreateWithDisplayUsage(true),
 		cluster.CreateWithDisplaySalutation(true),
 	); err != nil {
@@ -160,6 +158,7 @@ var _ = BeforeSuite(func() {
 	if e != nil {
 		t.Errorf("failed to get client: %v", e)
 	}
+	logger.V(0).Info("config gotten", fmt.Sprintf("%v", cfg))
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
 		CRDDirectoryPaths:     []string{filepath.Join("..", "config", "crd", "bases")},
@@ -169,20 +168,22 @@ var _ = BeforeSuite(func() {
 	}
 
 	var err error
-	cfg, err = testEnv.Start()
+	testEnvCfg, err := testEnv.Start()
+	logger.V(0).Info("test env config", fmt.Sprintf("%v", testEnvCfg))
+
 	Expect(err).NotTo(HaveOccurred())
-	Expect(cfg).NotTo(BeNil())
+	Expect(testEnvCfg).NotTo(BeNil())
 
 	err = seederv1alpha1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
 	//+kubebuilder:scaffold:scheme
-	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
+	k8sClient, err = client.New(testEnvCfg, client.Options{Scheme: scheme.Scheme})
 
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient).NotTo(BeNil())
 
-	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{
+	k8sManager, err := ctrl.NewManager(testEnvCfg, ctrl.Options{
 		Scheme: scheme.Scheme,
 	})
 

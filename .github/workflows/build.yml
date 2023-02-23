@@ -68,6 +68,7 @@ jobs:
           kind: Config
           preferences: {}' > ~/.kube/config
           export KUBECONFIG=~/.kube/config
+          cat ~/.kube/config
           go test ./kubebuilder-controller/... -v -mod=readonly -race
           # make REVISION=$GITHUB_SHA test
       - name: Publish Junit style Test Report

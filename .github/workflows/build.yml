@@ -64,10 +64,11 @@ jobs:
           docker ps
           export DOCKER_HOST=/var/run/docker.sock
           echo "DOCKER_HOST: $DOCKER_HOST"
+          echo 'apiVersion: v1
+          kind: Config
+          preferences: {}' > ~/.kube/config
           export KUBECONFIG=~/.kube/config
-          foo=$(go test ./kubebuilder-controller/... -v -mod=readonly -race)
-          cat ~/.kube/config
-          echo $foo
+          go test ./kubebuilder-controller/... -v -mod=readonly -race
           # make REVISION=$GITHUB_SHA test
       - name: Publish Junit style Test Report
         uses: mikepenz/action-junit-report@v3

@@ -66,5 +66,5 @@ jobs:
         with:
           args:             
             -Dsonar.projectVersion=${{ needs.set-version.outputs.semVer }}
-            -Dsonar.go.tests.reportPaths=/github/workspace/controller/.coverage/report-junit.xml,/github/workspace/seeder/.coverage/report-junit.xml
-            -Dsonar.go.coverage.reportPaths=/github/workspace/controller/.coverage/out,/github/workspace/seeder/.coverage/out
+            -Dsonar.go.tests.reportPaths=/github/workspace/controller/.coverage/report-junit.xml,/github/workspace/seeder/.coverage/report-junit.xml,/github/workspace/kubebuilder-controller/.coverage/report-junit.xml
+            -Dsonar.go.coverage.reportPaths=/github/workspace/controller/.coverage/out,/github/workspace/seeder/.coverage/out,/github/workspace/kubebuilder-controller/.coverage/out

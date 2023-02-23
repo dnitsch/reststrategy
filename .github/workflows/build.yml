@@ -64,7 +64,7 @@ jobs:
           docker ps
           export DOCKER_HOST=/var/run/docker.sock
           echo "DOCKER_HOST: $DOCKER_HOST"
-          
+          export KUBECONFIG=~/.kube/config
           foo=$(go test ./kubebuilder-controller/... -v -mod=readonly -race)
           cat ~/.kube/config
           echo $foo

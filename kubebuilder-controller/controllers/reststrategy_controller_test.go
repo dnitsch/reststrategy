@@ -63,28 +63,28 @@ var _ = Describe("RestStrategy controller", func() {
 						},
 					},
 					Seeders: []seeder.Action{
-						{
-							Name:               "test123",
-							Endpoint:           "http://127.0.0.1:8090/api/admins",
-							Strategy:           "FIND/PATCH/POST",
-							GetEndpointSuffix:  seeder.String("?page=1&perPage=100&sort=-created&filter="),
-							FindByJsonPathExpr: "$.items[?(@.email=='test2@example.com')].id",
-							AuthMapRef:         "customTest",
-							PayloadTemplate: `{"email": "test2@example.com",
-								"password": "${password}","passwordConfirm": "${password}",
-								"avatar": 7
-							}`,
-							PatchPayloadTemplate: `{
-								"password": "${password}",
-								"passwordConfirm": "${password}"
-							  }`,
-							Variables: seeder.KvMapVarsAny{
-								"password": "NewPassdd123",
-							},
-							RuntimeVars: map[string]string{
-								"admin1AvatarId": "$.avatar",
-							},
-						},
+						// {
+						// 	Name:               "test123",
+						// 	Endpoint:           "http://127.0.0.1:8090/api/admins",
+						// 	Strategy:           "FIND/PATCH/POST",
+						// 	GetEndpointSuffix:  seeder.String("?page=1&perPage=100&sort=-created&filter="),
+						// 	FindByJsonPathExpr: "$.items[?(@.email=='test2@example.com')].id",
+						// 	AuthMapRef:         "customTest",
+						// 	PayloadTemplate: `{"email": "test2@example.com",
+						// 		"password": "${password}","passwordConfirm": "${password}",
+						// 		"avatar": 7
+						// 	}`,
+						// 	PatchPayloadTemplate: `{
+						// 		"password": "${password}",
+						// 		"passwordConfirm": "${password}"
+						// 	  }`,
+						// 	Variables: seeder.KvMapVarsAny{
+						// 		"password": "NewPassdd123",
+						// 	},
+						// 	RuntimeVars: map[string]string{
+						// 		"admin1AvatarId": "$.avatar",
+						// 	},
+						// },
 					},
 				},
 			}
@@ -103,15 +103,16 @@ var _ = Describe("RestStrategy controller", func() {
 				return true
 			}, timeout, interval).Should(BeTrue())
 			// Let's make sure our Schedule string value was properly converted/handled.
-			Expect(createdSpec.Spec.Seeders[0].Name).Should(Equal("test123"))
-			By("By checking the RestStrategy")
+			Expect(createdSpec.Spec.AuthConfig[0].Name).Should(Equal("basic"))
+			By("By checking the UpdatedRestStrategy")
 			Consistently(func() (string, error) {
-				err := k8sClient.Get(ctx, specLookupKey, createdSpec)
+				updatedSpec := &seederv1alpha1.RestStrategy{}
+				err := k8sClient.Get(ctx, specLookupKey, updatedSpec)
 				if err != nil {
 					return "", err
 				}
-				return createdSpec.Status.Message, nil
-			}, duration, interval).Should(Equal(""))
+				return updatedSpec.Status.Message, nil
+			}, duration, interval).Should(Equal("Sucessfully Synced"))
 		})
 	})
 

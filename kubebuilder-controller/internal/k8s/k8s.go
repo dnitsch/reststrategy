@@ -12,6 +12,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 
+	"github.com/dnitsch/configmanager/pkg/generator"
 	seederv1alpha1 "github.com/dnitsch/reststrategy/kubebuilder-controller/api/v1alpha1"
 	"github.com/dnitsch/reststrategy/kubebuilder-controller/controllers"
 	"github.com/go-logr/logr"
@@ -31,10 +32,11 @@ type Config struct {
 	ProbeAddr            string
 	MetricsAddr          string
 	EnableLeaderElection bool
+	ConfigManager        *generator.GenVarsConfig
 }
 
 func Run(conf Config, logger logr.Logger, scheme *runtime.Scheme) {
-	// removed init 
+	// removed init
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(seederv1alpha1.AddToScheme(scheme))
 
@@ -72,10 +74,12 @@ func Run(conf Config, logger logr.Logger, scheme *runtime.Scheme) {
 	}
 
 	if err = (&controllers.RestStrategyReconciler{
-		Client:       mgr.GetClient(),
-		Scheme:       mgr.GetScheme(),
-		ResyncPeriod: conf.Rsyncperiod,
-		Logger:       log.New(os.Stderr, log.DebugLvl),
+		Client:                     mgr.GetClient(),
+		Scheme:                     mgr.GetScheme(),
+		ResyncPeriod:               conf.Rsyncperiod,
+		Logger:                     log.New(os.Stderr, log.DebugLvl),
+		FailedResourceResyncPeriod: 10,
+		ConfigManagerConfig:        conf.ConfigManager,
 	}).SetupWithManager(mgr); err != nil {
 		ctrl.Log.Error(err, "unable to create controller", "controller", "RestStrategy")
 		os.Exit(1)
@@ -98,6 +102,7 @@ func Run(conf Config, logger logr.Logger, scheme *runtime.Scheme) {
 	}
 }
 
+// GetNamespace returns a namespace to use in controller manager set up
 func GetNamespace(namespace string) string {
 	ns := ""
 	if len(namespace) > 0 {

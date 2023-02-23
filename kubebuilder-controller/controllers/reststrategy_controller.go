@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/dnitsch/configmanager"
+	"github.com/dnitsch/configmanager/pkg/generator"
 	seederv1alpha1 "github.com/dnitsch/reststrategy/kubebuilder-controller/api/v1alpha1"
 	"github.com/dnitsch/reststrategy/seeder"
 	log "github.com/dnitsch/simplelog"
@@ -51,11 +52,8 @@ type RestStrategyReconciler struct {
 	// FailedResourceResyncPeriod the amount of time
 	// to wait after a failed item was processed
 	FailedResourceResyncPeriod int
+	ConfigManagerConfig        *generator.GenVarsConfig
 }
-
-func NewRestStrategyReconciler()*RestStrategyReconciler {
-	
-} 
 
 func (r *RestStrategyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 
@@ -65,7 +63,13 @@ func (r *RestStrategyReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	}
 
 	srs := seeder.New(r.Logger).WithRestClient(&http.Client{})
-	srs.WithActionsList(spec.Spec.Seeders).WithAuthFromList(spec.Spec.AuthConfig).WithConfigManager(&configmanager.ConfigManager{})
+
+	srs.WithActionsList(spec.Spec.Seeders).WithAuthFromList(spec.Spec.AuthConfig)
+
+	if r.ConfigManagerConfig != nil {
+		srs.WithConfigManager(&configmanager.ConfigManager{}).WithConfigManagerOptions(r.ConfigManagerConfig)
+	}
+
 	if err := srs.Execute(ctx); err != nil {
 		spec.Status.Message = fmt.Sprintf(FailedMessage, req.Name, req.Namespace, err.Error())
 		// update status as failed
@@ -73,9 +77,11 @@ func (r *RestStrategyReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		if err := r.Status().Update(context.Background(), spec); err != nil {
 			r.Logger.Errorf("failed to update status: %v", err.Error())
 		}
-		return ctrl.Result{RequeueAfter: time.Duration(r.FailedResourceResyncPeriod) * time.Second}, err
+		return ctrl.Result{}, err
 	}
+
 	spec.Status.Message = fmt.Sprintf(SuccessMessage, req.Name, req.Namespace)
+
 	if err := r.Status().Update(context.Background(), spec); err != nil {
 		r.Logger.Errorf("failed to update status: %v", err.Error())
 	}

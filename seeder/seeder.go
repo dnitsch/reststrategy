@@ -91,7 +91,11 @@ func (s *StrategyRestSeeder) WithActions(actions map[string]Action) *StrategyRes
 
 // WithAuthFromList same as WithAuth but accepts a list
 func (s *StrategyRestSeeder) WithAuthFromList(ra []AuthConfig) *StrategyRestSeeder {
-	s.rest = s.rest.WithAuthList(ra)
+	authMap := make(AuthMap)
+	for _, v := range ra {
+		authMap[v.Name] = v
+	}
+	s.WithAuth(authMap)
 	return s
 }
 

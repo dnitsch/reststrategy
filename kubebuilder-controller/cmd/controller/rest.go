@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/dnitsch/configmanager/pkg/generator"
 	"github.com/dnitsch/reststrategy/kubebuilder-controller/internal/k8s"
 	log "github.com/dnitsch/simplelog"
 	"github.com/spf13/cobra"
@@ -11,14 +12,17 @@ import (
 )
 
 var (
-	masterURL            string
-	kubeconfig           string
-	rsyncperiod          int
-	namespace            string
-	logLevel             string
-	metricsAddr          string
-	enableLeaderElection bool
-	probeAddr            string
+	masterURL                   string
+	kubeconfig                  string
+	rsyncperiod                 int
+	namespace                   string
+	logLevel                    string
+	metricsAddr                 string
+	enableLeaderElection        bool
+	enableConfigManager         bool
+	configManagerTokenSeparator string
+	configManagerKeySeparator   string
+	probeAddr                   string
 
 	controllerCmd = &cobra.Command{
 		Short: fmt.Sprintf("%s starts the controller", "reststrategy-controller"),
@@ -45,6 +49,9 @@ func init() {
 	controllerCmd.PersistentFlags().StringVarP(&probeAddr, "health-probe-bind-address", "y", ":8081", "The address the probe endpoint binds to.")
 	controllerCmd.PersistentFlags().BoolVarP(&enableLeaderElection, "leader-elect", "z", false, "Enable leader election for controller manager. "+
 		"Enabling this will ensure there is only one active controller manager.")
+	controllerCmd.PersistentFlags().BoolVarP(&enableConfigManager, "configmanager", "c", false, "Enable configmanager on resources handling via the restseeder.")
+	controllerCmd.PersistentFlags().StringVarP(&configManagerKeySeparator, "configmanager-key-separator", "", "|", "If configmanager is enabled - this key separator will be used.")
+	controllerCmd.PersistentFlags().StringVarP(&configManagerTokenSeparator, "configmanager-token-separator", "t", "://", "If configmanager is enabled - this key separator will be used.")
 }
 
 func controllerRun(cmd *cobra.Command, args []string) {
@@ -55,10 +62,14 @@ func controllerRun(cmd *cobra.Command, args []string) {
 		Kubeconfig: kubeconfig,
 		MasterURL:  masterURL,
 		// ControllerCount: controllerCount,
-		Rsyncperiod: rsyncperiod,
-		Namespace:   namespace,
-		LogLevel:    logLevel,
-		ProbeAddr:   probeAddr,
+		Rsyncperiod:   rsyncperiod,
+		Namespace:     namespace,
+		LogLevel:      logLevel,
+		ProbeAddr:     probeAddr,
+		ConfigManager: nil,
+	}
+	if enableConfigManager {
+		config.ConfigManager = generator.NewConfig().WithKeySeparator(configManagerKeySeparator).WithTokenSeparator(configManagerTokenSeparator)
 	}
 	k8s.Run(config, logger, runtime.NewScheme())
 }

@@ -22,6 +22,7 @@ import (
 )
 
 //+kubebuilder:object:root=true
+//+kubebuilder:subresource:status
 //+kubebuilder:object:generate=true
 
 type RestStrategy struct {
@@ -36,8 +37,6 @@ type StrategySpec struct {
 	Seeders    []seeder.Action     `json:"seed"`
 }
 
-// +kubebuilder:subresource:status
-//
 // StrategyStatus is the status for a RestStrategy resource
 type StrategyStatus struct {
 	Message string `json:"message"`

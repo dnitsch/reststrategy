@@ -151,7 +151,7 @@ var _ = BeforeSuite(func() {
 	t := &testing.T{}
 	logger := log.NewLogr(os.Stdout, log.DebugLvl)
 	logf.SetLogger(logger.WithName("RestStrategyController-Test"))
-	deleteCluster = startCluster(t)
+	// deleteCluster = startCluster(t)
 	// <===
 	// ENABLE once tested
 	_, cfg, e := kubeClientSetup(t)

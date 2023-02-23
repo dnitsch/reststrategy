@@ -68,8 +68,7 @@ test_prereq:
 	mkdir -p seeder/.coverage controller/.coverage kubebuilder-controller/.coverage
 	go install github.com/jstemmer/go-junit-report/v2@latest && \
 	go install github.com/axw/gocov/gocov@latest && \
-	go install github.com/AlekSi/gocov-xml@latest && \
-	
+	go install github.com/AlekSi/gocov-xml@latest 
 
 coverage: test
 	go tool cover -html=seeder/.coverage/out

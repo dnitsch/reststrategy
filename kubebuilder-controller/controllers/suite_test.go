@@ -31,6 +31,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	"sigs.k8s.io/kind/pkg/cmd"
 	"sigs.k8s.io/kind/pkg/errors"
 
 	"k8s.io/client-go/kubernetes"
@@ -41,7 +42,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/kind/pkg/cluster"
-	"sigs.k8s.io/kind/pkg/cmd"
 
 	seederv1alpha1 "github.com/dnitsch/reststrategy/kubebuilder-controller/api/v1alpha1"
 	"github.com/dnitsch/reststrategy/seeder"
@@ -58,7 +58,7 @@ import (
 var k8sClient client.Client
 var testEnv *envtest.Environment
 var deleteCluster func()
-
+var logger = log.NewLogr(os.Stdout, log.DebugLvl)
 var defaultClusterName string = "kubebuilder-test"
 
 // ====
@@ -80,6 +80,10 @@ func detectContainerImp() cluster.ProviderOption {
 
 // start kind cluster
 func startCluster(t *testing.T) func() {
+	if len(os.Getenv("GITHUB_ACTIONS")) > 0 || len(os.Getenv("TRAVIS")) > 0 || len(os.Getenv("CIRCLECI")) > 0 || len(os.Getenv("GITLAB_CI")) > 0 {
+		fmt.Println("In CI will be using a service mounted KinD")
+		return func() {}
+	}
 	usr, _ := user.Current()
 	hd := usr.HomeDir
 	kubeConfigPath := path.Join(hd, ".kube/config")
@@ -94,9 +98,9 @@ func startCluster(t *testing.T) func() {
 		// t.SkipNow()
 		return func() {}
 	}
-
+	// logger := cmd.NewLogger()
 	clusterProviderOptions := []cluster.ProviderOption{
-		cluster.ProviderWithLogger(cmd.NewLogger()),
+		cluster.ProviderWithLogger(cmd.NewLogger()), //(log.New(os.Stdout, log.DebugLvl)), //logger.WithName("KinD set up")),
 	}
 
 	clusterProviderOptions = append(clusterProviderOptions, impProvider)
@@ -111,6 +115,7 @@ func startCluster(t *testing.T) func() {
 		cluster.CreateWithKubeconfigPath(""),
 		cluster.CreateWithDisplayUsage(true),
 		cluster.CreateWithDisplaySalutation(true),
+		// cluster.
 	); err != nil {
 		fmt.Println("failed to create cluster")
 		fmt.Println(err)
@@ -153,7 +158,7 @@ func TestAPIs(t *testing.T) {
 
 var _ = BeforeSuite(func() {
 	t := &testing.T{}
-	logger := log.NewLogr(os.Stdout, log.DebugLvl)
+
 	logf.SetLogger(logger.WithName("RestStrategyController-Test"))
 	deleteCluster = startCluster(t)
 	// <===

@@ -33,10 +33,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
     container:
-      image: dnitsch/gha-dind:0.0.4 # docker:23.0.1-git
+      image: dnitsch/gha-dind:0.0.5 # docker:23.0.1-git
       volumes:
         - /var/run/docker.sock:/var/run/docker.sock
-      options: --privileged
+      options: --privileged=true --group-add=docker
     # needs: set-version
     env:
       # SEMVER: ${{ needs.set-version.outputs.semVer }}
@@ -60,9 +60,9 @@ jobs:
           git config user.name ${{ github.actor }}
       - name: make test 
         run: |
-          export DOCKER_HOST=/var/run/docker.sock
+          export DOCKER_HOST=unix:///var/run/docker.sock
           echo "DOCKER_HOST: $DOCKER_HOST"
-          
+          ls -lat /var/run/docker.sock
           kubectl cluster-info
           kubectl get pods -n kube-system
           echo "current-context:" $(kubectl config current-context)

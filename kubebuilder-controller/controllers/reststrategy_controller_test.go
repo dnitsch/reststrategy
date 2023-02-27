@@ -86,6 +86,9 @@ var _ = Describe("RestStrategy controller", func() {
 			}, timeout, interval).Should(BeTrue())
 			// Let's make sure our Schedule string value was properly converted/handled.
 			Expect(createdSpec.Spec.AuthConfig[0].Name).Should(Equal("basic"))
+
+			Expect(len(createdSpec.Spec.Seeders)).Should(Equal(0))
+
 			By("By checking the UpdatedRestStrategy")
 			Consistently(func() (string, error) {
 				updatedSpec := &seederv1alpha1.RestStrategy{}
@@ -153,7 +156,7 @@ var _ = Describe("RestStrategy controller", func() {
 			err := k8sClient.Create(ctx, crdSpec)
 			Expect(err).Should(BeNil())
 
-			specLookupKey := types.NamespacedName{Name: RestStrategyName, Namespace: RestStrategyNamespace}
+			specLookupKey := types.NamespacedName{Name: RestStrategyNameFail, Namespace: RestStrategyNamespace}
 			createdSpec := &seederv1alpha1.RestStrategy{}
 
 			// We'll need to retry getting this newly created RestStrategy, given that creation may not immediately happen.
@@ -167,6 +170,7 @@ var _ = Describe("RestStrategy controller", func() {
 
 			Expect(createdSpec.Spec.AuthConfig[0].Name).Should(Equal("basic"))
 			Expect(len(createdSpec.Spec.Seeders)).Should(Equal(2))
+
 			By("By checking the UpdatedRestStrategy")
 			Consistently(func() (string, error) {
 				updatedSpec := &seederv1alpha1.RestStrategy{}

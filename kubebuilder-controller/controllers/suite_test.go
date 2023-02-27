@@ -78,6 +78,9 @@ func detectContainerImp() cluster.ProviderOption {
 
 // start kind cluster
 func startCluster(t *testing.T) func() {
+	usr, _ := user.Current()
+	hd := usr.HomeDir
+	kubeConfigPath := path.Join(hd, ".kube/config")
 	// when Podman is available =>
 	// KIND_EXPERIMENTAL_PROVIDER=podman kind create cluster --name kind-kind
 	// or when using docker
@@ -102,7 +105,7 @@ func startCluster(t *testing.T) func() {
 		cluster.CreateWithNodeImage(""),
 		cluster.CreateWithRetain(false),
 		cluster.CreateWithWaitForReady(time.Second*60),
-		// cluster.CreateWithKubeconfigPath(""),
+		cluster.CreateWithKubeconfigPath(""),
 		cluster.CreateWithDisplayUsage(true),
 		cluster.CreateWithDisplaySalutation(true),
 	); err != nil {
@@ -112,9 +115,8 @@ func startCluster(t *testing.T) func() {
 	}
 	return func() {
 		// delete cluster
-		usr, _ := user.Current()
-		hd := usr.HomeDir
-		if err := provider.Delete(defaultClusterName, path.Join(hd, ".kube/config")); err != nil {
+
+		if err := provider.Delete(defaultClusterName, kubeConfigPath); err != nil {
 			t.Errorf("failed to tear down kind cluster: %s", err)
 		}
 	}
@@ -151,7 +153,7 @@ var _ = BeforeSuite(func() {
 	t := &testing.T{}
 	logger := log.NewLogr(os.Stdout, log.DebugLvl)
 	logf.SetLogger(logger.WithName("RestStrategyController-Test"))
-	// deleteCluster = startCluster(t)
+	deleteCluster = startCluster(t)
 	// <===
 	// ENABLE once tested
 	_, cfg, e := kubeClientSetup(t)

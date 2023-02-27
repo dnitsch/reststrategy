@@ -18,7 +18,6 @@ package controllers
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"os"
 	"os/user"
@@ -162,7 +161,6 @@ func kubeClientSetup(t *testing.T) (*kubernetes.Clientset, *rest.Config, error) 
 // ====
 
 func TestAPIs(t *testing.T) {
-	flag.Set("test.timeout", "30m0s")
 
 	RegisterFailHandler(Fail)
 

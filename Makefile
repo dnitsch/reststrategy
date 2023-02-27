@@ -51,18 +51,23 @@ install:
 
 .PHONY: test test_seeder test_controller
 test_seeder:
-	go test ./seeder/... -v -mod=readonly -race -coverprofile=seeder/.coverage/out | go-junit-report > seeder/.coverage/report-junit.xml && \
+	go test ./seeder/... -v -mod=readonly -coverprofile=seeder/.coverage/out | go-junit-report > seeder/.coverage/report-junit.xml && \
 	gocov convert seeder/.coverage/out | gocov-xml > seeder/.coverage/report-cobertura.xml
 
 test_controller:
-	go test ./controller/... -v -mod=readonly -race -coverprofile=controller/.coverage/out | go-junit-report > controller/.coverage/report-junit.xml && \
+	go test ./controller/... -v -mod=readonly -coverprofile=controller/.coverage/out | go-junit-report > controller/.coverage/report-junit.xml && \
 	gocov convert controller/.coverage/out | gocov-xml > controller/.coverage/report-cobertura.xml
 
 test_kubebuilder_controller:
-	go test ./kubebuilder-controller/... -v -mod=readonly -race -coverprofile=kubebuilder-controller/.coverage/out | go-junit-report > kubebuilder-controller/.coverage/report-junit.xml && \
+	go test ./kubebuilder-controller/... -v -mod=readonly -coverprofile=kubebuilder-controller/.coverage/out | go-junit-report > kubebuilder-controller/.coverage/report-junit.xml && \
 	gocov convert kubebuilder-controller/.coverage/out | gocov-xml > kubebuilder-controller/.coverage/report-cobertura.xml
 
+# running in CI on an alpine container without gcc so only running -race on local set up
 test: test_prereq test_seeder test_controller test_kubebuilder_controller
+
+test_local:
+	
+
 
 test_prereq: 
 	mkdir -p seeder/.coverage controller/.coverage kubebuilder-controller/.coverage

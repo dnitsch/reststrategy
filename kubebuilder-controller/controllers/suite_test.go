@@ -144,9 +144,9 @@ func kubeClientSetup(t *testing.T) (*kubernetes.Clientset, *rest.Config, error) 
 	if b, err := os.ReadFile(kubeConfigPath); err != nil {
 		logger.Error(err, "err reading KubeConfig")
 	} else {
-		logger.Info("kubeconfig", string(b))
+		logger.Info(string(b), "kubeConfigPath", kubeConfigPath)
 	}
-	logger.Info("config", "cfg", fmt.Sprintf("%v", cfg))
+	logger.Info(fmt.Sprintf("%v", cfg), "kubeConfigPath", kubeConfigPath)
 
 	kubeClient, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
@@ -180,7 +180,7 @@ var _ = BeforeSuite(func() {
 		t.Errorf("failed to get client: %v", e)
 	}
 
-	logger.Info("config", "cfg.Host", cfg.Host, "cfg.APIPath", cfg.APIPath)
+	logger.Info(fmt.Sprintf("%v", cfg))
 
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
@@ -228,6 +228,8 @@ var _ = BeforeSuite(func() {
 var _ = AfterSuite(func() {
 	By("tearing down the test environment")
 	err := testEnv.Stop()
-	deleteCluster()
+	if deleteCluster != nil {
+		deleteCluster()
+	}
 	Expect(err).NotTo(HaveOccurred())
 })

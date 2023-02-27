@@ -63,10 +63,11 @@ jobs:
           export DOCKER_HOST=unix:///var/run/docker.sock
           echo "DOCKER_HOST: $DOCKER_HOST"
           ls -lat /var/run/docker.sock
-          kubectl cluster-info
-          kubectl get pods -n kube-system
-          echo "current-context:" $(kubectl config current-context)
-          echo "environment-kubeconfig:" ${KUBECONFIG}
+          
+          # kubectl cluster-info
+          # kubectl get pods -n kube-system
+          # echo "current-context:" $(kubectl config current-context)
+          # echo "environment-kubeconfig:" ${KUBECONFIG}
 
           # mkdir -p  ~/.kube && echo 'apiVersion: v1
           # kind: Config

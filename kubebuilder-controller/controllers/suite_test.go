@@ -135,10 +135,22 @@ func startCluster(t *testing.T) func() {
 func kubeClientSetup(t *testing.T) (*kubernetes.Clientset, *rest.Config, error) {
 	usr, _ := user.Current()
 	hd := usr.HomeDir
-	cfg, err := clientcmd.BuildConfigFromFlags("", path.Join(hd, ".kube/config"))
+	kubeConfigPath := path.Join(hd, ".kube/config")
+
+	cfg, err := clientcmd.BuildConfigFromFlags("", kubeConfigPath)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to initialise client from config: %s", err.Error())
 	}
+	if b, err := os.ReadFile(kubeConfigPath); err != nil {
+		fmt.Printf(`err reading KubeConfig
+		%v`, err)
+	} else {
+		fmt.Printf(`kubeconfig:
+		%v`, string(b))
+	}
+
+	fmt.Printf(`config from kube client setup
+	%v`, cfg)
 	kubeClient, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error building kubernetes clientset: %s", err.Error())
@@ -168,6 +180,7 @@ var _ = BeforeSuite(func() {
 	if e != nil {
 		t.Errorf("failed to get client: %v", e)
 	}
+
 	logger.V(1).Info("config", "cfg.Host", cfg.Host, "cfg.APIPath", cfg.APIPath)
 
 	By("bootstrapping test environment")

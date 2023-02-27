@@ -80,10 +80,12 @@ func detectContainerImp() cluster.ProviderOption {
 
 // start kind cluster
 func startCluster(t *testing.T) func() {
-	if len(os.Getenv("GITHUB_ACTIONS")) > 0 || len(os.Getenv("TRAVIS")) > 0 || len(os.Getenv("CIRCLECI")) > 0 || len(os.Getenv("GITLAB_CI")) > 0 {
-		fmt.Println("In CI will be using a service mounted KinD")
-		return func() {}
-	}
+
+	// if len(os.Getenv("GITHUB_ACTIONS")) > 0 || len(os.Getenv("TRAVIS")) > 0 || len(os.Getenv("CIRCLECI")) > 0 || len(os.Getenv("GITLAB_CI")) > 0 {
+	// 	fmt.Println("In CI will be using a service mounted KinD")
+	// 	return func() {}
+	// }
+
 	usr, _ := user.Current()
 	hd := usr.HomeDir
 	kubeConfigPath := path.Join(hd, ".kube/config")

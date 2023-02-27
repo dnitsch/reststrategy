@@ -26,4 +26,9 @@ RUN apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugi
 
 RUN apt-get clean
 
+RUN groupadd -g 121 runner && useradd -mr -d /home/runner -u 1001 -g 121 runner \
+  && usermod -aG sudo runner \
+  && usermod -aG docker runner \
+  && echo '%sudo ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
+
 ENTRYPOINT [ "/bin/bash" ]

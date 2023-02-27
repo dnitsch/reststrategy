@@ -142,19 +142,18 @@ func kubeClientSetup(t *testing.T) (*kubernetes.Clientset, *rest.Config, error) 
 		return nil, nil, fmt.Errorf("failed to initialise client from config: %s", err.Error())
 	}
 	if b, err := os.ReadFile(kubeConfigPath); err != nil {
-		fmt.Printf(`err reading KubeConfig
-		%v`, err)
+		logger.Error(err, "err reading KubeConfig")
 	} else {
-		fmt.Printf(`kubeconfig:
-		%v`, string(b))
+		logger.Info("kubeconfig", string(b))
 	}
+	logger.Info("config", "cfg", fmt.Sprintf("%v", cfg))
 
-	fmt.Printf(`config from kube client setup
-	%v`, cfg)
 	kubeClient, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error building kubernetes clientset: %s", err.Error())
 	}
+
+	logger.Info("config", "kubeClient", fmt.Sprintf("%v", kubeClient))
 	return kubeClient, cfg, nil
 }
 
@@ -181,7 +180,7 @@ var _ = BeforeSuite(func() {
 		t.Errorf("failed to get client: %v", e)
 	}
 
-	logger.V(1).Info("config", "cfg.Host", cfg.Host, "cfg.APIPath", cfg.APIPath)
+	logger.Info("config", "cfg.Host", cfg.Host, "cfg.APIPath", cfg.APIPath)
 
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{

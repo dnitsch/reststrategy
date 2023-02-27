@@ -42,6 +42,7 @@ jobs:
       SEMVER: ${{ needs.set-version.outputs.semVer }}
       GIT_TAG: ${{ needs.set-version.outputs.semVer }}
       GOVCS: false
+      CGO_ENABLED: "0"
     steps:
       - uses: actions/checkout@v3
         with:

@@ -32,33 +32,29 @@ jobs:
           echo "VERSION -> $GITVERSION_SEMVER"
   test:
     runs-on: ubuntu-latest
-    # container:
-    #   image: docker:23.0.1-git
-    #   volumes:
-    #     - /var/run/docker.sock:/var/run/docker.sock
-    #   options: --privileged
+    container:
+      image: dnitsch/gha-dind:0.0.2 # docker:23.0.1-git
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+      options: --privileged
     needs: set-version
     env:
       SEMVER: ${{ needs.set-version.outputs.semVer }}
       GIT_TAG: ${{ needs.set-version.outputs.semVer }}
       GOVCS: false
-      CGO_ENABLED: "0"
+      # CGO_ENABLED: "0"
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 1
-      - uses: engineerd/setup-kind@v0.5.0
-        with:
-          version: "v0.17.0"
+      # - uses: engineerd/setup-kind@v0.5.0
+      #   with:
+      #     version: "v0.17.0"
       - uses: actions/setup-go@v3
         with:
           go-version: '1.19'
       - name: install deps
         run: |
-          apt-get update && apt-get install -y jq git
-          # \
-          # apt-transport-https ca-certificates curl gnupg lsb-release
-          # curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           git config user.email ${{ github.actor }}-ci@gha.org
           git config user.name ${{ github.actor }}

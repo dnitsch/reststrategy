@@ -31,6 +31,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	"sigs.k8s.io/kind/pkg/errors"
+
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
@@ -112,7 +114,7 @@ func startCluster(t *testing.T) func() {
 	); err != nil {
 		fmt.Println("failed to create cluster")
 		fmt.Println(err)
-		// t.Fatal(errors.Wrap(err, "failed to create cluster"))
+		t.Fatal(errors.Wrap(err, "failed to create cluster"))
 	}
 	return func() {
 		// delete cluster
@@ -160,7 +162,7 @@ var _ = BeforeSuite(func() {
 	if e != nil {
 		t.Errorf("failed to get client: %v", e)
 	}
-	logger.V(0).Info("config gotten", fmt.Sprintf("%v", cfg))
+	logger.V(1).Info("config gotten", fmt.Sprintf("%v", cfg))
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
 		CRDDirectoryPaths:     []string{filepath.Join("..", "config", "crd", "bases")},

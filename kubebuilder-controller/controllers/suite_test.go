@@ -176,23 +176,23 @@ var _ = BeforeSuite(func() {
 		Config:                cfg,
 	}
 
-	var err error
-	testEnvCfg, err := testEnv.Start()
-	logger.V(0).Info("test env config", fmt.Sprintf("%v", testEnvCfg))
+	// var err error
+	_, err := testEnv.Start()
+	logger.V(0).Info("test env config", fmt.Sprintf("%v", cfg))
 
 	Expect(err).NotTo(HaveOccurred())
-	Expect(testEnvCfg).NotTo(BeNil())
+	Expect(cfg).NotTo(BeNil())
 
 	err = seederv1alpha1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
 	//+kubebuilder:scaffold:scheme
-	k8sClient, err = client.New(testEnvCfg, client.Options{Scheme: scheme.Scheme})
+	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
 
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient).NotTo(BeNil())
 
-	k8sManager, err := ctrl.NewManager(testEnvCfg, ctrl.Options{
+	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{
 		Scheme: scheme.Scheme,
 	})
 
@@ -211,12 +211,11 @@ var _ = BeforeSuite(func() {
 		err = k8sManager.Start(context.TODO())
 		Expect(err).ToNot(HaveOccurred(), "failed to run manager")
 	}()
-
 })
 
 var _ = AfterSuite(func() {
 	By("tearing down the test environment")
 	err := testEnv.Stop()
-	// deleteCluster()
+	deleteCluster()
 	Expect(err).NotTo(HaveOccurred())
 })

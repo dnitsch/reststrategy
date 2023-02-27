@@ -82,22 +82,14 @@ var _ = Describe("RestStrategy controller", func() {
 				if err != nil {
 					return false
 				}
-				return true
+				return createdSpec.Status.Message != ""
 			}, timeout, interval).Should(BeTrue())
 			// Let's make sure our Schedule string value was properly converted/handled.
 			Expect(createdSpec.Spec.AuthConfig[0].Name).Should(Equal("basic"))
 
 			Expect(len(createdSpec.Spec.Seeders)).Should(Equal(0))
+			Expect(createdSpec.Status.Message).Should(Equal(fmt.Sprintf(SuccessMessage, RestStrategyName, RestStrategyNamespace)))
 
-			By("By checking the UpdatedRestStrategy")
-			Consistently(func() (string, error) {
-				updatedSpec := &seederv1alpha1.RestStrategy{}
-				err := k8sClient.Get(ctx, specLookupKey, updatedSpec)
-				if err != nil {
-					return "", err
-				}
-				return updatedSpec.Status.Message, nil
-			}, duration, interval).Should(Equal(fmt.Sprintf(SuccessMessage, RestStrategyName, RestStrategyNamespace)))
 		})
 	})
 
@@ -165,22 +157,12 @@ var _ = Describe("RestStrategy controller", func() {
 				if err != nil {
 					return false
 				}
-				return true
+				return createdSpec.Status.Message != ""
 			}, timeout, interval).Should(BeTrue())
 
 			Expect(createdSpec.Spec.AuthConfig[0].Name).Should(Equal("basic"))
 			Expect(len(createdSpec.Spec.Seeders)).Should(Equal(2))
-
-			By("By checking the UpdatedRestStrategy")
-			Consistently(func() (string, error) {
-				updatedSpec := &seederv1alpha1.RestStrategy{}
-				err := k8sClient.Get(ctx, specLookupKey, updatedSpec)
-				if err != nil {
-					return "", err
-				}
-				return updatedSpec.Status.Message, nil
-			}, duration, interval).Should(ContainSubstring(fmt.Sprintf("failed synced resource: %s in namespace: %s", RestStrategyName, RestStrategyNamespace)))
+			Expect(createdSpec.Status.Message).Should(ContainSubstring(fmt.Sprintf("failed synced resource: %s in namespace: %s", RestStrategyNameFail, RestStrategyNamespace)))
 		})
 	})
-
 })

@@ -115,7 +115,6 @@ func startCluster(t *testing.T) func() {
 	}
 	return func() {
 		// delete cluster
-
 		if err := provider.Delete(defaultClusterName, kubeConfigPath); err != nil {
 			t.Errorf("failed to tear down kind cluster: %s", err)
 		}
@@ -153,7 +152,7 @@ var _ = BeforeSuite(func() {
 	t := &testing.T{}
 	logger := log.NewLogr(os.Stdout, log.DebugLvl)
 	logf.SetLogger(logger.WithName("RestStrategyController-Test"))
-	deleteCluster = startCluster(t)
+	// deleteCluster = startCluster(t)
 	// <===
 	// ENABLE once tested
 	_, cfg, e := kubeClientSetup(t)
@@ -210,6 +209,6 @@ var _ = BeforeSuite(func() {
 var _ = AfterSuite(func() {
 	By("tearing down the test environment")
 	err := testEnv.Stop()
-	deleteCluster()
+	// deleteCluster()
 	Expect(err).NotTo(HaveOccurred())
 })

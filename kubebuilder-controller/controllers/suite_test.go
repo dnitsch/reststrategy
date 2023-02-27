@@ -163,13 +163,13 @@ var _ = BeforeSuite(func() {
 
 	logf.SetLogger(logger.WithName("RestStrategyController-Test"))
 	deleteCluster = startCluster(t)
-	// <===
-	// ENABLE once tested
+
 	_, cfg, e := kubeClientSetup(t)
 	if e != nil {
 		t.Errorf("failed to get client: %v", e)
 	}
-	logger.V(1).Info("config gotten", fmt.Sprintf("%v", cfg))
+	logger.V(1).Info("config", "cfg.Host", cfg.Host, "cfg.APIPath", cfg.APIPath)
+
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
 		CRDDirectoryPaths:     []string{filepath.Join("..", "config", "crd", "bases")},
@@ -178,9 +178,7 @@ var _ = BeforeSuite(func() {
 		Config:                cfg,
 	}
 
-	// var err error
 	_, err := testEnv.Start()
-	logger.V(0).Info("test env config", fmt.Sprintf("%v", cfg))
 
 	Expect(err).NotTo(HaveOccurred())
 	Expect(cfg).NotTo(BeNil())

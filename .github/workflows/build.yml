@@ -72,8 +72,8 @@ jobs:
           # mkdir -p  ~/.kube && echo 'apiVersion: v1
           # kind: Config
           # preferences: {}' > ~/.kube/config
-          # export KUBECONFIG=~/.kube/config
-
+          
+          export KUBECONFIG=~/.kube/config
           go test ./kubebuilder-controller/... -v -mod=readonly -timeout 1m0s
           # make REVISION=$GITHUB_SHA test
       - name: Publish Junit style Test Report

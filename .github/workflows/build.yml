@@ -8,28 +8,28 @@ permissions:
   pull-requests: read
 
 jobs:
-  set-version:
-    runs-on: ubuntu-latest
-    container:
-      image: mcr.microsoft.com/dotnet/sdk:6.0 
-    outputs:
-      semVer: ${{ steps.gitversion.outputs.semVer }}
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@v0.9.15
-        with:
-          versionSpec: '5.x'
-      - name: Set SemVer Version
-        uses: gittools/actions/gitversion/execute@v0.9.15
-        id: gitversion
+  # set-version:
+  #   runs-on: ubuntu-latest
+  #   container:
+  #     image: mcr.microsoft.com/dotnet/sdk:6.0 
+  #   outputs:
+  #     semVer: ${{ steps.gitversion.outputs.semVer }}
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #       with:
+  #         fetch-depth: 0
+  #     - name: Install GitVersion
+  #       uses: gittools/actions/gitversion/setup@v0.9.15
+  #       with:
+  #         versionSpec: '5.x'
+  #     - name: Set SemVer Version
+  #       uses: gittools/actions/gitversion/execute@v0.9.15
+  #       id: gitversion
 
-      - name: echo VERSIONS
-        run: | 
-          echo "REVISION  -> $GITHUB_SHA"
-          echo "VERSION -> $GITVERSION_SEMVER"
+  #     - name: echo VERSIONS
+  #       run: | 
+  #         echo "REVISION  -> $GITHUB_SHA"
+  #         echo "VERSION -> $GITVERSION_SEMVER"
   test:
     runs-on: ubuntu-latest
     container:
@@ -37,10 +37,10 @@ jobs:
       volumes:
         - /var/run/docker.sock:/var/run/docker.sock
       options: --privileged
-    needs: set-version
+    # needs: set-version
     env:
-      SEMVER: ${{ needs.set-version.outputs.semVer }}
-      GIT_TAG: ${{ needs.set-version.outputs.semVer }}
+      # SEMVER: ${{ needs.set-version.outputs.semVer }}
+      # GIT_TAG: ${{ needs.set-version.outputs.semVer }}
       GOVCS: false
       # CGO_ENABLED: "0"
     steps:
@@ -60,9 +60,6 @@ jobs:
           git config user.name ${{ github.actor }}
       - name: make test 
         run: |
-          # echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian \
-          #   $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-          # apt-get update && apt-get -y install docker-ce docker-ce-cli containerd.io
           export DOCKER_HOST=/var/run/docker.sock
           echo "DOCKER_HOST: $DOCKER_HOST"
           mkdir -p  ~/.kube && echo 'apiVersion: v1

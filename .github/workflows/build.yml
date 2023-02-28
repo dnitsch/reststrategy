@@ -117,15 +117,15 @@ jobs:
         run: |
           curl -LO https://dl.k8s.io/release/v1.26.1/bin/linux/amd64/kubectl
           install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-      - name: Testing
-        run: |
-          kubectl cluster-info
-          kubectl get pods -n kube-system
-          echo "current-context:" $(kubectl config current-context)
-          echo "environment-kubeconfig:" ${KUBECONFIG}
       - name: Get KubeConfig 
         run: | 
           echo "get internal"
           kind get kubeconfig --internal
           echo "get normal"
           kind get kubeconfig
+      - name: Testing
+        run: |
+          kubectl cluster-info
+          kubectl get pods -n kube-system
+          echo "current-context:" $(kubectl config current-context)
+          echo "environment-kubeconfig:" ${KUBECONFIG}

@@ -54,6 +54,7 @@ jobs:
           git config user.name ${{ github.actor }}
       - name: make test 
         run: |
+          export DOCKER_HOST=unix:///var/run/docker.sock
           export KUBECONFIG=$HOME/.kube/config
           export KIND_EXPERIMENTAL_DOCKER_NETWORK=${{ job.container.network }}
           go test ./kubebuilder-controller/... -v -mod=readonly -timeout 10m0s

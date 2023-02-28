@@ -57,7 +57,8 @@ import (
 var k8sClient client.Client
 var testEnv *envtest.Environment
 var deleteCluster func()
-var logger = log.NewLogr(os.Stdout, log.DebugLvl)
+var logr = log.NewLogr(os.Stdout, log.DebugLvl).V(1)
+var logger = log.New(os.Stdout, log.DebugLvl)
 var defaultClusterName string = "kubebuilder-test"
 
 // ====
@@ -114,8 +115,8 @@ func startCluster(t *testing.T) func() {
 		cluster.CreateWithRetain(false),
 		cluster.CreateWithWaitForReady(time.Second*60),
 		cluster.CreateWithKubeconfigPath(""),
-		cluster.CreateWithDisplayUsage(true),
-		cluster.CreateWithDisplaySalutation(true),
+		cluster.CreateWithDisplayUsage(false),
+		cluster.CreateWithDisplaySalutation(false),
 		// cluster.
 	); err != nil {
 		fmt.Println("failed to create cluster")
@@ -141,18 +142,18 @@ func kubeClientSetup(t *testing.T) (*kubernetes.Clientset, *rest.Config, error) 
 		return nil, nil, fmt.Errorf("failed to initialise client from config: %s", err.Error())
 	}
 	if b, err := os.ReadFile(kubeConfigPath); err != nil {
-		logger.Error(err, "err reading KubeConfig")
+		logger.Errorf("kubeConfigPath err: %v", err)
 	} else {
-		logger.Info(string(b), "kubeConfigPath", kubeConfigPath)
+		logger.Infof("kubeConfigPath file (%s) contents: %v", kubeConfigPath, string(b))
 	}
-	logger.Info(fmt.Sprintf("%v", cfg), "kubeConfigPath", kubeConfigPath)
+	logger.Infof("kubeConfigPath file (%s) yielded this config: %v", kubeConfigPath, cfg)
 
 	kubeClient, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error building kubernetes clientset: %s", err.Error())
 	}
 
-	logger.Info("config", "kubeClient", fmt.Sprintf("%v", kubeClient))
+	logger.Infof("config kubeClient: %v", kubeClient)
 	return kubeClient, cfg, nil
 }
 
@@ -170,7 +171,7 @@ func TestAPIs(t *testing.T) {
 var _ = BeforeSuite(func() {
 	t := &testing.T{}
 
-	logf.SetLogger(logger.WithName("RestStrategyController-Test"))
+	logf.SetLogger(logr.WithName("RestStrategyController-Test"))
 	deleteCluster = startCluster(t)
 
 	_, cfg, e := kubeClientSetup(t)
@@ -178,7 +179,7 @@ var _ = BeforeSuite(func() {
 		t.Errorf("failed to get client: %v", e)
 	}
 
-	logger.Info(fmt.Sprintf("%v", cfg))
+	logger.Infof("config returned from kubeClient setup: %v", cfg)
 
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{

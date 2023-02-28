@@ -92,3 +92,30 @@ jobs:
             -Dsonar.projectVersion=${{ needs.set-version.outputs.semVer }}
             -Dsonar.go.tests.reportPaths=/github/workspace/controller/.coverage/report-junit.xml,/github/workspace/seeder/.coverage/report-junit.xml,/github/workspace/kubebuilder-controller/.coverage/report-junit.xml
             -Dsonar.go.coverage.reportPaths=/github/workspace/controller/.coverage/out,/github/workspace/seeder/.coverage/out,/github/workspace/kubebuilder-controller/.coverage/out
+
+  kind-test:
+    runs-on: ubuntu-latest
+    container:
+      image: dnitsch/gha-dind:0.0.6 # docker:23.0.1-git
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+      options: --privileged=true --group-add=docker
+    # needs: set-version
+    env:
+      # SEMVER: ${{ needs.set-version.outputs.semVer }}
+      # GIT_TAG: ${{ needs.set-version.outputs.semVer }}
+      GOVCS: false
+      # CGO_ENABLED: "0"
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+      - uses: engineerd/setup-kind@v0.5.0
+        with:
+          version: "v0.17.0"
+      - name: Testing
+        run: |
+          kubectl cluster-info
+          kubectl get pods -n kube-system
+          echo "current-context:" $(kubectl config current-context)
+          echo "environment-kubeconfig:" ${KUBECONFIG}

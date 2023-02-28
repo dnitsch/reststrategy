@@ -99,12 +99,16 @@ jobs:
       image: dnitsch/gha-dind:0.0.6 # docker:23.0.1-git
       volumes:
         - /var/run/docker.sock:/var/run/docker.sock
+        - /sys/fs/cgroup:/sys/fs/cgroup
+      ports:
+        - 6443:6443
       options: --privileged=true --group-add=docker
     # needs: set-version
     env:
       # SEMVER: ${{ needs.set-version.outputs.semVer }}
       # GIT_TAG: ${{ needs.set-version.outputs.semVer }}
       GOVCS: false
+      KIND_EXPERIMENTAL_DOCKER_NETWORK: ${{ job.container.network }}
       # CGO_ENABLED: "0"
     steps:
       - uses: actions/checkout@v3
@@ -136,12 +140,12 @@ jobs:
           docker inspect "kind-control-plane" --format "{{ .NetworkSettings.Networks.kind.IPAddress }}"
       - name: Testing
         run: |
-          export KIND_EXPERIMENTAL_DOCKER_NETWORK=${{ job.container.network }}
+          # export 
           # kubectl config set clusters.kind-kind.server https://$(docker inspect "kind-control-plane" --format "{{ .NetworkSettings.Networks.kind.IPAddress }}"):6443
           # kubectl config set-cluster kind-kind --server=https://$(docker inspect "kind-control-plane" --format "{{ .NetworkSettings.Networks.kind.IPAddress }}"):6443 
           # kubectl config set clusters.kind-kind.server https://kind-control-plane:6443
           kubectl config set-cluster kind-kind --server=https://kind-control-plane:6443
-          docker network connect kind $(cat /etc/hostname)
+          # docker network connect kind $(cat /etc/hostname)
           kubectl get pods -n kube-system
           echo "current-context:" $(kubectl config current-context)
           echo "environment-kubeconfig:" ${KUBECONFIG}

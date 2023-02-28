@@ -130,7 +130,7 @@ jobs:
           export KIND_EXPERIMENTAL_DOCKER_NETWORK=${{ job.container.network }}
           # kubectl config set clusters.kind-kind.server https://$(docker inspect "kind-control-plane" --format "{{ .NetworkSettings.Networks.kind.IPAddress }}"):6443
           # kubectl config set clusters.kind-kind.server https://kind-control-plane:6443
-          kubectl config set-cluster kind-kind --server=https://kind-control-plane:6443 
+          kubectl config set-cluster kind-kind --server=https://$(docker inspect "kind-control-plane" --format "{{ .NetworkSettings.Networks.kind.IPAddress }}"):6443 
           kubectl cluster-info
           kubectl get pods -n kube-system
           echo "current-context:" $(kubectl config current-context)

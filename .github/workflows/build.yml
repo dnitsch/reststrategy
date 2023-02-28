@@ -122,22 +122,32 @@ jobs:
             apiServerAddress: 127.0.0.1
             apiServerPort: 6443' > ./kind-config.yml
           cat ./kind-config.yml
-      - uses: engineerd/setup-kind@v0.5.0
-        with:
-          version: "v0.17.0"
-          config: ./kind-config.yml
+      # - uses: engineerd/setup-kind@v0.5.0
+      #   with:
+      #     version: "v0.17.0"
+      #     config: ./kind-config.yml
       - name: DL tools
         run: |
           curl -LO https://dl.k8s.io/release/v1.26.1/bin/linux/amd64/kubectl
           install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+          curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.17.0/kind-linux-amd64
+          chmod +x ./kind
+          sudo mv ./kind /usr/local/bin/kind
       - name: Get KubeConfig 
         run: | 
+          export KUBECONFIG=$HOME/.kube/config
+          export KIND_EXPERIMENTAL_DOCKER_NETWORK=${{ job.container.network }}
+          kind create cluster \ 
+            --kubeconfig $KUBECONFIG \
+            --config=./kind-config.yaml
           echo "get internal"
           kind get kubeconfig --internal
           echo "get normal"
           kind get kubeconfig
           echo "======= get internal IP ======="
           docker inspect "kind-control-plane" --format "{{ .NetworkSettings.Networks.kind.IPAddress }}"
+          kubectl config set-cluster kind-kind --server=https://kind-control-plane:6443
+          kubectl get pods -n kube-system
       - name: Testing
         run: |
           # export 

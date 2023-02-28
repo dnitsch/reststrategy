@@ -30,6 +30,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	"sigs.k8s.io/kind/pkg/apis/config/v1alpha4"
 	"sigs.k8s.io/kind/pkg/cmd"
 	"sigs.k8s.io/kind/pkg/errors"
 
@@ -60,6 +61,7 @@ var deleteCluster func()
 var logr = log.NewLogr(os.Stdout, log.DebugLvl).V(1)
 var logger = log.New(os.Stdout, log.DebugLvl)
 var defaultClusterName string = "kubebuilder-test"
+var kubeStartUpConfig kubeConfig = kubeConfig{}
 
 // ====
 // BEGIN CUSTOM K8s setup
@@ -78,54 +80,71 @@ func detectContainerImp() cluster.ProviderOption {
 	return nil
 }
 
-// start kind cluster
-func startCluster(t *testing.T) func() {
+type kubeConfig struct {
+	isInCI        bool
+	k8sConfigPath string
+	kindConfig    *v1alpha4.Cluster
+	masterUrl     string
+}
 
-	// if len(os.Getenv("GITHUB_ACTIONS")) > 0 || len(os.Getenv("TRAVIS")) > 0 || len(os.Getenv("CIRCLECI")) > 0 || len(os.Getenv("GITLAB_CI")) > 0 {
-	// 	fmt.Println("In CI will be using a service mounted KinD")
-	// 	return func() {}
-	// }
-
+func DetermineKubeConfig() kubeConfig {
 	usr, _ := user.Current()
 	hd := usr.HomeDir
 	kubeConfigPath := path.Join(hd, ".kube/config")
-	// when Podman is available =>
-	// KIND_EXPERIMENTAL_PROVIDER=podman kind create cluster --name kind-kind
-	// or when using docker
-	// kind create cluster --name kind-kind
+	resp := kubeConfig{isInCI: false, k8sConfigPath: kubeConfigPath, kindConfig: nil, masterUrl: ""}
+	if len(os.Getenv("GITHUB_ACTIONS")) > 0 || len(os.Getenv("TRAVIS")) > 0 || len(os.Getenv("CIRCLECI")) > 0 || len(os.Getenv("GITLAB_CI")) > 0 || len(os.Getenv("CI")) > 0 {
+		logger.Info("In CI will be using a service mounted KinD")
+		resp.kindConfig = &v1alpha4.Cluster{
+			Networking: v1alpha4.Networking{
+				APIServerAddress: "127.0.0.1",
+				APIServerPort:    6443,
+			},
+		}
+		resp.masterUrl = "https://kind-control-plane:6443"
+		return resp
+	}
+	return resp
+}
+
+// start kind cluster
+func startCluster(t *testing.T) func() {
 	impProvider := detectContainerImp()
 	if impProvider == nil {
-		fmt.Println("unable to find suitable containerisation provider")
-		// t.Errorf("unable to find suitable containerisation provider")
-		// t.SkipNow()
+		logger.Info("unable to find suitable containerisation provider")
+		t.Skip()
 		return func() {}
 	}
 	// logger := cmd.NewLogger()
 	clusterProviderOptions := []cluster.ProviderOption{
-		cluster.ProviderWithLogger(cmd.NewLogger()), //(log.New(os.Stdout, log.DebugLvl)), //logger.WithName("KinD set up")),
+		cluster.ProviderWithLogger(cmd.NewLogger()),
 	}
 
 	clusterProviderOptions = append(clusterProviderOptions, impProvider)
 
 	provider := cluster.NewProvider(clusterProviderOptions...)
+	clusterCreateOptions := []cluster.CreateOption{
+		cluster.CreateWithNodeImage(""),
+		cluster.CreateWithRetain(false),
+		cluster.CreateWithWaitForReady(time.Second * 60),
+		cluster.CreateWithKubeconfigPath(kubeStartUpConfig.k8sConfigPath),
+		cluster.CreateWithDisplayUsage(false),
+		cluster.CreateWithDisplaySalutation(false),
+	}
+
+	if kubeStartUpConfig.isInCI && kubeStartUpConfig.kindConfig != nil {
+		clusterCreateOptions = append(clusterCreateOptions, cluster.CreateWithV1Alpha4Config(kubeStartUpConfig.kindConfig))
+	}
 	// create the cluster
 	if err := provider.Create(
 		defaultClusterName,
-		cluster.CreateWithNodeImage(""),
-		cluster.CreateWithRetain(false),
-		cluster.CreateWithWaitForReady(time.Second*60),
-		cluster.CreateWithKubeconfigPath(""),
-		cluster.CreateWithDisplayUsage(false),
-		cluster.CreateWithDisplaySalutation(false),
-		// cluster.
+		clusterCreateOptions...,
 	); err != nil {
-		fmt.Println("failed to create cluster")
-		fmt.Println(err)
+		logger.Errorf("failed to create cluster: %v", err)
 		t.Fatal(errors.Wrap(err, "failed to create cluster"))
 	}
 	return func() {
 		// delete cluster
-		if err := provider.Delete(defaultClusterName, kubeConfigPath); err != nil {
+		if err := provider.Delete(defaultClusterName, kubeStartUpConfig.k8sConfigPath); err != nil {
 			t.Errorf("failed to tear down kind cluster: %s", err)
 		}
 	}
@@ -133,21 +152,18 @@ func startCluster(t *testing.T) func() {
 
 // k8s-client set up
 func kubeClientSetup(t *testing.T) (*kubernetes.Clientset, *rest.Config, error) {
-	usr, _ := user.Current()
-	hd := usr.HomeDir
-	kubeConfigPath := path.Join(hd, ".kube/config")
 
 	// grab the internal IP and pass that in as well as kube path
-	cfg, err := clientcmd.BuildConfigFromFlags("", kubeConfigPath)
+	cfg, err := clientcmd.BuildConfigFromFlags(kubeStartUpConfig.masterUrl, kubeStartUpConfig.k8sConfigPath)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to initialise client from config: %s", err.Error())
 	}
-	if b, err := os.ReadFile(kubeConfigPath); err != nil {
+	if b, err := os.ReadFile(kubeStartUpConfig.k8sConfigPath); err != nil {
 		logger.Errorf("kubeConfigPath err: %v", err)
 	} else {
-		logger.Infof("kubeConfigPath file (%s) contents: %v", kubeConfigPath, string(b))
+		logger.Infof("kubeConfigPath file (%s) contents: %v", kubeStartUpConfig.k8sConfigPath, string(b))
 	}
-	logger.Infof("kubeConfigPath file (%s) yielded this config: %v", kubeConfigPath, cfg)
+	logger.Infof("kubeConfigPath file (%s) yielded this config: %v", kubeStartUpConfig.k8sConfigPath, cfg)
 
 	kubeClient, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
@@ -171,7 +187,7 @@ func TestAPIs(t *testing.T) {
 
 var _ = BeforeSuite(func() {
 	t := &testing.T{}
-
+	kubeStartUpConfig = DetermineKubeConfig()
 	logf.SetLogger(logr.WithName("RestStrategyController-Test"))
 	deleteCluster = startCluster(t)
 

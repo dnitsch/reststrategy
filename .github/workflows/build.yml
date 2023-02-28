@@ -119,3 +119,9 @@ jobs:
           kubectl get pods -n kube-system
           echo "current-context:" $(kubectl config current-context)
           echo "environment-kubeconfig:" ${KUBECONFIG}
+      - name: Get KubeConfig 
+        run: | 
+          echo "get internal"
+          kind get kubeconfig --internal
+          echo "get normal"
+          kind get kubeconfig

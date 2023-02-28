@@ -137,6 +137,7 @@ func kubeClientSetup(t *testing.T) (*kubernetes.Clientset, *rest.Config, error) 
 	hd := usr.HomeDir
 	kubeConfigPath := path.Join(hd, ".kube/config")
 
+	// grab the internal IP and pass that in as well as kube path
 	cfg, err := clientcmd.BuildConfigFromFlags("", kubeConfigPath)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to initialise client from config: %s", err.Error())

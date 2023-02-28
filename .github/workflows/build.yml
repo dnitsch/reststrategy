@@ -123,6 +123,8 @@ jobs:
           kind get kubeconfig --internal
           echo "get normal"
           kind get kubeconfig
+          echo "======= get internal IP ======="
+          docker inspect "kind-control-plane" --format "{{ .NetworkSettings.Networks.kind.IPAddress }}"
       - name: Testing
         run: |
           kubectl cluster-info

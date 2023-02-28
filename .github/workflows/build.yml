@@ -108,7 +108,7 @@ jobs:
       # SEMVER: ${{ needs.set-version.outputs.semVer }}
       # GIT_TAG: ${{ needs.set-version.outputs.semVer }}
       GOVCS: false
-      KIND_EXPERIMENTAL_DOCKER_NETWORK: ${{ job.container.network }}
+      # KIND_EXPERIMENTAL_DOCKER_NETWORK: ${{ job.container.network }}
       # CGO_ENABLED: "0"
     steps:
       - uses: actions/checkout@v3

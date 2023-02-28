@@ -113,6 +113,10 @@ jobs:
       - uses: engineerd/setup-kind@v0.5.0
         with:
           version: "v0.17.0"
+      - name: DL tools
+        run: |
+          curl -LO https://dl.k8s.io/release/v1.26.1/bin/linux/amd64/kubectl
+          install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
       - name: Testing
         run: |
           kubectl cluster-info

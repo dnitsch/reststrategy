@@ -129,3 +129,5 @@ jobs:
           
           kubectl get pods -n kube-system
           kubectl cluster-info
+
+          kubectl apply ./kubebuilder-controller/config/crd/bases/seeder.dnitsch.net_reststrategies.yaml

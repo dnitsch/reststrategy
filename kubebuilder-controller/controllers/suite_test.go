@@ -34,6 +34,7 @@ import (
 	"sigs.k8s.io/kind/pkg/cmd"
 	"sigs.k8s.io/kind/pkg/errors"
 
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
@@ -191,12 +192,22 @@ var _ = BeforeSuite(func() {
 	logf.SetLogger(logr.WithName("RestStrategyController-Test"))
 	deleteCluster = startCluster(t)
 
-	_, cfg, e := kubeClientSetup(t)
+	kubeClient, cfg, e := kubeClientSetup(t)
 	if e != nil {
 		t.Errorf("failed to get client: %v", e)
 	}
 
 	logger.Infof("config returned from kubeClient setup: %v", cfg)
+
+	Eventually(func() bool {
+		pod, err := kubeClient.CoreV1().Pods("kube-system").Get(context.Background(), fmt.Sprintf("kube-apiserver-%s-control-plane", defaultClusterName), v1.GetOptions{})
+		if err != nil {
+			return false
+		}
+		return pod.Status.Phase == "Running"
+	}, timeout, interval).Should(BeTrue())
+
+	// testPods
 
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{

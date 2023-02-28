@@ -136,7 +136,7 @@ jobs:
           
           cat $PWD/kind-config.yml
           
-          kind create cluster --kubeconfig=$KUBECONFIG --config=$PWD/kind-config.yaml
+          kind create cluster --kubeconfig=$KUBECONFIG --config=$PWD/kind-config.yml
 
           echo "get internal"
           kind get kubeconfig --internal

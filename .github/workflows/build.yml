@@ -127,8 +127,9 @@ jobs:
           docker inspect "kind-control-plane" --format "{{ .NetworkSettings.Networks.kind.IPAddress }}"
       - name: Testing
         run: |
-          kubectl config set clusters.kind-kind.server https://$(docker inspect "kind-control-plane" --format "{{ .NetworkSettings.Networks.kind.IPAddress }}"):6443
-          kubectl cluster-info 
+          # kubectl config set clusters.kind-kind.server https://$(docker inspect "kind-control-plane" --format "{{ .NetworkSettings.Networks.kind.IPAddress }}"):6443
+          kubectl config set clusters.kind-kind.server https://kind-control-plane:6443
+          kubectl cluster-info
           kubectl get pods -n kube-system
           echo "current-context:" $(kubectl config current-context)
           echo "environment-kubeconfig:" ${KUBECONFIG}

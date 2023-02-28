@@ -36,7 +36,7 @@ jobs:
           
           cat $PWD/kind-config.yml
           
-          kind create cluster --kubeconfig=$KUBECONFIG --config=$PWD/kind-config.yml
+          kind create cluster --config=$PWD/kind-config.yml
 
           echo "get internal"
           kind get kubeconfig --internal
@@ -47,5 +47,6 @@ jobs:
           
           kubectl get pods -n kube-system
           kubectl cluster-info
-
           kubectl apply -f ./kubebuilder-controller/config/crd/bases/seeder.dnitsch.net_reststrategies.yaml
+          
+          kubectl get pods -n kube-system

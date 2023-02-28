@@ -102,7 +102,7 @@ func DetermineKubeConfig() kubeConfig {
 				APIServerPort:    6443,
 			},
 		}
-		resp.masterUrl = "https://kind-control-plane:6443"
+		// resp.masterUrl = "https://127.0.0.1:6443"
 		return resp
 	}
 	return resp
@@ -165,9 +165,10 @@ func kubeClientSetup(t *testing.T) (*kubernetes.Clientset, *rest.Config, error) 
 	} else {
 		logger.Infof("kubeConfigPath file (%s) contents: %v", kubeStartUpConfig.k8sConfigPath, string(b))
 	}
-	logger.Infof("kubeConfigPath file (%s) yielded this config: %v", kubeStartUpConfig.k8sConfigPath, cfg)
+	logger.Infof("custom config\n\nHost: %v\nServeName: %s", cfg.Host, cfg.ServerName)
 
 	kubeClient, err := kubernetes.NewForConfig(cfg)
+
 	if err != nil {
 		return nil, nil, fmt.Errorf("error building kubernetes clientset: %s", err.Error())
 	}
@@ -212,12 +213,14 @@ var _ = BeforeSuite(func() {
 		}
 		if attempts < 10 {
 			logger.Infof("status\nPhase: %s\nMessage: %s\nReason: %s\n", pod.Status.Phase, pod.Status.Message, pod.Status.Reason)
+			logger.Debugf("pod: %v", pod)
 			keepTrying = pod.Status.Phase != podv1.PodRunning
 		} else {
 			logger.Infof("status\nPhase: %s\nMessage: %s\nReason: %s\n", pod.Status.Phase, pod.Status.Message, pod.Status.Reason)
 			logger.Infof("attemps depleted")
 			keepTrying = false
 		}
+		time.Sleep(time.Duration(time.Second * 2))
 	}
 
 	By("bootstrapping test environment")

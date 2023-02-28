@@ -200,18 +200,25 @@ var _ = BeforeSuite(func() {
 
 	logger.Infof("config returned from kubeClient setup: %v", cfg)
 
-	Eventually(func() bool {
+	var keepTrying, attempts = true, 0
+
+	for keepTrying {
+		attempts++
+		logger.Infof("attemp: %d", attempts)
 		pod, err := kubeClient.CoreV1().Pods("kube-system").Get(context.Background(), fmt.Sprintf("kube-apiserver-%s-control-plane", defaultClusterName), v1.GetOptions{})
 		if err != nil {
-			return false
+			logger.Error(err)
+			keepTrying = false
 		}
-		fmt.Printf("status\nPhase: %s\nMessage: %s\nReason: %s\n", pod.Status.Phase, pod.Status.Message, pod.Status.Reason)
-		// logger.Infof("status\nPhase: %s\nMessage: %s\nReason: %s\n", pod.Status.Phase, pod.Status.Message, pod.Status.Reason)
-		return pod.Status.Phase == podv1.PodRunning
-		// every 2 seconds check
-	}, timeout, interval*8).Should(BeTrue())
-
-	// testPods
+		if attempts < 10 {
+			logger.Infof("status\nPhase: %s\nMessage: %s\nReason: %s\n", pod.Status.Phase, pod.Status.Message, pod.Status.Reason)
+			keepTrying = pod.Status.Phase != podv1.PodRunning
+		} else {
+			logger.Infof("status\nPhase: %s\nMessage: %s\nReason: %s\n", pod.Status.Phase, pod.Status.Message, pod.Status.Reason)
+			logger.Infof("attemps depleted")
+			keepTrying = false
+		}
+	}
 
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{

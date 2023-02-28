@@ -42,8 +42,6 @@ jobs:
           kind get kubeconfig --internal
           echo "get normal"
           kind get kubeconfig
-          echo "======= get internal IP ======="
-          docker inspect "kind-control-plane" --format "{{ .NetworkSettings.Networks.kind.IPAddress }}"
 
           kubectl config set-cluster kind-kind --server=https://kind-control-plane:6443
           

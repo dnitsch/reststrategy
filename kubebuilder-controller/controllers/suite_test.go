@@ -34,6 +34,7 @@ import (
 	"sigs.k8s.io/kind/pkg/cmd"
 	"sigs.k8s.io/kind/pkg/errors"
 
+	podv1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -204,8 +205,10 @@ var _ = BeforeSuite(func() {
 		if err != nil {
 			return false
 		}
-		return pod.Status.Phase == "Running"
-	}, timeout, interval).Should(BeTrue())
+		logger.Infof("status\nPhase: %s\nMessage: %s\nReason: %s\n", pod.Status.Phase, pod.Status.Message, pod.Status.Reason)
+		return pod.Status.Phase == podv1.PodRunning
+		// every 2 seconds check
+	}, timeout, interval*8).Should(BeTrue())
 
 	// testPods
 
@@ -254,9 +257,7 @@ var _ = BeforeSuite(func() {
 
 var _ = AfterSuite(func() {
 	By("tearing down the test environment")
-	err := testEnv.Stop()
 	if deleteCluster != nil {
 		deleteCluster()
 	}
-	Expect(err).NotTo(HaveOccurred())
 })

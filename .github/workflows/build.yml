@@ -136,9 +136,7 @@ jobs:
         run: | 
           export KUBECONFIG=$HOME/.kube/config
           export KIND_EXPERIMENTAL_DOCKER_NETWORK=${{ job.container.network }}
-          kind create cluster \ 
-            --kubeconfig $KUBECONFIG \
-            --config=./kind-config.yaml
+          kind create cluster --kubeconfig $KUBECONFIG --config=./kind-config.yaml
           echo "get internal"
           kind get kubeconfig --internal
           echo "get normal"

@@ -141,7 +141,8 @@ jobs:
           # kubectl config set-cluster kind-kind --server=https://$(docker inspect "kind-control-plane" --format "{{ .NetworkSettings.Networks.kind.IPAddress }}"):6443 
           # kubectl config set clusters.kind-kind.server https://kind-control-plane:6443
           kubectl config set-cluster kind-kind --server=https://kind-control-plane:6443
-          kubectl cluster-info
+          docker network connect kind $(cat /etc/hostname)
           kubectl get pods -n kube-system
           echo "current-context:" $(kubectl config current-context)
           echo "environment-kubeconfig:" ${KUBECONFIG}
+          kubectl cluster-info

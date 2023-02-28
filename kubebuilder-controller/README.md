@@ -8,6 +8,13 @@
 You’ll need a Kubernetes cluster to run against. You can use [KIND](https://sigs.k8s.io/kind) to get a local cluster for testing, or run against a remote cluster.
 **Note:** Your controller will automatically use the current context in your kubeconfig file (i.e. whatever cluster `kubectl cluster-info` shows).
 
+## Running test in GithubActions
+
+useful links:
+
+  - [specify container network and add config](https://github.com/helm/kind-action/issues/30)
+  - [networking in docker](https://github.com/kubernetes-sigs/kind/issues/1619)
+
 ### Running on the cluster
 1. Install Instances of Custom Resources:
 

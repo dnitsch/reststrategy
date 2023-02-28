@@ -205,7 +205,8 @@ var _ = BeforeSuite(func() {
 		if err != nil {
 			return false
 		}
-		logger.Infof("status\nPhase: %s\nMessage: %s\nReason: %s\n", pod.Status.Phase, pod.Status.Message, pod.Status.Reason)
+		fmt.Printf("status\nPhase: %s\nMessage: %s\nReason: %s\n", pod.Status.Phase, pod.Status.Message, pod.Status.Reason)
+		// logger.Infof("status\nPhase: %s\nMessage: %s\nReason: %s\n", pod.Status.Phase, pod.Status.Message, pod.Status.Reason)
 		return pod.Status.Phase == podv1.PodRunning
 		// every 2 seconds check
 	}, timeout, interval*8).Should(BeTrue())

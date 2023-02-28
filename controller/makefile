@@ -20,7 +20,7 @@ clean:
 	mkdir -p dist
 
 bingen:
-	GOOS=$$os CGO_ENABLED=0 go build -mod=readonly -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/seeder-$$os ./cmd; 
+	GOOS=$$os CGO_ENABLED=0 go build -mod=readonly $(LDFLAGS) -o dist/seeder-$$os ./cmd; 
 
 # for os in darwin linux windows; do \
 #     [ $$os = "windows" ] && EXT=".exe"; \

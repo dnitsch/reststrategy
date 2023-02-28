@@ -79,17 +79,12 @@ jobs:
   kind-test:
     runs-on: ubuntu-latest
     container:
-      image: dnitsch/gha-dind:0.0.6 # docker:23.0.1-git
+      image: dnitsch/gha-dind:0.0.6
       volumes:
         - /var/run/docker.sock:/var/run/docker.sock
       options: --privileged=true --group-add=docker
-    # needs: set-version
     env:
-      # SEMVER: ${{ needs.set-version.outputs.semVer }}
-      # GIT_TAG: ${{ needs.set-version.outputs.semVer }}
       GOVCS: false
-      # KIND_EXPERIMENTAL_DOCKER_NETWORK: ${{ job.container.network }}
-      # CGO_ENABLED: "0"
     steps:
       - uses: actions/checkout@v3
         with:
@@ -130,4 +125,4 @@ jobs:
           kubectl get pods -n kube-system
           kubectl cluster-info
 
-          kubectl apply ./kubebuilder-controller/config/crd/bases/seeder.dnitsch.net_reststrategies.yaml
+          kubectl apply -f ./kubebuilder-controller/config/crd/bases/seeder.dnitsch.net_reststrategies.yaml

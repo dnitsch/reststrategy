@@ -215,20 +215,6 @@ type staticToken struct {
 type actionAuthMap map[string]auth
 
 func NewAuth(am AuthMap) *actionAuthMap {
-	return newAuth(am)
-}
-
-// NewAuthFromList same as NewAuth but accepts a list of
-// auth methods
-func NewAuthFromList(aml []AuthConfig) *actionAuthMap {
-	am := AuthMap{}
-	for _, v := range aml {
-		am[v.Name] = v
-	}
-	return newAuth(am)
-}
-
-func newAuth(am AuthMap) *actionAuthMap {
 	ac := actionAuthMap{}
 	for k, v := range am {
 		a := auth{}

@@ -57,12 +57,6 @@ func (r *SeederImpl) WithAuth(a AuthMap) *SeederImpl {
 	return r
 }
 
-// WithAuth assigns auth options used by AuthMapRef within the actions
-func (r *SeederImpl) WithAuthList(a []AuthConfig) *SeederImpl {
-	r.auth = NewAuthFromList(a)
-	return r
-}
-
 func (r *SeederImpl) SetRuntimeVar(key string, val any) {
 	r.runtimeVars.mu.Lock()
 	r.runtimeVars.vars[key] = val

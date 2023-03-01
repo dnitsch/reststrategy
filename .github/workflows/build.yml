@@ -59,7 +59,7 @@ jobs:
           curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.17.0/kind-linux-amd64
           install -o root -g root -m 0755 kind /usr/local/bin/kind
 
-          export KUBECONFIG=$HOME/.kube/config
+          export KUBECONFIG=/root/.kube/config
           export KIND_EXPERIMENTAL_DOCKER_NETWORK=${{ job.container.network }}
           echo 'kind: Cluster
           apiVersion: kind.x-k8s.io/v1alpha4

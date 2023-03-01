@@ -117,7 +117,6 @@ func startCluster(t *testing.T) func() {
 	impProvider := detectContainerImp()
 	if impProvider == nil {
 		logger.Info("unable to find suitable containerisation provider")
-		t.Skip()
 		return func() {}
 	}
 	// logger := cmd.NewLogger()

@@ -69,7 +69,7 @@ jobs:
           
           cat $PWD/kind-config.yml
 
-          echo "KUBECONFIG: $(cat $KUBECONFIG)
+          echo "KUBECONFIG: $(cat $KUBECONFIG)"
 
           kind create cluster --name kubebuilder-test --config=$PWD/kind-config.yml
           kubectl config set-cluster kind-kubebuilder-test --server=https://kind-control-plane:6443

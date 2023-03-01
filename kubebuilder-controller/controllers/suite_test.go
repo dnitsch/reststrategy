@@ -94,21 +94,21 @@ func DetermineKubeConfig() kubeConfig {
 	hd := usr.HomeDir
 	kubeConfigPath := path.Join(hd, ".kube/config")
 	resp := kubeConfig{isInCI: false, k8sConfigPath: kubeConfigPath, kindConfig: nil, masterUrl: ""}
-	if len(os.Getenv("GITHUB_ACTIONS")) > 0 ||
-		len(os.Getenv("TRAVIS")) > 0 ||
-		len(os.Getenv("CIRCLECI")) > 0 ||
-		len(os.Getenv("GITLAB_CI")) > 0 ||
-		len(os.Getenv("CI")) > 0 {
-		logger.Info("In CI will be using a service mounted KinD")
-		resp.kindConfig = &v1alpha4.Cluster{
-			Networking: v1alpha4.Networking{
-				APIServerAddress: "127.0.0.1",
-				APIServerPort:    6443,
-			},
-		}
-		// resp.masterUrl = "https://127.0.0.1:6443"
-		return resp
-	}
+	// if len(os.Getenv("GITHUB_ACTIONS")) > 0 ||
+	// 	len(os.Getenv("TRAVIS")) > 0 ||
+	// 	len(os.Getenv("CIRCLECI")) > 0 ||
+	// 	len(os.Getenv("GITLAB_CI")) > 0 ||
+	// 	len(os.Getenv("CI")) > 0 {
+	// 	logger.Info("In CI will be using a service mounted KinD")
+	// 	resp.kindConfig = &v1alpha4.Cluster{
+	// 		Networking: v1alpha4.Networking{
+	// 			APIServerAddress: "127.0.0.1",
+	// 			APIServerPort:    6443,
+	// 		},
+	// 	}
+	// 	resp.masterUrl = "https://kind-control-plane:6443"
+	// 	return resp
+	// }
 	return resp
 }
 
@@ -158,7 +158,8 @@ func startCluster(t *testing.T) func() {
 // k8s-client set up
 func kubeClientSetup(t *testing.T) (*kubernetes.Clientset, *rest.Config, error) {
 
-	// grab the internal IP and pass that in as well as kube path
+	logger.Infof("startUpConfig: %v", kubeStartUpConfig)
+
 	cfg, err := clientcmd.BuildConfigFromFlags(kubeStartUpConfig.masterUrl, kubeStartUpConfig.k8sConfigPath)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to initialise client from config: %s", err.Error())

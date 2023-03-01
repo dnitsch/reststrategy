@@ -160,8 +160,8 @@ func kubeClientSetup(t *testing.T) (*kubernetes.Clientset, *rest.Config, error) 
 
 	// logger.Infof("startUpConfig: %v", kubeStartUpConfig)
 
-	// cfg, err := clientcmd.BuildConfigFromFlags(kubeStartUpConfig.masterUrl, kubeStartUpConfig.k8sConfigPath)
-	cfg, err := clientcmd.BuildConfigFromFlags("", kubeStartUpConfig.k8sConfigPath)
+	cfg, err := clientcmd.BuildConfigFromFlags(kubeStartUpConfig.masterUrl, kubeStartUpConfig.k8sConfigPath)
+	// cfg, err := clientcmd.BuildConfigFromFlags("", kubeStartUpConfig.k8sConfigPath)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to initialise client from config: %s", err.Error())
 	}
@@ -197,7 +197,7 @@ var _ = BeforeSuite(func() {
 	t := &testing.T{}
 	kubeStartUpConfig = DetermineKubeConfig()
 	logf.SetLogger(logr.WithName("RestStrategyController-Test"))
-	// deleteCluster = startCluster(t)
+	deleteCluster = startCluster(t)
 
 	kubeClient, cfg, e := kubeClientSetup(t)
 	if e != nil {
@@ -273,7 +273,7 @@ var _ = BeforeSuite(func() {
 
 var _ = AfterSuite(func() {
 	By("tearing down the test environment")
-	// if deleteCluster != nil {
-	// 	deleteCluster()
-	// }
+	if deleteCluster != nil {
+		deleteCluster()
+	}
 })

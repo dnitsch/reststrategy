@@ -47,16 +47,35 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 1
-      - name: install deps
+      - name: git prep
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           git config user.email ${{ github.actor }}-ci@gha.org
           git config user.name ${{ github.actor }}
-      - name: make test 
+      - name: prep KinD
         run: |
-          export DOCKER_HOST=unix:///var/run/docker.sock
+          curl -LO https://dl.k8s.io/release/v1.26.1/bin/linux/amd64/kubectl
+          install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+          curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.17.0/kind-linux-amd64
+          install -o root -g root -m 0755 kind /usr/local/bin/kind
+
           export KUBECONFIG=$HOME/.kube/config
           export KIND_EXPERIMENTAL_DOCKER_NETWORK=${{ job.container.network }}
+          echo 'kind: Cluster
+          apiVersion: kind.x-k8s.io/v1alpha4
+          networking:
+            apiServerAddress: "127.0.0.1"
+            apiServerPort: 6443' > $PWD/kind-config.yml
+          
+          cat $PWD/kind-config.yml
+          kind create cluster --config=$PWD/kind-config.yml
+          kubectl config set-cluster kind-kind --server=https://kind-control-plane:6443
+
+      - name: make test 
+        run: |
+          # export DOCKER_HOST=unix:///var/run/docker.sock
+          # export KUBECONFIG=$HOME/.kube/config
+          # export KIND_EXPERIMENTAL_DOCKER_NETWORK=${{ job.container.network }}
           go test ./kubebuilder-controller/... -v -mod=readonly -timeout 10m0s
           # make REVISION=$GITHUB_SHA test
       - name: Publish Junit style Test Report

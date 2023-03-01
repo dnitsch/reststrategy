@@ -94,7 +94,11 @@ func DetermineKubeConfig() kubeConfig {
 	hd := usr.HomeDir
 	kubeConfigPath := path.Join(hd, ".kube/config")
 	resp := kubeConfig{isInCI: false, k8sConfigPath: kubeConfigPath, kindConfig: nil, masterUrl: ""}
-	if len(os.Getenv("GITHUB_ACTIONS")) > 0 || len(os.Getenv("TRAVIS")) > 0 || len(os.Getenv("CIRCLECI")) > 0 || len(os.Getenv("GITLAB_CI")) > 0 || len(os.Getenv("CI")) > 0 {
+	if len(os.Getenv("GITHUB_ACTIONS")) > 0 ||
+		len(os.Getenv("TRAVIS")) > 0 ||
+		len(os.Getenv("CIRCLECI")) > 0 ||
+		len(os.Getenv("GITLAB_CI")) > 0 ||
+		len(os.Getenv("CI")) > 0 {
 		logger.Info("In CI will be using a service mounted KinD")
 		resp.kindConfig = &v1alpha4.Cluster{
 			Networking: v1alpha4.Networking{

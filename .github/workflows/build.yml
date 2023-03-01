@@ -10,17 +10,10 @@ permissions:
 jobs:
   test-pr-ci:
     runs-on: ubuntu-latest
-    # container:
-    #   image: dnitsch/gha-dind:0.0.6
-    #   volumes:
-    #     - /var/run/docker.sock:/var/run/docker.sock
-    #   options: --privileged=true --group-add=docker
-    needs: set-version
     env:
       SEMVER: ${{ needs.set-version.outputs.semVer }}
       GIT_TAG: ${{ needs.set-version.outputs.semVer }}
       GOVCS: false
-      # CGO_ENABLED: "0"
     steps:
       - uses: actions/checkout@v3
         with:

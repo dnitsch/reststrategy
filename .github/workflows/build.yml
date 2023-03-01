@@ -8,28 +8,28 @@ permissions:
   pull-requests: read
 
 jobs:
-  # set-version:
-  #   runs-on: ubuntu-latest
-  #   container:
-  #     image: mcr.microsoft.com/dotnet/sdk:6.0 
-  #   outputs:
-  #     semVer: ${{ steps.gitversion.outputs.semVer }}
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #       with:
-  #         fetch-depth: 0
-  #     - name: Install GitVersion
-  #       uses: gittools/actions/gitversion/setup@v0.9.15
-  #       with:
-  #         versionSpec: '5.x'
-  #     - name: Set SemVer Version
-  #       uses: gittools/actions/gitversion/execute@v0.9.15
-  #       id: gitversion
+  set-version:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/dotnet/sdk:6.0 
+    outputs:
+      semVer: ${{ steps.gitversion.outputs.semVer }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0.9.15
+        with:
+          versionSpec: '5.x'
+      - name: Set SemVer Version
+        uses: gittools/actions/gitversion/execute@v0.9.15
+        id: gitversion
 
-  #     - name: echo VERSIONS
-  #       run: | 
-  #         echo "REVISION  -> $GITHUB_SHA"
-  #         echo "VERSION -> $GITVERSION_SEMVER"
+      - name: echo VERSIONS
+        run: | 
+          echo "REVISION  -> $GITHUB_SHA"
+          echo "VERSION -> $GITVERSION_SEMVER"
   test:
     runs-on: ubuntu-latest
     # container:
@@ -39,53 +39,26 @@ jobs:
     #   options: --privileged=true --group-add=docker
     # needs: set-version
     env:
-      # SEMVER: ${{ needs.set-version.outputs.semVer }}
-      # GIT_TAG: ${{ needs.set-version.outputs.semVer }}
+      SEMVER: ${{ needs.set-version.outputs.semVer }}
+      GIT_TAG: ${{ needs.set-version.outputs.semVer }}
       GOVCS: false
       # CGO_ENABLED: "0"
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 1
-      # - name: git prep
-      #   run: |
-      #     git config --global --add safe.directory "$GITHUB_WORKSPACE"
-      #     git config user.email ${{ github.actor }}-ci@gha.org
-      #     git config user.name ${{ github.actor }}
+      - name: git prep
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git config user.email ${{ github.actor }}-ci@gha.org
+          git config user.name ${{ github.actor }}
       - uses: actions/setup-go@v3
         with:
           go-version: '1.19.x'
-      - name: prep KinD
-        run: |
-          # curl -LO https://dl.k8s.io/release/v1.26.1/bin/linux/amd64/kubectl
-          # install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-          # curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.17.0/kind-linux-amd64
-          # install -o root -g root -m 0755 kind /usr/local/bin/kind
-
-          # export KUBECONFIG=/root/.kube/config
-          # export KIND_EXPERIMENTAL_DOCKER_NETWORK=${{ job.container.network }}
-          # echo 'kind: Cluster
-          # apiVersion: kind.x-k8s.io/v1alpha4
-          # networking:
-          #   apiServerAddress: "127.0.0.1"
-          #   apiServerPort: 6443' > $PWD/kind-config.yml
-          
-          # cat $PWD/kind-config.yml
-
-          # echo "KUBECONFIG: $(cat $KUBECONFIG)"
-
-          # kind create cluster --name kubebuilder-test --config=$PWD/kind-config.yml
-          # kubectl config set-cluster kind-kubebuilder-test --server=https://kind-control-plane:6443
-          export DOCKER_HOST=unix:///var/run/docker.sock
-
-          go test ./kubebuilder-controller/... -v -mod=readonly -timeout 10m0s
-
       - name: make test 
         run: |
-          # export DOCKER_HOST=unix:///var/run/docker.sock
-          # export KUBECONFIG=$HOME/.kube/config
-          # export KIND_EXPERIMENTAL_DOCKER_NETWORK=${{ job.container.network }}
-          # make REVISION=$GITHUB_SHA test
+          export DOCKER_HOST=unix:///var/run/docker.sock
+          make REVISION=$GITHUB_SHA test
       - name: Publish Junit style Test Report
         uses: mikepenz/action-junit-report@v3
         if: always() # always run even if the previous step fails

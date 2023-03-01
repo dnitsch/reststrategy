@@ -55,11 +55,11 @@ test_seeder:
 	gocov convert seeder/.coverage/out | gocov-xml > seeder/.coverage/report-cobertura.xml
 
 test_controller:
-	go test ./controller/... -v -mod=readonly -race -coverprofile=controller/.coverage/out | go-junit-report > controller/.coverage/report-junit.xml && \
+	go test ./controller/... -v -mod=readonly -race -timeout 10m0s -coverprofile=controller/.coverage/out | go-junit-report > controller/.coverage/report-junit.xml && \
 	gocov convert controller/.coverage/out | gocov-xml > controller/.coverage/report-cobertura.xml
 
 test_kubebuilder_controller:
-	go test ./kubebuilder-controller/... -v -mod=readonly -race -coverprofile=kubebuilder-controller/.coverage/out | go-junit-report > kubebuilder-controller/.coverage/report-junit.xml && \
+	go test ./kubebuilder-controller/... -v -mod=readonly -timeout 10m0s -race -coverprofile=kubebuilder-controller/.coverage/out | go-junit-report > kubebuilder-controller/.coverage/report-junit.xml && \
 	gocov convert kubebuilder-controller/.coverage/out | gocov-xml > kubebuilder-controller/.coverage/report-cobertura.xml
 
 # running in CI on an alpine container without gcc so only running -race on local set up

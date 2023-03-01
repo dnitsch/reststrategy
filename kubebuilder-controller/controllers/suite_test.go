@@ -63,11 +63,17 @@ var deleteCluster func()
 var logr = log.NewLogr(os.Stdout, log.DebugLvl).V(1)
 var logger = log.New(os.Stdout, log.DebugLvl)
 var defaultClusterName string = "kubebuilder-test"
-var kubeStartUpConfig kubeConfig = kubeConfig{}
 
 // ====
 // BEGIN CUSTOM K8s setup
 //
+type KubeConfig struct {
+	isInCI        bool
+	k8sConfigPath string
+	kindConfig    *v1alpha4.Cluster
+	masterUrl     string
+}
+
 // detect either podman or docker
 func detectContainerImp() cluster.ProviderOption {
 	if imp, ok := os.LookupEnv("DOCKER_HOST"); ok {
@@ -82,18 +88,13 @@ func detectContainerImp() cluster.ProviderOption {
 	return nil
 }
 
-type kubeConfig struct {
-	isInCI        bool
-	k8sConfigPath string
-	kindConfig    *v1alpha4.Cluster
-	masterUrl     string
-}
 
-func DetermineKubeConfig() kubeConfig {
+
+func DetermineKubeConfig() KubeConfig {
 	usr, _ := user.Current()
 	hd := usr.HomeDir
 	kubeConfigPath := path.Join(hd, ".kube/config")
-	resp := kubeConfig{isInCI: false, k8sConfigPath: kubeConfigPath, kindConfig: nil, masterUrl: ""}
+	resp := KubeConfig{isInCI: false, k8sConfigPath: kubeConfigPath, kindConfig: nil, masterUrl: ""}
 	// if len(os.Getenv("GITHUB_ACTIONS")) > 0 ||
 	// 	len(os.Getenv("TRAVIS")) > 0 ||
 	// 	len(os.Getenv("CIRCLECI")) > 0 ||
@@ -113,7 +114,7 @@ func DetermineKubeConfig() kubeConfig {
 }
 
 // start kind cluster
-func startCluster(t *testing.T) func() {
+func startCluster(t *testing.T, kubeStartUpConfig KubeConfig) func() {
 	impProvider := detectContainerImp()
 	if impProvider == nil {
 		logger.Info("unable to find suitable containerisation provider")
@@ -156,7 +157,7 @@ func startCluster(t *testing.T) func() {
 }
 
 // k8s-client set up
-func kubeClientSetup(t *testing.T) (*kubernetes.Clientset, *rest.Config, error) {
+func kubeClientSetup(t *testing.T, kubeStartUpConfig KubeConfig) (*kubernetes.Clientset, *rest.Config, error) {
 
 	// logger.Infof("startUpConfig: %v", kubeStartUpConfig)
 
@@ -182,30 +183,7 @@ func kubeClientSetup(t *testing.T) (*kubernetes.Clientset, *rest.Config, error) 
 	return kubeClient, cfg, nil
 }
 
-//
-// END CUSTOM K8s setup
-// ====
-
-func TestAPIs(t *testing.T) {
-
-	RegisterFailHandler(Fail)
-
-	RunSpecs(t, "Controller Suite")
-}
-
-var _ = BeforeSuite(func() {
-	t := &testing.T{}
-	kubeStartUpConfig = DetermineKubeConfig()
-	logf.SetLogger(logr.WithName("RestStrategyController-Test"))
-	deleteCluster = startCluster(t)
-
-	kubeClient, cfg, e := kubeClientSetup(t)
-	if e != nil {
-		t.Errorf("failed to get client: %v", e)
-	}
-
-	logger.Infof("config returned from kubeClient setup: %v", cfg)
-
+func EnsureReachable(kubeClient *kubernetes.Clientset) bool {
 	var keepTrying, attempts = true, 0
 
 	for keepTrying {
@@ -227,6 +205,33 @@ var _ = BeforeSuite(func() {
 		}
 		time.Sleep(time.Duration(time.Second * 2))
 	}
+	return false
+
+}
+
+//
+// END CUSTOM K8s setup
+// ====
+
+func TestAPIs(t *testing.T) {
+
+	RegisterFailHandler(Fail)
+
+	RunSpecs(t, "Controller Suite")
+}
+
+var _ = BeforeSuite(func() {
+	t := &testing.T{}
+	kubeStartUpConfig := DetermineKubeConfig()
+	logf.SetLogger(logr.WithName("RestStrategyController-Test"))
+	deleteCluster = startCluster(t, kubeStartUpConfig)
+
+	_, cfg, e := kubeClientSetup(t, kubeStartUpConfig)
+	if e != nil {
+		t.Errorf("failed to get client: %v", e)
+	}
+
+	logger.Infof("config returned from kubeClient setup: %v", cfg)
 
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{

@@ -26,7 +26,7 @@ const (
 	interval = time.Millisecond * 250
 )
 
-func succesEndpoint() http.Handler {
+func successEndpoint() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/get", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -97,7 +97,7 @@ var _ = Describe("RestStrategy controller", func() {
 		It("Should fail the rest seeding", func() {
 			By("By creating a new RestStrategy")
 			ctx := context.Background()
-			ts := httptest.NewServer(succesEndpoint())
+			ts := httptest.NewServer(successEndpoint())
 			defer ts.Close()
 			crdSpec := &seederv1alpha1.RestStrategy{
 				TypeMeta: metav1.TypeMeta{

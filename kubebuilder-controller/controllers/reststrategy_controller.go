@@ -33,7 +33,7 @@ import (
 )
 
 const (
-	SuccessMessage = "sucessfully synced resource: %s in namespace: %s"
+	SuccessMessage = "successfully synced resource: %s in namespace: %s"
 	FailedMessage  = "failed synced resource: %s in namespace: %s with error: %v"
 )
 

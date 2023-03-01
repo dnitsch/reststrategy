@@ -1,0 +1,33 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: manager-role
+rules:
+- apiGroups:
+  - seeder.dnitsch.net
+  resources:
+  - reststrategies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - seeder.dnitsch.net
+  resources:
+  - reststrategies/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - seeder.dnitsch.net
+  resources:
+  - reststrategies/status
+  verbs:
+  - get
+  - patch
+  - update

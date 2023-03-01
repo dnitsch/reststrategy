@@ -20,7 +20,7 @@ clean:
 	mkdir -p dist
 
 bingen:
-	GOOS=$$os CGO_ENABLED=0 go build -mod=readonly -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/seeder-$$os ./cmd; 
+	GOOS=$$os CGO_ENABLED=0 go build -mod=readonly $(LDFLAGS) -o dist/seeder-$$os ./cmd; 
 
 # for os in darwin linux windows; do \
 #     [ $$os = "windows" ] && EXT=".exe"; \
@@ -30,9 +30,3 @@ bingen:
 build: clean install bingen
 
 build_ci: clean install_ci bingen
-
-docker:
-	docker build --build-arg REVISION=$(REVISION) --build-arg VERSION=$(VERSION) -t ghcr.io/dnitsch/reststrategy:$(VERSION) .
-
-# show_coverage: 
-# 	go tool cover -html=.coverage/out

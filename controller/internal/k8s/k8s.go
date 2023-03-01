@@ -42,24 +42,27 @@ func Run(config Config, log log.Loggeriface, stopCh <-chan struct{}) error {
 		os.Exit(1)
 	}
 
-	reststrategyClient, err := clientset.NewForConfig(cfg)
+	customClient, err := clientset.NewForConfig(cfg)
 	if err != nil {
 		fmt.Print(fmt.Errorf("error building clientset: %s", err.Error()))
 		os.Exit(1)
 	}
+	return RunWithConfig(config, log, stopCh, kubeClient, customClient)
+}
 
+func RunWithConfig(config Config, log log.Loggeriface, stopCh <-chan struct{}, kubeClient *kubernetes.Clientset, customClient *clientset.Clientset) error {
 	// set cache resync period to 60 seconds so that the resyncPeriod
 	// can be more easily satisfied without the need to keep a record
 	// current runs etc..
 	kubeInformerFactory := kubeinformers.NewSharedInformerFactory(kubeClient, time.Minute*time.Duration(CACHE_RESYNC_INTERVAL))
 
-	reststrategyInformerFactory, err := InitialiseSharedInformerFactory(reststrategyClient, config.Namespace, 60)
+	reststrategyInformerFactory, err := InitialiseSharedInformerFactory(customClient, config.Namespace, 60)
 	if err != nil {
 		fmt.Print(fmt.Errorf("error building reststrategyInformerFactory: %s", err.Error()))
 		os.Exit(1)
 	}
 
-	controller := NewController(kubeClient, reststrategyClient,
+	controller := NewController(kubeClient, customClient,
 		reststrategyInformerFactory.Reststrategy().V1alpha1().RestStrategies(), config.Rsyncperiod)
 
 	rc := &http.Client{}

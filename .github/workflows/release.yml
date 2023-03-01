@@ -64,8 +64,8 @@ jobs:
         with:
           args:             
             -Dsonar.projectVersion=${{ needs.set-version.outputs.semVer }}
-            -Dsonar.go.tests.reportPaths=/github/workspace/controller/.coverage/report-junit.xml,/github/workspace/seeder/.coverage/report-junit.xml
-            -Dsonar.go.coverage.reportPaths=/github/workspace/controller/.coverage/out,/github/workspace/seeder/.coverage/out
+            -Dsonar.go.tests.reportPaths=/github/workspace/controller/.coverage/report-junit.xml,/github/workspace/seeder/.coverage/report-junit.xml,/github/workspace/kubebuilder-controller/.coverage/report-junit.xml
+            -Dsonar.go.coverage.reportPaths=/github/workspace/controller/.coverage/out,/github/workspace/seeder/.coverage/out,/github/workspace/kubebuilder-controller/.coverage/out
 
   publish-binary:
     name: tag repo and publish binary
@@ -89,8 +89,6 @@ jobs:
           make GIT_TAG=$SEMVER REVISION=${{ github.sha }} PAT=${{ secrets.GITHUB_TOKEN }} build_ci
       - name: release library
         run: |
-          git config user.email ${{ github.actor }}-ci@gha.org
-          git config user.name ${{ github.actor }}
           make GIT_TAG=$SEMVER REVISION=${{ github.sha }} tag
       - name: release cli 
         run: |

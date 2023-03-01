@@ -15,6 +15,7 @@ import (
 	"golang.org/x/oauth2/clientcredentials"
 )
 
+// +kubebuilder:validation:Enum=NoAuth;BasicAuth;OAuthClientCredentials;OAuthPassCredentials;CustomToToken;StaticToken
 // AuthType specifies the type of authentication to perform
 // currently only a single authType per instance is allowed
 type AuthType string
@@ -29,60 +30,83 @@ const (
 )
 
 // +k8s:deepcopy-gen=true
+// +kubebuilder:object:generate=true
+
 type ConfigOAuth struct {
-	ServerUrl               string              `yaml:"serverUrl"`
-	Scopes                  []string            `yaml:"scopes"`
-	EndpointParams          map[string][]string `yaml:"endpointParams"`
-	OAuthSendParamsInHeader bool                `yaml:"oAuthSendParamsInHeader"`
+	ServerUrl string   `yaml:"serverUrl" json:"serverUrl"`
+	Scopes    []string `yaml:"scopes" json:"scopes"`
+	// +kubebuilder:pruning:PreserveUnknownFields
+	EndpointParams          map[string][]string `yaml:"endpointParams" json:"endpointParams"`
+	OAuthSendParamsInHeader bool                `yaml:"oAuthSendParamsInHeader" json:"oAuthSendParamsInHeader"`
 	// for grant_type=password use these for the addition RO auth
-	ResourceOwnerUser     *string `yaml:"resourceOwnerUser,omitempty"`
-	ResourceOwnerPassword *string `yaml:"resourceOwnerPass,omitempty"`
+	ResourceOwnerUser     *string `yaml:"resourceOwnerUser,omitempty" json:"resourceOwnerUser,omitempty"`
+	ResourceOwnerPassword *string `yaml:"resourceOwnerPass,omitempty" json:"resourceOwnerPass,omitempty"`
 }
 
 // +k8s:deepcopy-gen=true
-// customToken stores the required data to call and process custom auth Endpoints
+// +kubebuilder:object:generate=true
+// CustomToken stores the required data to call and process custom auth Endpoints
 // returning a token. the token will need to be extracted from the response
 // it will then need adding to subsequent requests in the header
 // under specified key and in specified format
 type CustomToken struct {
 	// Url to use to POST the customRequest
 	AuthUrl string `yaml:"authUrl" json:"authUrl"`
+	// +kubebuilder:pruning:PreserveUnknownFields
+	// +kubebuilder:validation:Schemaless
+	//
 	// holds the K/V credential pair. e.g.
 	//
 	// email: some@one.com
 	// password: pass123
+	// id: 12312345
 	//
 	// will post this body or send in header params that payload
 	CustomAuthMap KvMapVarsAny `yaml:"credential" json:"credential"`
 	// whether to send the values in the header as params
 	// defaults to false and CustomAuthMap
 	// is posted in the body as json post
-	SendInHeader bool `yaml:"inHeader" json:"inHeader"`
+	SendInHeader bool `yaml:"inHeader,omitempty" json:"inHeader,omitempty"`
+	// +kubebuilder:default="$.access_token"
 	// JSONPath expression to use to get the token from response
 	//
 	// e.g. "$.token"
 	//
 	// empty will take the entire response as the token - raw response must be string
 	ResponseKey string `yaml:"responseKey" json:"responseKey" `
+	// +kubebuilder:default=Authorization
 	// if omitted `Authorization` will be used
 	// Could be X-API-Token etc..
 	HeaderKey string `yaml:"headerKey" json:"headerKey"`
+	// +kubebuilder:default=Bearer
 	// Token prefix - if omitted Bearer will be used
 	// e.g. Admin ==> `Authorization: "Admin [TOKEN]"`
 	TokenPrefix string `yaml:"tokenPrefix" json:"tokenPrefix"`
 }
 
 // +k8s:deepcopy-gen=true
+// +kubebuilder:object:generate=true
 // Auth holds the auth strategy for all Seeders
 type AuthConfig struct {
-	AuthStrategy AuthType     `yaml:"type" json:"type"`
-	Username     string       `yaml:"username" json:"username"`
-	Password     string       `yaml:"password" json:"password"`
-	OAuth        *ConfigOAuth `yaml:"oauth,omitempty" json:"oauth,omitempty"`
-	CustomToken  *CustomToken `yaml:"custom,omitempty" json:"custom,omitempty"`
+	Name string `yaml:"name" json:"name"`
+	// AuthStrategyType must be specified
+	// and conform to the type's enum
+	AuthStrategy AuthType `yaml:"type" json:"type"`
+	// Username must be specified with all AuthTypes
+	// will be ignored for CustomToken
+	// an empty string can be provided in that case
+	Username string `yaml:"username" json:"username"`
+	// Password will be used as client secret in the oauth flows
+	// and in basic flow as well as the StaticToken value in the header.
+	//
+	// Can be provided in a configmanager https://github.com/dnitsch/configmanager#config-tokens format
+	Password    string       `yaml:"password" json:"password"`
+	OAuth       *ConfigOAuth `yaml:"oauth,omitempty" json:"oauth,omitempty"`
+	CustomToken *CustomToken `yaml:"custom,omitempty" json:"custom,omitempty"`
 }
 
 // +k8s:deepcopy-gen=true
+// +kubebuilder:object:generate=true
 type AuthMap map[string]AuthConfig
 
 type passwordGrantConfig struct {
@@ -99,7 +123,6 @@ type auth struct {
 	basicAuth           *basicAuth
 	customToToken       *CustomFlowAuth
 	staticToken         *staticToken
-	// currentToken string
 }
 
 type basicAuth struct {

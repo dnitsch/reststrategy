@@ -33,11 +33,16 @@ tag:
 release: 
 	OWNER=$(OWNER) NAME=$(NAME) PAT=$(PAT) VERSION=$(VERSION) . hack/release.sh
 
-docker_release:
+docker_build_raw_controller:
 	cd controller && \
-	docker build --build-arg REVISION=$(REVISION) --build-arg VERSION=$(VERSION) -t ghcr.io/dnitsch/reststrategy:$(VERSION) . && \
-	docker push ghcr.io/dnitsch/reststrategy:$(VERSION)
+	docker build --build-arg REVISION=$(REVISION) --build-arg VERSION=$(VERSION) -t ghcr.io/dnitsch/reststrategy:raw-$(VERSION) .
 
+docker_build_kubebuilder_controller:
+	cd kubebuilder-controller && \
+	docker build --build-arg REVISION=$(REVISION) --build-arg VERSION=$(VERSION) -t ghcr.io/dnitsch/reststrategy:kubebuilder-$(VERSION) .
+
+docker_release: docker_build_kubebuilder_controller docker_build_raw_controller
+	docker push ghcr.io/dnitsch/reststrategy:$(VERSION)
 
 # for local development install all dependencies 
 # in workspace
@@ -50,13 +55,18 @@ test_seeder:
 	gocov convert seeder/.coverage/out | gocov-xml > seeder/.coverage/report-cobertura.xml
 
 test_controller:
-	go test ./controller/... -v -mod=readonly -race -coverprofile=controller/.coverage/out | go-junit-report > controller/.coverage/report-junit.xml && \
+	go test ./controller/... -v -mod=readonly -race -timeout 10m0s -coverprofile=controller/.coverage/out | go-junit-report > controller/.coverage/report-junit.xml && \
 	gocov convert controller/.coverage/out | gocov-xml > controller/.coverage/report-cobertura.xml
 
-test: test_prereq test_seeder test_controller
+test_kubebuilder_controller:
+	go test ./kubebuilder-controller/... -v -mod=readonly -timeout 10m0s -race -coverprofile=kubebuilder-controller/.coverage/out | go-junit-report > kubebuilder-controller/.coverage/report-junit.xml && \
+	gocov convert kubebuilder-controller/.coverage/out | gocov-xml > kubebuilder-controller/.coverage/report-cobertura.xml
+
+# running in CI on an alpine container without gcc so only running -race on local set up
+test: test_prereq test_seeder test_controller test_kubebuilder_controller
 
 test_prereq: 
-	mkdir -p seeder/.coverage controller/.coverage
+	mkdir -p seeder/.coverage controller/.coverage kubebuilder-controller/.coverage
 	go install github.com/jstemmer/go-junit-report/v2@latest && \
 	go install github.com/axw/gocov/gocov@latest && \
 	go install github.com/AlekSi/gocov-xml@latest
@@ -70,3 +80,6 @@ coverage_seeder: test_seeder
 
 coverage_controller: test_controller
 	go tool cover -html=controller/.coverage/out
+
+coverage_kubebuilder_controller: test_kubebuilder_controller
+	go tool cover -html=kubebuilder-controller/.coverage/out

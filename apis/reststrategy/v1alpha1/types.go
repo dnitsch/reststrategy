@@ -1,5 +1,7 @@
 package v1alpha1
 
+//go:generate controller-gen object paths=$GOFILE
+
 import (
 	"github.com/dnitsch/reststrategy/seeder"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

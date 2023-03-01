@@ -11,7 +11,7 @@ COPY ./ ./
 
 RUN go mod vendor
 
-RUN CGO_ENABLED=0 go build -mod=readonly \
+RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -mod=readonly -buildvcs=false \
 -ldflags="-s -w -X \"github.com/dnitsch/reststrategy/controller/cmd/controller.Version=${VERSION}\" -X \"github.com/dnitsch/reststrategy/controller/cmd/controller.Revision=${REVISION}\" -extldflags -static" \
 -o dist/controller ./cmd
 

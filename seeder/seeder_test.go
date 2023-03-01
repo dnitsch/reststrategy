@@ -473,7 +473,6 @@ func TestExecuteFindPutPost(t *testing.T) {
 						t.Errorf(`got: %v expected body to match the templated payload: {"value": "bar"}`, string(b))
 					}
 					w.Header().Set("Content-Type", "application/json; charset=utf-8")
-
 					w.Write([]byte(`{"name":"fubar","id":"1234"}`))
 				})
 				mux.HandleFunc("/token", TokenHandleFunc(t))
@@ -1134,7 +1133,6 @@ func TestExecutePutPost(t *testing.T) {
 			},
 		},
 	}
-
 	t.Parallel()
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {

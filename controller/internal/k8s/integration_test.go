@@ -6,16 +6,14 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"os/user"
 	"path"
 	"runtime"
-	"strings"
 	"testing"
-	"time"
 
 	clientset "github.com/dnitsch/reststrategy/apis/reststrategy/generated/clientset/versioned"
 	"github.com/dnitsch/reststrategy/apis/reststrategy/v1alpha1"
 	"github.com/dnitsch/reststrategy/controller/internal/k8s"
+	cluster "github.com/dnitsch/reststrategy/kube-testing-tools/pkg/cluster"
 	log "github.com/dnitsch/simplelog"
 	apiextensionv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apiextension "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
@@ -23,86 +21,12 @@ import (
 	v1 "k8s.io/client-go/applyconfigurations/core/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
-	"sigs.k8s.io/kind/pkg/cluster"
-	"sigs.k8s.io/kind/pkg/cmd"
-	"sigs.k8s.io/kind/pkg/errors"
+
 	"sigs.k8s.io/yaml"
 )
 
 var defaultClusterName string = "int"
 var defaultCrdNs string = "runtime-config-sync-in-k8s"
-
-// detect either podman or docker
-func detectContainerImp() cluster.ProviderOption {
-	if imp, ok := os.LookupEnv("DOCKER_HOST"); ok {
-		docker, podman := strings.HasSuffix(imp, "docker.sock"), strings.HasSuffix(imp, "podman.sock")
-		if docker {
-			return cluster.ProviderWithDocker()
-		}
-		if podman {
-			return cluster.ProviderWithPodman()
-		}
-	}
-	return nil
-}
-
-// start kind cluster
-func startCluster(t *testing.T) func() {
-	// when Podman is available =>
-	// KIND_EXPERIMENTAL_PROVIDER=podman kind create cluster --name kind-kind
-	// or when using docker
-	// kind create cluster --name kind-kind
-	impProvider := detectContainerImp()
-	if impProvider == nil {
-		t.Errorf("unable to find suitable containerisation provider")
-		t.SkipNow()
-		return func() {}
-	}
-
-	// logger := log.New(&bytes.Buffer{}, log.DebugLvl)
-	clusterProviderOptions := []cluster.ProviderOption{
-		cluster.ProviderWithLogger(cmd.NewLogger()),
-	}
-
-	clusterProviderOptions = append(clusterProviderOptions, impProvider)
-
-	provider := cluster.NewProvider(clusterProviderOptions...)
-	// create the cluster
-	if err := provider.Create(
-		defaultClusterName,
-		cluster.CreateWithNodeImage(""),
-		cluster.CreateWithRetain(false),
-		cluster.CreateWithWaitForReady(time.Second*30),
-		cluster.CreateWithKubeconfigPath(""),
-		cluster.CreateWithDisplayUsage(true),
-		cluster.CreateWithDisplaySalutation(true),
-	); err != nil {
-		t.Fatal(errors.Wrap(err, "failed to create cluster"))
-	}
-	return func() {
-		// delete cluster
-		t.Logf("called defer function")
-		if err := provider.Delete(defaultClusterName, ""); err != nil {
-			t.Errorf("failed to tear down kind cluster: %s", err)
-		}
-	}
-}
-
-// k8s-client set up
-func kubeClientSetup(t *testing.T) (*kubernetes.Clientset, *rest.Config, error) {
-	usr, _ := user.Current()
-	hd := usr.HomeDir
-	cfg, err := clientcmd.BuildConfigFromFlags("", path.Join(hd, ".kube/config"))
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to initialise client from config: %s", err.Error())
-	}
-	kubeClient, err := kubernetes.NewForConfig(cfg)
-	if err != nil {
-		return nil, nil, fmt.Errorf("error building kubernetes clientset: %s", err.Error())
-	}
-	return kubeClient, cfg, nil
-}
 
 // create NS
 func createNameSpace(t *testing.T, log log.Loggeriface, kubeClient *kubernetes.Clientset) (func(), error) {
@@ -192,14 +116,19 @@ func TestIntegration(t *testing.T) {
 	// defer delete after all
 	// ENABLE once tested
 	// ==>
-	deleteCluster := startCluster(t)
+	tcluster := &cluster.ClusterTester{Name: defaultClusterName, EnsureUp: true}
+	kubeStartUpConfig := tcluster.DetermineKubeConfig()
+
+	deleteCluster := tcluster.StartCluster(t, kubeStartUpConfig)
 	defer deleteCluster()
-	// <===
-	// ENABLE once tested
-	kubeclient, cfg, err := kubeClientSetup(t)
+
+	kubeclient, cfg, err := tcluster.KubeClientSetup(t, kubeStartUpConfig)
 	if err != nil {
 		t.FailNow()
 	}
+
+	// <===
+	// ENABLE once tested
 	stopCh := make(chan struct{})
 	customClient, err := crdClientSetup(t, logger, cfg)
 	if err != nil {

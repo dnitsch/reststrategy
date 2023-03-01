@@ -3,6 +3,7 @@ go 1.19
 use (
 	./apis
 	./controller
+	./kube-testing-tools
 	./kubebuilder-controller
 	./seeder
 )

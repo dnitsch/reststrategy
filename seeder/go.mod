@@ -1,6 +1,6 @@
 module github.com/dnitsch/reststrategy/seeder
 
-go 1.19
+go 1.22
 
 require (
 	github.com/a8m/envsubst v1.3.1-0.20221106143949-dffd7176fbc4

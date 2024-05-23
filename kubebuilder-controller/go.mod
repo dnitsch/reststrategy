@@ -1,6 +1,6 @@
 module github.com/dnitsch/reststrategy/kubebuilder-controller
 
-go 1.19
+go 1.22
 
 require (
 	github.com/dnitsch/configmanager v1.19.1

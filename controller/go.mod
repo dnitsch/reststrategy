@@ -1,6 +1,6 @@
 module github.com/dnitsch/reststrategy/controller
 
-go 1.19
+go 1.22
 
 require (
 	github.com/dnitsch/reststrategy/apis v0.9.2-0.20230213152010-dac2bf42c37f

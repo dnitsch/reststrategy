@@ -190,10 +190,12 @@ func (r *SeederImpl) do(req *http.Request, action *Action) ([]byte, error) {
 	r.log.Debugf("request: %+v", req)
 	respBody := []byte{}
 	req.Header = *action.header
+
+	req.URL.Path = r.TemplateWithVars(req.URL.Path, action.Variables)
+
 	diag := &Diagnostic{HostPathMethod: fmt.Sprintf("Method => %s HostPath => %s%s Query => %s", req.Method, req.URL.Host, req.URL.Path, req.URL.RawQuery), Name: action.name, ProceedFallback: false, IsFatal: true}
 
 	r.log.Debugf("restPayload diagnostic: %+v", diag)
-
 	resp, err := r.client.Do(r.setAuthHeader(req, action))
 	if err != nil {
 		r.log.Debugf("failed to make network call: %v", err)
@@ -272,6 +274,7 @@ func (r *SeederImpl) get(ctx context.Context, action *Action) ([]byte, error) {
 	if action.GetEndpointSuffix != nil {
 		endpoint = fmt.Sprintf("%s%s", endpoint, *action.GetEndpointSuffix)
 	}
+
 	req, err := http.NewRequestWithContext(ctx, "GET", endpoint, nil)
 
 	if err != nil {
@@ -288,6 +291,7 @@ func (r *SeederImpl) post(ctx context.Context, action *Action) error {
 	if action.PostEndpointSuffix != nil {
 		endpoint = fmt.Sprintf("%s%s", endpoint, *action.PostEndpointSuffix)
 	}
+
 	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, strings.NewReader(action.templatedPayload))
 
 	if err != nil {
@@ -408,13 +412,13 @@ func findPathByExpression(resp []byte, pathExpression string, log log.Loggerifac
 	return "", nil
 }
 
-// TemplatePayload parses input payload and replaces all $var ${var} with
+// TemplateWithVars parses input payload and replaces all $var ${var} with
 // existing global env variable as well as injected from inside RestAction
 // into the local context
-func (r *SeederImpl) TemplatePayload(payload string, vars KvMapVarsAny) string {
-	localVars := &KvMapVarsAny{}
+func (r *SeederImpl) TemplateWithVars(payload string, vars KvMapVarsAny) string {
+	localVars := make(KvMapVarsAny)
 	if vars == nil {
-		vars = *localVars
+		vars = localVars
 	}
 
 	// extend existing to allow for runtimeVars replacement

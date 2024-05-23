@@ -107,7 +107,7 @@ func Test_templatePayload(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			os.Setenv("FUZZ", "BOO")
 
-			got := tt.rest.TemplatePayload(tt.payload, tt.variables)
+			got := tt.rest.TemplateWithVars(tt.payload, tt.variables)
 			if got != tt.expect {
 				t.Errorf(TestPhrase, got, tt.expect)
 			}

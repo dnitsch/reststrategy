@@ -12,15 +12,15 @@ jobs:
     outputs:
       semVer: ${{ steps.gitversion.outputs.semVer }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@v0.9.15
+        uses: gittools/actions/gitversion/setup@v1
         with:
           versionSpec: '5.x'
       - name: Set SemVer Version
-        uses: gittools/actions/gitversion/execute@v0.9.15
+        uses: gittools/actions/gitversion/execute@v1
         id: gitversion
 
       - name: echo VERSIONS
@@ -30,14 +30,14 @@ jobs:
   test:
     runs-on: ubuntu-latest
     container:
-      image: golang:1.19-bullseye
+      image: golang:1.12-bullseye
     needs: set-version
     env:
       SEMVER: ${{ needs.set-version.outputs.semVer }}
       GIT_TAG: ${{ needs.set-version.outputs.semVer }}
       GOVCS: false
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 1
       - name: install deps
@@ -71,14 +71,14 @@ jobs:
     name: tag repo and publish binary
     runs-on: ubuntu-latest
     container:
-      image: golang:1.19-bullseye
+      image: golang:1.12-bullseye
     needs: 
       - set-version
       - test
     env:
       SEMVER: ${{ needs.set-version.outputs.semVer }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: generate binaries
@@ -86,13 +86,14 @@ jobs:
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           git config user.email ${{ github.actor }}-ci@gha.org
           git config user.name ${{ github.actor }}
-          make GIT_TAG=$SEMVER REVISION=${{ github.sha }} PAT=${{ secrets.GITHUB_TOKEN }} build_ci
+          make GIT_TAG=$SEMVER REVISION=${{ github.sha }} PAT=${{ secrets.GITHUB_TOKEN }} build
       - name: release library
         run: |
           make GIT_TAG=$SEMVER REVISION=${{ github.sha }} tag
       - name: release cli 
         run: |
           make GIT_TAG=$SEMVER REVISION=${{ github.sha }} PAT=${{ secrets.GITHUB_TOKEN }} release
+
   publish-docker-image:
     name: build docker image and push to gchr
     # run only when code is compiling and tests are passing

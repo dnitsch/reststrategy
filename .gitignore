@@ -25,6 +25,7 @@ vendor/
 
 # MISC
 .ignore*
+local/
 
 # generated
 # **/zz_generated.deepcopy.go
@@ -32,3 +33,4 @@ vendor/
 
 .DS_Store
 **/.coverage
+

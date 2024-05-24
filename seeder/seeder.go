@@ -1,9 +1,11 @@
 package seeder
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"net/http"
+	"slices"
 	"strings"
 
 	"github.com/dnitsch/configmanager"
@@ -32,6 +34,10 @@ type CMRetrieve interface {
 	RetrieveWithInputReplaced(input string, config generator.GenVarsConfig) (string, error)
 }
 
+type Options struct {
+	FailFast bool `json:"failFast" yaml:"failFast"`
+}
+
 type StrategyRestSeeder struct {
 	Strategy             map[StrategyType]StrategyFunc
 	configManagerOptions *generator.GenVarsConfig
@@ -39,6 +45,7 @@ type StrategyRestSeeder struct {
 	rest                 *SeederImpl
 	actions              []Action
 	authInstructions     AuthMap
+	Options              Options
 	log                  log.Loggeriface
 }
 
@@ -78,6 +85,12 @@ func (s *StrategyRestSeeder) WithRestClient(rc Client) *StrategyRestSeeder {
 func (s *StrategyRestSeeder) WithAuth(ra AuthMap) *StrategyRestSeeder {
 	s.authInstructions = ra
 	s.rest = s.rest.WithAuth(ra)
+	return s
+}
+
+// WithOptions sets global options on the run
+func (s *StrategyRestSeeder) WithOptions(opts Options) *StrategyRestSeeder {
+	s.Options = opts
 	return s
 }
 
@@ -137,21 +150,33 @@ func (s *StrategyRestSeeder) replaceAuthTokens() error {
 // Execute the built actions list
 func (s *StrategyRestSeeder) Execute(ctx context.Context) error {
 	var errs []error
-	replacedActions := s.actions
-	// assign each action to method
-	s.log.Debugf("actions: %v", s.actions)
 	// configmanager the auth portion for any tokens
 	if err := s.replaceAuthTokens(); err != nil {
 		return err
 	}
 
 	// do some ordering if exists
-	// send to fixed size channel goroutine
-	for _, action := range replacedActions {
+	// if order is omitted it will default to 999
+	// TODO: this may cause in issue at some point if more than 999 steps exist...
+	slices.SortFunc(s.actions, func(a, b Action) int {
+		if a.Order == nil {
+			a.Order = Int(999)
+		}
+		if b.Order == nil {
+			b.Order = Int(999)
+		}
+		return cmp.Compare(*a.Order, *b.Order)
+	})
+
+	for _, action := range s.actions {
 		if fn, ok := s.Strategy[StrategyType(action.Strategy)]; ok {
 			a := &action
 			if err := s.performAction(ctx, a, fn, errs...); err != nil {
 				errs = append(errs, err...)
+				// return on first error
+				if s.Options.FailFast {
+					break
+				}
 			}
 		} else {
 			s.log.Infof("unknown strategy")

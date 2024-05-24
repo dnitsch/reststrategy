@@ -59,17 +59,17 @@ func (r *SeederImpl) WithAuth(a AuthMap) *SeederImpl {
 
 func (r *SeederImpl) SetRuntimeVar(key string, val any) {
 	r.runtimeVars.mu.Lock()
+	defer r.runtimeVars.mu.Unlock()
 	r.runtimeVars.vars[key] = val
-	r.runtimeVars.mu.Unlock()
 }
 
 func (r *SeederImpl) RuntimeVars() map[string]any {
 	rv := make(map[string]any)
+	defer r.runtimeVars.mu.RUnlock()
 	r.runtimeVars.mu.RLock()
 	for k, v := range r.runtimeVars.vars {
 		rv[k] = v
 	}
-	r.runtimeVars.mu.RUnlock()
 	return rv
 }
 
@@ -79,6 +79,7 @@ func (r *SeederImpl) RuntimeVars() map[string]any {
 type StrategyConfig struct {
 	AuthConfig AuthMap `yaml:"auth" json:"auth"`
 	Seeders    Seeders `yaml:"seed" json:"seed"`
+	Options    Options `yaml:"opts" json:"opts"`
 }
 
 // +k8s:deepcopy-gen=true

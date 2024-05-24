@@ -52,8 +52,9 @@ jobs:
       - name: Install Task
         uses: arduino/setup-task@v2
         with:
-          version: ${{ inputs.taskVersion }}
-          repo-token: ${{ inputs.githubToken }}
+          version: 3.37.0
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          
       - name: make test 
         run: |
           task test-seeder 

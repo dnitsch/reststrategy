@@ -1,6 +1,6 @@
 module github.com/dnitsch/reststrategy/controller
 
-go 1.19
+go 1.22
 
 require (
 	github.com/dnitsch/reststrategy/apis v0.9.2-0.20230213152010-dac2bf42c37f
@@ -21,14 +21,9 @@ require (
 )
 
 require (
-	github.com/BurntSushi/toml v1.0.0 // indirect
-	github.com/alessio/shellescape v1.4.1 // indirect
-	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
 	github.com/go-logr/zerologr v1.2.3 // indirect
-	github.com/google/safetext v0.0.0-20220905092116-b49f7bc46da2 // indirect
 	github.com/onsi/ginkgo/v2 v2.6.1 // indirect
 	github.com/onsi/gomega v1.24.2 // indirect
-	github.com/pelletier/go-toml v1.9.4 // indirect
 )
 
 require (
@@ -133,6 +128,5 @@ require (
 	k8s.io/kube-openapi v0.0.0-20230123231816-1cb3ae25d79a // indirect
 	k8s.io/utils v0.0.0-20230115233650-391b47cb4029 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
-	sigs.k8s.io/kind v0.17.0
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 )

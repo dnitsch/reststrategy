@@ -6,10 +6,6 @@ LDFLAGS := -ldflags="-s -w -X \"github.com/$(OWNER)/$(NAME)/seeder/cmd/strategyr
 
 install:
 	go mod tidy
-	go mod vendor
-	
-install_ci:
-	go mod vendor
 
 codegen:
 	./hack/update-codegen.sh
@@ -35,6 +31,6 @@ bingen:
 		GOOS=$$os CGO_ENABLED=0 go build -mod=readonly -buildvcs=false $(LDFLAGS) -o dist/seeder-$$os ./cmd; \
 	done
 
-build: clean install copygened bingen
+build: clean install bingen
 
-build_ci: clean install_ci codegen_verify bingen
+build_ci: clean install codegen_verify bingen

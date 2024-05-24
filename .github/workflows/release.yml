@@ -12,43 +12,48 @@ jobs:
     outputs:
       semVer: ${{ steps.gitversion.outputs.semVer }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: install deps
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@v0.9.15
+        uses: gittools/actions/gitversion/setup@v1
         with:
           versionSpec: '5.x'
       - name: Set SemVer Version
-        uses: gittools/actions/gitversion/execute@v0.9.15
+        uses: gittools/actions/gitversion/execute@v1
         id: gitversion
 
-      - name: echo VERSIONS
-        run: | 
-          echo "REVISION  -> $GITHUB_SHA"
-          echo "VERSION -> $GITVERSION_SEMVER"
   test:
     runs-on: ubuntu-latest
     container:
-      image: golang:1.19-bullseye
+      image: golang:1.22-bullseye
     needs: set-version
     env:
       SEMVER: ${{ needs.set-version.outputs.semVer }}
       GIT_TAG: ${{ needs.set-version.outputs.semVer }}
       GOVCS: false
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 1
       - name: install deps
         run: |
-          apt update && apt install -y jq git
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           git config user.email ${{ github.actor }}-ci@gha.org
           git config user.name ${{ github.actor }}
-      - name: make test 
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.37.0
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run tests pre-release
         run: |
-          make REVISION=$GITHUB_SHA test
+          task test-seeder 
+
       - name: Publish Junit style Test Report
         uses: mikepenz/action-junit-report@v3
         if: always() # always run even if the previous step fails
@@ -71,54 +76,59 @@ jobs:
     name: tag repo and publish binary
     runs-on: ubuntu-latest
     container:
-      image: golang:1.19-bullseye
+      image: golang:1.22-bullseye
     needs: 
       - set-version
       - test
     env:
       SEMVER: ${{ needs.set-version.outputs.semVer }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.37.0
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: generate binaries
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           git config user.email ${{ github.actor }}-ci@gha.org
           git config user.name ${{ github.actor }}
-          make GIT_TAG=$SEMVER REVISION=${{ github.sha }} PAT=${{ secrets.GITHUB_TOKEN }} build_ci
-      - name: release library
-        run: |
-          make GIT_TAG=$SEMVER REVISION=${{ github.sha }} tag
+          task build-seeder GIT_TAG=$SEMVER REVISION=${{ github.sha }} PAT=${{ secrets.GITHUB_TOKEN }}
+      # - name: release library
+      #   run: |
+      #     make GIT_TAG=$SEMVER REVISION=${{ github.sha }} tag
       - name: release cli 
         run: |
-          make GIT_TAG=$SEMVER REVISION=${{ github.sha }} PAT=${{ secrets.GITHUB_TOKEN }} release
-  publish-docker-image:
-    name: build docker image and push to gchr
-    # run only when code is compiling and tests are passing
-    runs-on: ubuntu-latest
-    # steps to perform in job
-    needs: 
-      - set-version
-      - test
-    env:
-      SEMVER: ${{ needs.set-version.outputs.semVer }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      # setup Docker buld action
-      - name: Set up Docker Buildx
-        id: buildx
-        uses: docker/setup-buildx-action@v2
+          task publish-seeder PAT=${{ secrets.GITHUB_TOKEN }} GIT_TAG=$SEMVER
+  # publish-docker-image:
+  #   name: build docker image and push to gchr
+  #   # run only when code is compiling and tests are passing
+  #   runs-on: ubuntu-latest
+  #   # steps to perform in job
+  #   needs: 
+  #     - set-version
+  #     - test
+  #   env:
+  #     SEMVER: ${{ needs.set-version.outputs.semVer }}
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v3
+  #     # setup Docker buld action
+  #     - name: Set up Docker Buildx
+  #       id: buildx
+  #       uses: docker/setup-buildx-action@v2
 
-      - name: Login to Github Packages
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+  #     - name: Login to Github Packages
+  #       uses: docker/login-action@v2
+  #       with:
+  #         registry: ghcr.io
+  #         username: ${{ github.actor }}
+  #         password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: docker push controller
-        run: |
-          echo "SemVer: $SEMVER"
-          make GIT_TAG=$SEMVER REVISION=${{ github.sha }} docker_release
+  #     - name: docker push controller
+  #       run: |
+  #         echo "SemVer: $SEMVER"
+  #         make GIT_TAG=$SEMVER REVISION=${{ github.sha }} docker_release

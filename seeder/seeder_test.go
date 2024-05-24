@@ -2301,6 +2301,7 @@ func TestExecuteWithConfigManager(t *testing.T) {
 	t.Parallel()
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
+
 			srs := seeder.New(&logger).WithRestClient(&http.Client{})
 
 			ts := httptest.NewServer(tt.handler(t))
@@ -2322,6 +2323,7 @@ func TestExecuteWithConfigManager(t *testing.T) {
 		})
 	}
 }
+
 
 func TestExecuteWithConfigManagerError(t *testing.T) {
 

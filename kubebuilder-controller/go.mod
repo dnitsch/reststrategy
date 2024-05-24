@@ -1,6 +1,6 @@
 module github.com/dnitsch/reststrategy/kubebuilder-controller
 
-go 1.19
+go 1.22
 
 require (
 	github.com/dnitsch/configmanager v1.19.1
@@ -10,6 +10,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.6.1
 	github.com/onsi/gomega v1.24.2
 	github.com/spf13/cobra v1.6.1
+	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/apimachinery v0.26.1
 	k8s.io/client-go v0.26.1
 	sigs.k8s.io/controller-runtime v0.14.1
@@ -120,7 +121,6 @@ require (
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/api v0.26.1 // indirect
 	k8s.io/apiextensions-apiserver v0.26.1 // indirect

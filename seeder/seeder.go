@@ -25,6 +25,7 @@ const (
 	FIND_DELETE      StrategyType = "FIND/DELETE"
 	FIND_DELETE_POST StrategyType = "FIND/DELETE/POST"
 	PUT              StrategyType = "PUT"
+	POST             StrategyType = "POST"
 )
 
 type CMRetrieve interface {
@@ -52,6 +53,7 @@ func New(log log.Loggeriface) *StrategyRestSeeder {
 		rest: r,
 		Strategy: map[StrategyType]StrategyFunc{
 			PUT:              PutStrategyFunc,
+			POST:             PostStrategyFunc,
 			PUT_POST:         PutPostStrategyFunc,
 			GET_PUT_POST:     GetPutPostStrategyFunc,
 			FIND_PUT_POST:    FindPutPostStrategyFunc,
@@ -195,6 +197,12 @@ func (s *StrategyRestSeeder) configManagerReplaceAction(action *Action) error {
 // useful when there is a known Id of a resource and PUT supports creation
 func PutStrategyFunc(ctx context.Context, action *Action, rest *SeederImpl) error {
 	return rest.Put(ctx, action)
+}
+
+// PostStrategyFunc calls a POST endpoint fails if an error occurs
+// useful when there is a known Id of a resource and PUT supports creation
+func PostStrategyFunc(ctx context.Context, action *Action, rest *SeederImpl) error {
+	return rest.Post(ctx, action)
 }
 
 // PutPostStrategyFunc is useful when the resource is created a user specified Id

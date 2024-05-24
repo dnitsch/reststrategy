@@ -1,7 +1,9 @@
 package k8s
 
 import (
+	"fmt"
 	"os"
+
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -39,6 +41,9 @@ func Run(conf Config, logger logr.Logger, scheme *runtime.Scheme) {
 	// removed init
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(seederv1alpha1.AddToScheme(scheme))
+
+	// fs := &flag.FlagSet{}
+	// ctrl.RegisterFlags(fs)
 
 	ctrl.SetLogger(logger.WithName("RestStrategyController"))
 
@@ -82,23 +87,25 @@ func Run(conf Config, logger logr.Logger, scheme *runtime.Scheme) {
 		ConfigManagerConfig:        conf.ConfigManager,
 	}).SetupWithManager(mgr); err != nil {
 		ctrl.Log.Error(err, "unable to create controller", "controller", "RestStrategy")
-		os.Exit(1)
+		MsgExit(ctrl.Log, 1, "CreateControllerError")
 	}
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		ctrl.Log.Error(err, "unable to set up health check")
-		os.Exit(1)
+		MsgExit(ctrl.Log, 1, "AddHealthzCheck")
 	}
+
 	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
 		ctrl.Log.Error(err, "unable to set up ready check")
-		os.Exit(1)
+		MsgExit(ctrl.Log, 1, "AddReadyzCheck")
+
 	}
 
 	ctrl.Log.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
 		// setupLog.Error(err, "problem running manager")
 		ctrl.Log.Error(err, "problem running manager")
-		os.Exit(1)
+		MsgExit(ctrl.Log, 1, "startingManager")
 	}
 }
 
@@ -114,4 +121,12 @@ func GetNamespace(namespace string) string {
 		}
 	}
 	return ns
+}
+
+func MsgExit(logger logr.Logger, code int, area string) {
+	if _, ok := os.LookupEnv("IN_CI_TEST"); ok {
+		logger.Info(fmt.Sprintf("In CI tests, do not exit with code: %d\n", code), "code", code, "area", area)
+		return
+	}
+	os.Exit(code)
 }

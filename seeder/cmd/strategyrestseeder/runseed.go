@@ -7,6 +7,7 @@ import (
 
 	"github.com/dnitsch/configmanager"
 	"github.com/dnitsch/configmanager/pkg/generator"
+	"gopkg.in/yaml.v3"
 
 	srs "github.com/dnitsch/reststrategy/seeder"
 	"github.com/dnitsch/reststrategy/seeder/internal/cmdutils"
@@ -51,7 +52,16 @@ func runExecute(cmd *cobra.Command, args []string) error {
 		l = log.New(os.Stderr, log.DebugLvl)
 	}
 
-	strategy := srs.StrategyConfig{}
+	strategy := &srs.StrategyConfig{}
+	file, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	if err := yaml.Unmarshal(file, strategy); err != nil {
+		return err
+	}
+
 	s := srs.New(&l).WithRestClient(&http.Client{})
 	cmConfig := generator.NewConfig()
 
@@ -67,5 +77,5 @@ func runExecute(cmd *cobra.Command, args []string) error {
 		s.WithConfigManager(&configmanager.ConfigManager{}).WithConfigManagerOptions(cmConfig)
 	}
 
-	return cmdutils.RunSeed(s, strategy, path, verbose)
+	return cmdutils.RunSeed(s, strategy)
 }

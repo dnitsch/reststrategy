@@ -102,7 +102,7 @@ jobs:
       #     make GIT_TAG=$SEMVER REVISION=${{ github.sha }} tag
       - name: release cli 
         run: |
-          task publish-seeder PAT=${{ secrets.GITHUB_TOKEN }} GIT_TAG=$SEMVER
+          task publish-seeder PAT=${{ secrets.GITHUB_TOKEN }} GIT_TAG=$SEMVER REVISION=${{ github.sha }}
   # publish-docker-image:
   #   name: build docker image and push to gchr
   #   # run only when code is compiling and tests are passing

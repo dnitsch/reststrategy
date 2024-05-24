@@ -30,7 +30,8 @@ jobs:
         run: | 
           echo "REVISION  -> $GITHUB_SHA"
           echo "VERSION -> $GITVERSION_SEMVER"
-  test-pr-ci:
+  
+  pr-steps:
     runs-on: ubuntu-latest
     env:
       SEMVER: ${{ needs.set-version.outputs.semVer }}
@@ -48,10 +49,14 @@ jobs:
       - uses: actions/setup-go@v3
         with:
           go-version: '1.22.x'
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: ${{ inputs.taskVersion }}
+          repo-token: ${{ inputs.githubToken }}
       - name: make test 
         run: |
-          export DOCKER_HOST=unix:///var/run/docker.sock
-          make REVISION=$GITHUB_SHA test
+          task test-seeder 
       - name: Publish Junit style Test Report
         uses: mikepenz/action-junit-report@v4
         if: always()

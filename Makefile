@@ -16,7 +16,7 @@ build_controller:
 	echo "build controller"
 	cd controller && make OWNER=$(OWNER) NAME=$(NAME) VERSION=$(VERSION) REVISION=$(REVISION) build
 
-build: build_seeder build_apis build_controller
+build: build_seeder # build_apis build_controller
 
 build_ci: 
 	echo "build seeder first as it contains nested types for APIs" && cd seeder && make OWNER=$(OWNER) NAME=$(NAME) VERSION=$(VERSION) REVISION=$(REVISION) build_ci

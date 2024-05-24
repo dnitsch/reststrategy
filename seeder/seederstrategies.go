@@ -38,7 +38,13 @@ func (r *SeederImpl) FindPost(ctx context.Context, action *Action) error {
 	if err != nil {
 		return err
 	}
-	if found == "" {
+	// run Post as if its a PUT verb
+	// when an id was found
+	if found != "" && action.PostIsPut {
+		return r.post(ctx, action)
+	}
+
+	if found == "" || action.PostIsPut {
 		return r.post(ctx, action)
 	}
 	r.log.Infof("item: %s,found by expression: %s and cannot be updated continuing", found, action.FindByJsonPathExpr)
@@ -172,6 +178,14 @@ func (r *SeederImpl) GetPutPost(ctx context.Context, action *Action) error {
 func (r *SeederImpl) Put(ctx context.Context, action *Action) error {
 	action.templatedPayload = r.TemplateWithVars(action.PayloadTemplate, action.Variables)
 	return r.put(ctx, action)
+}
+
+// Post strategy calls a POST endpoint
+// This should not be an idempotent endpoint but in
+// certain cases it is implemented with a 200 or 202.
+func (r *SeederImpl) Post(ctx context.Context, action *Action) error {
+	action.templatedPayload = r.TemplateWithVars(action.PayloadTemplate, action.Variables)
+	return r.post(ctx, action)
 }
 
 // Put strategy calls a PUT endpoint

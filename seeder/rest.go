@@ -135,8 +135,11 @@ type Action struct {
 	PutEndpointSuffix    *string      `yaml:"putEndpointSuffix,omitempty" json:"putEndpointSuffix,omitempty"`
 	DeleteEndpointSuffix *string      `yaml:"deleteEndpointSuffix,omitempty" json:"deleteEndpointSuffix,omitempty"`
 	FindByJsonPathExpr   string       `yaml:"findByJsonPathExpr,omitempty" json:"findByJsonPathExpr,omitempty"`
-	PayloadTemplate      string       `yaml:"payloadTemplate" json:"payloadTemplate"`
-	PatchPayloadTemplate string       `yaml:"patchPayloadTemplate,omitempty" json:"patchPayloadTemplate,omitempty"`
+	// In the rare cases where POST is being used like a PUT
+	// and exposes a route that idemponently updates a record using the POST verb
+	PostIsPut            bool   `yaml:"postIsPut" json:"postIsPut"`
+	PayloadTemplate      string `yaml:"payloadTemplate" json:"payloadTemplate"`
+	PatchPayloadTemplate string `yaml:"patchPayloadTemplate,omitempty" json:"patchPayloadTemplate,omitempty"`
 	// +kubebuilder:pruning:PreserveUnknownFields
 	RuntimeVars map[string]string `yaml:"runtimeVars,omitempty" json:"runtimeVars,omitempty"`
 	AuthMapRef  string            `yaml:"authMapRef" json:"authMapRef"`

@@ -30,7 +30,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     container:
-      image: golang:1.12-bullseye
+      image: golang:1.22-bullseye
     needs: set-version
     env:
       SEMVER: ${{ needs.set-version.outputs.semVer }}
@@ -71,7 +71,7 @@ jobs:
     name: tag repo and publish binary
     runs-on: ubuntu-latest
     container:
-      image: golang:1.12-bullseye
+      image: golang:1.22-bullseye
     needs: 
       - set-version
       - test

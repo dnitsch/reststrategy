@@ -18,6 +18,9 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - name: set safe path
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: Install GitVersion
         uses: gittools/actions/gitversion/setup@v1
         with:
@@ -25,11 +28,6 @@ jobs:
       - name: Set SemVer Version
         uses: gittools/actions/gitversion/execute@v1
         id: gitversion
-
-      - name: echo VERSIONS
-        run: | 
-          echo "REVISION  -> $GITHUB_SHA"
-          echo "VERSION -> $GITVERSION_SEMVER"
   
   pr-steps:
     runs-on: ubuntu-latest
@@ -54,7 +52,7 @@ jobs:
         with:
           version: 3.37.0
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - name: make test 
         run: |
           task test-seeder 
